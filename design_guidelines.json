@@ -1,0 +1,122 @@
+{
+  "theme_strategy": "dark_only",
+  "typography": {
+    "headings": "Bebas Neue, Chivo, or Barlow Condensed (Military / Tactical impact)",
+    "body": "IBM Plex Mono (for stats/balances) and Inter or IBM Plex Sans (for general readability)",
+    "rules": [
+      "Use tracking-tight for H1-H2, tracking-widest for small caps labels",
+      "Do not use generic sans for hero headings",
+      "Line height: leading-none for headers, leading-relaxed for body",
+      "Use Monospace fonts for all numbers, balances, and live stats"
+    ]
+  },
+  "colors": {
+    "background": "#050605",
+    "surface": "#0C100C",
+    "primary": "#4EE44E",
+    "accent_gold": "#D4AF37",
+    "alert": "#FF3B30",
+    "muted": "#8A9A8A",
+    "rules": [
+      "Background is Deepest Tactical Black with a slight olive/green tint.",
+      "Primary is Night Vision Green, used for tech elements, stats, and tactical UI.",
+      "Accent is Elite Casino Gold, reserved exclusively for wins, chips, premium actions, and VIP tiers.",
+      "No large gradients. Use solid colors with 1px borders, or subtle inner glows.",
+      "Ensure 4.5:1 contrast for all text over dark backgrounds.",
+      "Hover states must shift to a lighter hue of the active state."
+    ]
+  },
+  "visual_enhancers": {
+    "surface_strategy": "Combine Grid Borders (Technical Look) with Retro-Futurism (Terminal Look). Use 1px sharp borders. Add 'corner brackets' (like [ ]) to key containers to simulate HUDs or sniper scopes.",
+    "textures": "Use subtle digital noise, scanlines, or topographic map faint overlays to simulate night-vision goggles or tactical drone feed.",
+    "glow": "Subtle drop-shadow glow around Gold and NVG text for high-value targets/wins."
+  },
+  "layouts": {
+    "global": "Generous padding (p-8 to p-12). Flat structure.",
+    "lobby": "MODE A: 'Tetris' Grid (Asymmetrical) for selecting slot machines as 'missions'.",
+    "dashboard": "MODE B: High Density Grid for player wallet, history, and stats.",
+    "header": "Crystal Glass or Solid Background (bg-black/80 backdrop-blur-md) with thick bottom border.",
+    "footer": "Dark, py-20, must prominently display 'Wages of War Operations Ltd' and licence 'MGA/B2C/912/2025'."
+  },
+  "motion": {
+    "rules": [
+      "Micro-animations for hover and focus states.",
+      "No generic transition-all. Use precise transform and opacity transitions.",
+      "Staggered entrance for mission grid.",
+      "Wins/Spins must be explosive but concise (under 2 seconds)."
+    ]
+  },
+  "accessibility": {
+    "rules": [
+      "Include data-testid on all interactable elements (e.g., spin-button, deposit-submit).",
+      "Provide focus rings (focus:ring-2 focus:ring-[#4EE44E])",
+      "Maintain APCA/WCAG contrast ratios."
+    ]
+  },
+  "media": {
+    "icons": {
+      "library": "@phosphor-icons/react",
+      "installation": "yarn add @phosphor-icons/react",
+      "style": "Duotone or sharp weight for tactical feel."
+    },
+    "images": [
+      {
+        "url": "https://images.unsplash.com/photo-1700774607136-7e730e9e5dd0",
+        "category": "Hero/Background",
+        "description": "Tactical night vision soldier for hero overlay (blend with low opacity)"
+      },
+      {
+        "url": "https://images.pexels.com/photos/7594196/pexels-photo-7594196.jpeg",
+        "category": "Casino/Wins/VIP",
+        "description": "Gold casino chips for VIP section, Wallet deposit, or win screens"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1595134614016-48c815220f77",
+        "category": "Texture/Overlay",
+        "description": "Military camouflage texture for subtle background panels or tier backgrounds"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "SlotMachine",
+      "instructions_to_main_agent": "Must feel best-in-class. Use framer-motion or CSS for spinning reels. Highlight winning paylines with bright Gold (#D4AF37) borders and NVG glows."
+    },
+    {
+      "name": "TargetCard (Lobby Game Card)",
+      "instructions_to_main_agent": "Do not use standard rounded cards. Use sharp corners (rounded-none or max rounded-sm), dark surface, and 1px borders. Add crosshair brackets at corners."
+    },
+    {
+      "name": "WalletHUD",
+      "instructions_to_main_agent": "Display balances in IBM Plex Mono. Use high-contrast Night Vision Green for standard balance, and Elite Gold for VIP/Bonus funds."
+    }
+  ],
+  "3d_libraries": {
+    "recommended": "Framer Motion 3D (for card flips/slots) or TSParticles (for ambient night-vision dust/radar sweeps in background)",
+    "rules": [
+      "Do not overuse 3D; keep UI flat and tactical (HUD style)."
+    ]
+  },
+  "instructions_to_main_agent": [
+    "Always use the exact name 'Wages of War Casino'. NEVER 'War of Wages'.",
+    "Footer MUST contain 'Wages of War Operations Ltd' and 'MGA/B2C/912/2025'.",
+    "Do not use generic blue/purple gradients. Stick strictly to Tactical Green and Elite Gold on deep black.",
+    "Do not apply global text-align: center on App.",
+    "Use pure HTML+Tailwind for high-fidelity marketing/hero layouts, Shadcn for forms/dialogs.",
+    "Use sonner for toast notifications, style them like terminal output or tactical alerts.",
+    "Never use placeholder image URLs. Use the provided media URLs.",
+    "Always include data-testid attributes for testing.",
+    "Never use complete transparent background in header, overlays, any surface that has content under it.",
+    "Design guideline applies to .js files"
+  ],
+  "universal_guidelines_for_main_agent": [
+    "You tend to converge toward generic, 'on distribution' outputs. Avoid the 'AI slop' aesthetic.",
+    "Create depth through layered design elements with z-index hierarchy, NOT flat backgrounds.",
+    "Use glass-morphism selectively for sticky headers (Crystal variant, not muddy gray).",
+    "You MUST NOT apply universal transition (e.g. transition: all). Add transitions for specific properties.",
+    "You MUST NOT center align the app container.",
+    "Never use AI assistant Emoji characters for icons.",
+    "Every interaction needs micro-animations - hover states, transitions.",
+    "Use 2-3x more spacing than feels comfortable."
+  ]
+}

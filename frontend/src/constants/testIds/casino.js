@@ -1,0 +1,84 @@
+export const NAV = {
+  logo: "nav-logo",
+  lobby: "nav-lobby",
+  vip: "nav-vip",
+  leaderboard: "nav-leaderboard",
+  wallet: "nav-wallet",
+  balance: "nav-balance",
+  bonusBtn: "nav-daily-bonus",
+  loginBtn: "nav-login-btn",
+  enlistBtn: "nav-enlist-btn",
+  userMenu: "nav-user-menu",
+  logoutBtn: "nav-logout-btn",
+  profileBtn: "nav-profile-btn",
+};
+
+export const AUTHD = {
+  dialog: "auth-dialog",
+  email: "auth-email",
+  password: "auth-password",
+  name: "auth-name",
+  submit: "auth-submit",
+  google: "auth-google-btn",
+  toggle: "auth-toggle-mode",
+  error: "auth-error",
+};
+
+export const LANDING = {
+  hero: "landing-hero",
+  enlistCta: "landing-enlist-cta",
+  enterLobby: "landing-enter-lobby",
+  giveaway: "landing-giveaway",
+};
+
+export const LOBBY = {
+  root: "lobby-root",
+  slotCard: (id) => `lobby-slot-${id}`,
+  kenoCard: "lobby-keno-card",
+  coinflipCard: "lobby-coinflip-card",
+};
+
+export const SLOT = {
+  root: "slot-root",
+  grid: "slot-grid",
+  cell: (r, c) => `slot-cell-${r}-${c}`,
+  spin: "slot-spin-btn",
+  betInput: "slot-bet-input",
+  betInc: "slot-bet-inc",
+  betDec: "slot-bet-dec",
+  win: "slot-win-amount",
+  balance: "slot-balance",
+};
+
+export const KENO = {
+  root: "keno-root",
+  num: (n) => `keno-num-${n}`,
+  play: "keno-play-btn",
+  clear: "keno-clear-btn",
+  quick: "keno-quick-btn",
+  stake: "keno-stake-input",
+  win: "keno-win-amount",
+  balance: "keno-balance",
+};
+
+export const COINFLIP = {
+  root: "coinflip-root",
+  heads: "coinflip-heads",
+  tails: "coinflip-tails",
+  flip: "coinflip-flip-btn",
+  bet: "coinflip-bet-input",
+  result: "coinflip-result",
+};
+
+export const WALLET = {
+  root: "wallet-root",
+  balance: "wallet-balance",
+  pkg: (id) => `wallet-pkg-${id}`,
+  buy: (id) => `wallet-buy-${id}`,
+  txn: "wallet-txn-list",
+};
+
+export const VIPT = { root: "vip-root", tier: (r) => `vip-tier-${r}` };
+export const LB = { root: "leaderboard-root", row: (r) => `lb-row-${r}` };
+export const PROFILE = { root: "profile-root" };
+export const RG = { root: "responsible-gaming-root" };

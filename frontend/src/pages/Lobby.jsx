@@ -1,0 +1,131 @@
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import api from "@/lib/api";
+import { MACHINE_ART } from "@/data/gameMeta";
+import { LOBBY } from "@/constants/testIds";
+import { SymbolTile } from "@/components/SymbolTile";
+import { Target, CaretRight, Coins, GameController, Skull } from "@phosphor-icons/react";
+
+function CornerCard({ children, onClick, testId, accent = "#4EE44E", className = "" }) {
+  return (
+    <button
+      data-testid={testId}
+      onClick={onClick}
+      className={`relative text-left bg-[#0a0d0a] border border-border overflow-hidden group hover:-translate-y-1 transition-transform duration-300 ${className}`}
+      style={{ boxShadow: "inset 0 0 60px rgba(0,0,0,0.6)" }}
+    >
+      <span className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 z-10" style={{ borderColor: accent }} />
+      <span className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 z-10" style={{ borderColor: accent }} />
+      <span className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 z-10" style={{ borderColor: accent }} />
+      <span className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 z-10" style={{ borderColor: accent }} />
+      {children}
+    </button>
+  );
+}
+
+export default function Lobby() {
+  const navigate = useNavigate();
+  const [slots, setSlots] = useState([]);
+
+  useEffect(() => {
+    api.get("/games/slots").then(({ data }) => setSlots(data)).catch(() => {});
+  }, []);
+
+  const symbolPreview = {
+    gates_of_glory: ["crown", "gem_red", "orb"],
+    book_of_ops: ["idol", "book", "scarab"],
+    big_bass_bombardment: ["fisherman", "boat", "scatter"],
+    wild_west_recon: ["sheriff", "revolver", "wild"],
+    sweet_ammo: ["candy", "heart", "grape"],
+    money_train_convoy: ["vault", "coin", "gunner"],
+  };
+
+  return (
+    <div data-testid={LOBBY.root} className="max-w-[1400px] mx-auto px-4 sm:px-8 py-12">
+      <div className="mb-10">
+        <p className="font-mono text-xs tracking-[0.4em] text-nvg/70">// OPERATIONS LOBBY</p>
+        <h1 className="font-display text-5xl sm:text-6xl tracking-wide text-foreground">SELECT YOUR MISSION</h1>
+        <p className="text-muted-foreground mt-2">Ranked by deployment popularity. Highest-value targets first.</p>
+      </div>
+
+      {/* SLOTS GRID (asymmetric) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 auto-rows-fr">
+        {slots.map((s, i) => {
+          const art = MACHINE_ART[s.id] || { accent: "#4EE44E", from: "#0a1f0a", to: "#0a0d0a", tag: "" };
+          const feature = i === 0; // first (most popular) spans wider on large screens
+          return (
+            <CornerCard
+              key={s.id}
+              testId={LOBBY.slotCard(s.id)}
+              accent={art.accent}
+              onClick={() => navigate(`/slots/${s.id}`)}
+              className={feature ? "lg:col-span-2" : ""}
+            >
+              <div
+                className="p-6 h-full flex flex-col justify-between min-h-[220px]"
+                style={{ background: `radial-gradient(120% 120% at 50% 0%, ${art.from} 0%, ${art.to} 70%)` }}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-[10px] tracking-widest px-2 py-0.5 border" style={{ borderColor: `${art.accent}66`, color: art.accent }}>
+                      #{i + 1} MOST WANTED
+                    </span>
+                  </div>
+                  <span className="font-mono text-[10px] text-gold border border-gold/40 px-2 py-0.5">{s.volatility.toUpperCase()} VOL</span>
+                </div>
+
+                <div className="flex items-center gap-4 my-4">
+                  {(symbolPreview[s.id] || []).map((sym, idx) => (
+                    <div key={idx} className="animate-pop" style={{ animationDelay: `${idx * 0.06}s` }}>
+                      <SymbolTile id={sym} size={feature ? 60 : 46} />
+                    </div>
+                  ))}
+                </div>
+
+                <div>
+                  <h3 className="font-display text-4xl tracking-wide text-foreground leading-none group-hover:gold-gradient">{s.name}</h3>
+                  <p className="text-sm text-muted-foreground mt-1">{s.tagline}</p>
+                  <div className="mt-4 flex items-center justify-between">
+                    <span className="font-mono text-[11px]" style={{ color: art.accent }}>{art.tag}</span>
+                    <span className="flex items-center gap-1 font-stencil tracking-widest uppercase text-sm" style={{ color: art.accent }}>
+                      Deploy <CaretRight size={14} weight="bold" />
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </CornerCard>
+          );
+        })}
+      </div>
+
+      {/* OTHER GAMES */}
+      <div className="mt-12 mb-6">
+        <p className="font-mono text-xs tracking-[0.4em] text-nvg/70">// SPECIAL OPS</p>
+        <h2 className="font-display text-4xl tracking-wide text-foreground">QUICK STRIKES</h2>
+      </div>
+      <div className="grid sm:grid-cols-2 gap-5">
+        <CornerCard testId={LOBBY.kenoCard} accent="#4EE44E" onClick={() => navigate("/keno")}>
+          <div className="p-6 min-h-[160px] flex items-center gap-5" style={{ background: "radial-gradient(120% 120% at 0% 0%, #0a1f0a 0%, #0a0d0a 70%)" }}>
+            <Target size={64} weight="duotone" className="text-nvg shrink-0" />
+            <div>
+              <h3 className="font-display text-4xl tracking-wide text-foreground group-hover:text-nvg">WARHEAD KENO</h3>
+              <p className="text-sm text-muted-foreground mt-1">Mark up to 10 targets. 20 warheads drop. Hit big for up to 5,000x.</p>
+              <span className="mt-3 inline-flex items-center gap-1 font-stencil tracking-widest uppercase text-sm text-nvg">Launch <CaretRight size={14} /></span>
+            </div>
+          </div>
+        </CornerCard>
+
+        <CornerCard testId={LOBBY.coinflipCard} accent="#D4AF37" onClick={() => navigate("/coinflip")}>
+          <div className="p-6 min-h-[160px] flex items-center gap-5" style={{ background: "radial-gradient(120% 120% at 100% 0%, #231a06 0%, #0a0d0a 70%)" }}>
+            <Coins size={64} weight="duotone" className="text-gold shrink-0" />
+            <div>
+              <h3 className="font-display text-4xl tracking-wide text-foreground group-hover:gold-gradient">DOG-TAG FLIP</h3>
+              <p className="text-sm text-muted-foreground mt-1">Call heads or tails. Instant 1.96x payout. Pure nerve.</p>
+              <span className="mt-3 inline-flex items-center gap-1 font-stencil tracking-widest uppercase text-sm text-gold">Flip <CaretRight size={14} /></span>
+            </div>
+          </div>
+        </CornerCard>
+      </div>
+    </div>
+  );
+}
