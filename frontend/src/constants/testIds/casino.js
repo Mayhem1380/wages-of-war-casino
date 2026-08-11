@@ -6,6 +6,7 @@ export const NAV = {
   wallet: "nav-wallet",
   balance: "nav-balance",
   bonusBtn: "nav-daily-bonus",
+  muteBtn: "nav-mute-btn",
   loginBtn: "nav-login-btn",
   enlistBtn: "nav-enlist-btn",
   userMenu: "nav-user-menu",
@@ -48,6 +49,11 @@ export const SLOT = {
   betDec: "slot-bet-dec",
   win: "slot-win-amount",
   balance: "slot-balance",
+  freeOverlay: "slot-free-overlay",
+  freeSpinsLeft: "slot-free-spins-left",
+  freeMultiplier: "slot-free-multiplier",
+  freeWin: "slot-free-total-win",
+  freeCollect: "slot-free-collect",
 };
 
 export const KENO = {

@@ -3,6 +3,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { Toaster } from "sonner";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
+import { SoundProvider } from "@/context/SoundContext";
 import { Layout } from "@/components/Layout";
 import Landing from "@/pages/Landing";
 import Lobby from "@/pages/Lobby";
@@ -57,21 +58,23 @@ function AppRouter() {
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <AppRouter />
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            style: {
-              background: "#0a0d0a",
-              border: "1px solid rgba(78,228,78,0.3)",
-              color: "#eafff0",
-              fontFamily: "IBM Plex Mono, monospace",
-              borderRadius: "2px",
-            },
-          }}
-        />
-      </BrowserRouter>
+      <SoundProvider>
+        <BrowserRouter>
+          <AppRouter />
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              style: {
+                background: "#0a0d0a",
+                border: "1px solid rgba(78,228,78,0.3)",
+                color: "#eafff0",
+                fontFamily: "IBM Plex Mono, monospace",
+                borderRadius: "2px",
+              },
+            }}
+          />
+        </BrowserRouter>
+      </SoundProvider>
     </AuthProvider>
   );
 }

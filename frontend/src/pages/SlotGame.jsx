@@ -7,7 +7,8 @@ import { MACHINE_ART, fmt } from "@/data/gameMeta";
 import { SLOT } from "@/constants/testIds";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Lightning, Minus, Plus, ArrowLeft, Coins, Info } from "@phosphor-icons/react";
+import { sfx } from "@/lib/sounds";
+import { Lightning, Minus, Plus, ArrowLeft, Coins, Info, Sparkle, Target } from "@phosphor-icons/react";
 
 const MIN_BET = 20;
 const MAX_BET = 100000;
@@ -23,58 +24,65 @@ export default function SlotGame() {
   const [reelStop, setReelStop] = useState([false, false, false, false, false]);
   const [winCells, setWinCells] = useState(new Set());
   const [lastWin, setLastWin] = useState(0);
-  const [freeSpins, setFreeSpins] = useState(0);
+  const [free, setFree] = useState(null); // {active, spinsLeft, multiplier, total, done, sessionId}
   const spinRef = useRef();
+  const machineRef = useRef(null);
 
   const art = MACHINE_ART[id] || { accent: "#4EE44E" };
-
   const randSym = useCallback((syms) => syms[Math.floor(Math.random() * syms.length)], []);
 
   useEffect(() => {
-    let mounted = true;
+    let alive = true;
     api.get(`/games/slots/${id}`).then(({ data }) => {
-      if (!mounted) return;
+      if (!alive) return;
       setMachine(data);
-      const g = Array.from({ length: 5 }, () =>
+      machineRef.current = data;
+      setGrid(Array.from({ length: 5 }, () =>
         Array.from({ length: 3 }, () => data.symbols[Math.floor(Math.random() * data.symbols.length)])
-      );
-      setGrid(g);
+      ));
     }).catch(() => navigate("/lobby"));
-    return () => { mounted = true; clearInterval(spinRef.current); };
+    return () => { alive = false; clearInterval(spinRef.current); };
   }, [id, navigate]);
+
+  const highlight = (data) => {
+    const cells = new Set();
+    (data.line_wins || []).forEach((lw) => lw.positions.forEach(([r, c]) => cells.add(`${r}-${c}`)));
+    (data.scatter_positions || []).forEach(([r, c]) => cells.add(`${r}-${c}`));
+    setWinCells(cells);
+  };
+
+  const animateReels = (finalGrid, onDone) => {
+    const m = machineRef.current;
+    setWinCells(new Set());
+    setReelStop([false, false, false, false, false]);
+    sfx.spin();
+    clearInterval(spinRef.current);
+    spinRef.current = setInterval(() => {
+      setGrid((prev) => prev.map((col) => col.map(() => randSym(m.symbols))));
+    }, 70);
+    setTimeout(() => {
+      clearInterval(spinRef.current);
+      finalGrid.forEach((col, reel) => {
+        setTimeout(() => {
+          setGrid((prev) => prev.map((c, r) => (r === reel ? col : c)));
+          setReelStop((prev) => prev.map((v, r) => (r === reel ? true : v)));
+          sfx.reelStop();
+          if (reel === 4) setTimeout(onDone, 150);
+        }, reel * 150);
+      });
+    }, 500);
+  };
 
   const doSpin = async () => {
     if (!user) { openAuth("register"); return; }
-    if (spinning || !machine) return;
+    if (spinning || (free && free.active) || !machine) return;
     if (user.balance < bet) { toast.error("Insufficient credits — resupply at the wallet."); return; }
-
+    sfx.prime();
     setSpinning(true);
-    setWinCells(new Set());
     setLastWin(0);
-    setFreeSpins(0);
-    setReelStop([false, false, false, false, false]);
-
-    // spinning animation: randomize all cells rapidly
-    spinRef.current = setInterval(() => {
-      setGrid((prev) => prev.map((col) => col.map(() => randSym(machine.symbols))));
-    }, 70);
-
     try {
       const { data } = await api.post("/games/slots/spin", { machine_id: id, bet });
-      const startedAt = Date.now();
-      const minDuration = 650;
-      const elapsed = Date.now() - startedAt;
-      setTimeout(() => {
-        clearInterval(spinRef.current);
-        // stop reels left to right
-        data.grid.forEach((col, reel) => {
-          setTimeout(() => {
-            setGrid((prev) => prev.map((c, r) => (r === reel ? col : c)));
-            setReelStop((prev) => prev.map((v, r) => (r === reel ? true : v)));
-            if (reel === 4) finalize(data);
-          }, reel * 160);
-        });
-      }, Math.max(0, minDuration - elapsed));
+      animateReels(data.grid, () => finalizePaid(data));
     } catch (e) {
       clearInterval(spinRef.current);
       setSpinning(false);
@@ -82,35 +90,56 @@ export default function SlotGame() {
     }
   };
 
-  const finalize = (data) => {
-    const cells = new Set();
-    (data.line_wins || []).forEach((lw) => lw.positions.forEach(([r, c]) => cells.add(`${r}-${c}`)));
-    (data.scatter_positions || []).forEach(([r, c]) => cells.add(`${r}-${c}`));
-    setTimeout(() => {
-      setWinCells(cells);
-      setLastWin(data.total_win);
-      setSpinning(false);
-      refreshUser();
-      if (data.free_spins_awarded > 0) {
-        setFreeSpins(data.free_spins_awarded);
-        toast.success(`SCATTER! ${data.free_spins_awarded} free-spin payout secured.`);
-      }
-      if (data.total_win > 0) {
-        toast.success(`WIN +${fmt(data.total_win)} credits`);
-      }
-    }, 120);
+  const finalizePaid = (data) => {
+    highlight(data);
+    setLastWin(data.total_win);
+    setSpinning(false);
+    refreshUser();
+    if (data.total_win >= bet * 15) sfx.bigWin();
+    else if (data.total_win > 0) sfx.win();
+    if (data.total_win > 0) toast.success(`WIN +${fmt(data.total_win)} credits`);
+    if (data.free_session) {
+      sfx.scatter();
+      toast.success(`★ SCATTER! ${data.free_session.spins_left} FREE SPINS INBOUND`);
+      setFree({ active: true, spinsLeft: data.free_session.spins_left, multiplier: 1, total: 0, done: false, sessionId: data.free_session.session_id });
+      setTimeout(() => runFree(data.free_session.session_id), 1400);
+    }
   };
 
-  const changeBet = (delta) => {
-    setBet((b) => {
-      let n = b + delta;
-      if (n < MIN_BET) n = MIN_BET;
-      if (n > MAX_BET) n = MAX_BET;
-      return n;
-    });
+  const runFree = async (sessionId) => {
+    try {
+      const { data } = await api.post("/games/slots/freespin", { session_id: sessionId });
+      animateReels(data.grid, () => {
+        highlight(data);
+        setLastWin(data.win);
+        setFree((f) => ({ ...f, spinsLeft: data.spins_left, multiplier: data.next_multiplier, total: data.total_session_win, done: !data.active }));
+        if (data.win >= machineRef.current.paylines * 5) sfx.bigWin();
+        else if (data.win > 0) sfx.win();
+        if (data.retrigger) { sfx.scatter(); toast.success("★ RETRIGGER +5 SPINS"); }
+        refreshUser();
+        if (data.active) setTimeout(() => runFree(sessionId), 950);
+      });
+    } catch (e) {
+      toast.error(e.response?.data?.detail || "Free spin failed");
+      setFree((f) => (f ? { ...f, done: true } : f));
+    }
   };
+
+  const collectFree = () => {
+    const total = free?.total || 0;
+    sfx.coin();
+    setFree(null);
+    setLastWin(0);
+    setWinCells(new Set());
+    refreshUser();
+    toast.success(`FREE FIRE COMPLETE — banked +${fmt(total)} credits`);
+  };
+
+  const changeBet = (delta) => setBet((b) => Math.max(MIN_BET, Math.min(MAX_BET, b + delta)));
 
   if (!machine) return <div className="max-w-6xl mx-auto p-16 font-mono text-nvg/70">// loading machine...</div>;
+
+  const inFree = free && free.active;
 
   return (
     <div data-testid={SLOT.root} className="max-w-6xl mx-auto px-4 sm:px-8 py-8">
@@ -132,17 +161,44 @@ export default function SlotGame() {
 
       <div className="grid lg:grid-cols-[1fr_280px] gap-6">
         {/* REELS */}
-        <div className="hud p-4 sm:p-6" style={{ background: "#060906" }}>
+        <div className="hud p-4 sm:p-6 relative overflow-hidden" style={{ background: "#060906" }}>
+          {/* FREE SPINS BANNER */}
+          {free && (
+            <div data-testid={SLOT.freeOverlay} className="absolute inset-x-0 top-0 z-20 bg-black/85 border-b-2 border-gold px-5 py-3 flex items-center justify-between animate-pop">
+              <div className="flex items-center gap-3">
+                <Sparkle size={26} weight="fill" className="text-gold animate-flicker" />
+                <div className="leading-none">
+                  <div className="font-display text-2xl tracking-widest gold-gradient">FREE FIRE</div>
+                  <div className="font-mono text-[10px] text-nvg tracking-widest">RISING MULTIPLIER ENGAGED</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-5">
+                <div className="text-center">
+                  <div data-testid={SLOT.freeSpinsLeft} className="font-mono text-2xl text-nvg leading-none">{free.spinsLeft}</div>
+                  <div className="font-mono text-[9px] text-muted-foreground tracking-widest">SPINS</div>
+                </div>
+                <div className="text-center">
+                  <div data-testid={SLOT.freeMultiplier} className="font-display text-3xl leading-none gold-gradient">×{free.multiplier}</div>
+                  <div className="font-mono text-[9px] text-muted-foreground tracking-widest">MULTI</div>
+                </div>
+                <div className="text-center">
+                  <div data-testid={SLOT.freeWin} className="font-mono text-2xl text-gold leading-none">{fmt(free.total)}</div>
+                  <div className="font-mono text-[9px] text-muted-foreground tracking-widest">WON</div>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div
             data-testid={SLOT.grid}
-            className="grid grid-cols-5 gap-2 sm:gap-3"
+            className={`grid grid-cols-5 gap-2 sm:gap-3 ${free ? "mt-16" : ""}`}
             style={{ background: "linear-gradient(180deg, #0a120a, #060906)" }}
           >
             {grid.map((col, reel) => (
               <div key={reel} className="flex flex-col gap-2 sm:gap-3">
                 {col.map((sym, row) => {
                   const hl = winCells.has(`${reel}-${row}`);
-                  const isSpin = spinning && !reelStop[reel];
+                  const isSpin = (spinning || inFree) && !reelStop[reel];
                   return (
                     <div
                       key={row}
@@ -161,12 +217,8 @@ export default function SlotGame() {
             ))}
           </div>
 
-          {/* WIN BAR */}
           <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
-            <div className="font-mono text-xs text-muted-foreground tracking-widest">
-              {freeSpins > 0 && <span className="text-nvg mr-3 animate-flicker">★ {freeSpins} FREE SPINS AWARDED</span>}
-              LAST PAYOUT
-            </div>
+            <div className="font-mono text-xs text-muted-foreground tracking-widest">LAST PAYOUT</div>
             <div data-testid={SLOT.win} className={`font-display text-4xl tracking-wide ${lastWin > 0 ? "gold-gradient animate-pop" : "text-muted-foreground"}`}>
               {lastWin > 0 ? `+${fmt(lastWin)}` : "0"}
             </div>
@@ -178,38 +230,49 @@ export default function SlotGame() {
           <div className="hud p-5">
             <p className="font-mono text-[10px] tracking-widest text-nvg/70 mb-2">STAKE / SPIN</p>
             <div className="flex items-center gap-2">
-              <button data-testid={SLOT.betDec} onClick={() => changeBet(-20)} className="w-10 h-10 border border-border hover:border-nvg text-nvg flex items-center justify-center">
+              <button data-testid={SLOT.betDec} onClick={() => changeBet(-20)} disabled={inFree} className="w-10 h-10 border border-border hover:border-nvg text-nvg flex items-center justify-center disabled:opacity-40">
                 <Minus size={16} weight="bold" />
               </button>
               <input
                 data-testid={SLOT.betInput}
                 type="number"
                 value={bet}
+                disabled={inFree}
                 onChange={(e) => setBet(Math.max(MIN_BET, Math.min(MAX_BET, Number(e.target.value) || MIN_BET)))}
-                className="flex-1 bg-black/50 border border-border text-center font-mono text-lg text-gold py-2 outline-none focus:border-gold"
+                className="flex-1 bg-black/50 border border-border text-center font-mono text-lg text-gold py-2 outline-none focus:border-gold disabled:opacity-50"
               />
-              <button data-testid={SLOT.betInc} onClick={() => changeBet(20)} className="w-10 h-10 border border-border hover:border-nvg text-nvg flex items-center justify-center">
+              <button data-testid={SLOT.betInc} onClick={() => changeBet(20)} disabled={inFree} className="w-10 h-10 border border-border hover:border-nvg text-nvg flex items-center justify-center disabled:opacity-40">
                 <Plus size={16} weight="bold" />
               </button>
             </div>
             <div className="grid grid-cols-3 gap-2 mt-3">
               {[100, 500, 2000].map((v) => (
-                <button key={v} onClick={() => setBet(v)} className="font-mono text-xs border border-border py-1.5 hover:border-gold hover:text-gold text-muted-foreground">
+                <button key={v} onClick={() => setBet(v)} disabled={inFree} className="font-mono text-xs border border-border py-1.5 hover:border-gold hover:text-gold text-muted-foreground disabled:opacity-40">
                   {fmt(v)}
                 </button>
               ))}
             </div>
           </div>
 
-          <Button
-            data-testid={SLOT.spin}
-            onClick={doSpin}
-            disabled={spinning}
-            className="w-full h-16 bg-gold hover:bg-gold/90 text-black font-display text-2xl tracking-widest glow-gold gap-2 disabled:opacity-60"
-          >
-            <Lightning size={26} weight="fill" />
-            {spinning ? "SPINNING..." : "SPIN"}
-          </Button>
+          {free && free.done ? (
+            <Button
+              data-testid={SLOT.freeCollect}
+              onClick={collectFree}
+              className="w-full h-16 bg-nvg hover:bg-nvg/90 text-black font-display text-2xl tracking-widest glow-nvg gap-2 animate-flicker"
+            >
+              <Coins size={26} weight="fill" /> COLLECT {fmt(free.total)}
+            </Button>
+          ) : (
+            <Button
+              data-testid={SLOT.spin}
+              onClick={doSpin}
+              disabled={spinning || inFree}
+              className="w-full h-16 bg-gold hover:bg-gold/90 text-black font-display text-2xl tracking-widest glow-gold gap-2 disabled:opacity-60"
+            >
+              {inFree ? <Sparkle size={26} weight="fill" /> : <Lightning size={26} weight="fill" />}
+              {inFree ? "FREE FIRE..." : spinning ? "SPINNING..." : "SPIN"}
+            </Button>
+          )}
 
           <div className="hud p-4">
             <p className="font-mono text-[10px] tracking-widest text-nvg/70 flex items-center gap-1 mb-3"><Info size={12} /> PAYTABLE (×line bet)</p>
@@ -223,8 +286,8 @@ export default function SlotGame() {
                 </div>
               ))}
               <div className="flex items-center justify-between border-t border-border pt-2 mt-2">
-                <SymbolTile id={machine.scatter} size={24} />
-                <span className="font-mono text-xs text-nvg">SCATTER · {machine.free_spins} free spins</span>
+                <div className="flex items-center gap-1"><Target size={18} weight="fill" className="text-nvg" /><SymbolTile id={machine.scatter} size={22} /></div>
+                <span className="font-mono text-[11px] text-nvg text-right">3+ scatter →<br/>{machine.free_spins} free spins, rising ×</span>
               </div>
             </div>
           </div>

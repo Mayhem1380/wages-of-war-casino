@@ -182,6 +182,10 @@ class SpinInput(BaseModel):
     bet: float = Field(gt=0)
 
 
+class FreeSpinInput(BaseModel):
+    session_id: str
+
+
 class KenoInput(BaseModel):
     picks: List[int]
     stake: float = Field(gt=0)
@@ -355,8 +359,70 @@ async def slots_spin(payload: SpinInput, user: dict = Depends(require_user)):
     )
     await record_transaction(user["user_id"], "slots", net,
                              {"machine": payload.machine_id, "bet": payload.bet, "win": result["total_win"]})
+
+    # Free-spins trigger -> open an interactive session (winnings only, rising multiplier)
+    free_session = None
+    if result["free_spins_awarded"] > 0:
+        session_id = str(uuid.uuid4())
+        await db.free_spins.insert_one({
+            "session_id": session_id,
+            "user_id": user["user_id"],
+            "machine_id": payload.machine_id,
+            "bet": payload.bet,
+            "spins_total": result["free_spins_awarded"],
+            "spins_left": result["free_spins_awarded"],
+            "multiplier": 1,
+            "total_win": 0.0,
+            "active": True,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        })
+        free_session = {"session_id": session_id, "spins_left": result["free_spins_awarded"], "multiplier": 1}
+
+    result["free_session"] = free_session
     result["balance"] = round(updated["balance"], 2)
     result["net"] = round(net, 2)
+    return result
+
+
+@api.post("/games/slots/freespin")
+async def slots_freespin(payload: FreeSpinInput, user: dict = Depends(require_user)):
+    sess = await db.free_spins.find_one({"session_id": payload.session_id})
+    if not sess or sess["user_id"] != user["user_id"] or not sess.get("active") or sess["spins_left"] <= 0:
+        raise HTTPException(status_code=400, detail="No active free-spin session")
+
+    result = spin_slot(sess["machine_id"], sess["bet"])
+    multiplier = sess["multiplier"]
+    base_win = result["total_win"]
+    win = round(base_win * multiplier, 2)
+
+    retrigger = result["scatter_count"] >= 3
+    spins_left = sess["spins_left"] - 1
+    if retrigger:
+        spins_left += 5
+    # multiplier climbs by 1 on every winning free spin
+    next_multiplier = multiplier + (1 if base_win > 0 else 0)
+    total_session_win = round(sess["total_win"] + win, 2)
+    active = spins_left > 0
+
+    await db.free_spins.update_one({"session_id": payload.session_id}, {"$set": {
+        "spins_left": spins_left, "multiplier": next_multiplier,
+        "total_win": total_session_win, "active": active,
+    }})
+
+    updated = await adjust_balance(user["user_id"], delta_balance=win, won=win, biggest=win, played=1)
+    if win > 0:
+        await record_transaction(user["user_id"], "free_spin", win,
+                                 {"machine": sess["machine_id"], "multiplier": multiplier})
+
+    result["base_win"] = round(base_win, 2)
+    result["multiplier"] = multiplier
+    result["win"] = win
+    result["spins_left"] = spins_left
+    result["next_multiplier"] = next_multiplier
+    result["total_session_win"] = total_session_win
+    result["active"] = active
+    result["retrigger"] = retrigger
+    result["balance"] = round(updated["balance"], 2)
     return result
 
 
