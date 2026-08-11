@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import { useSound } from "@/context/SoundContext";
 import { BrandLogo } from "@/components/BrandLogo";
 import { AuthDialog } from "@/components/AuthDialog";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,24 @@ import api from "@/lib/api";
 import { toast } from "sonner";
 import {
   Coins, Gift, UserCircle, Wallet as WalletIcon, SignOut, Medal, Trophy, GameController, ShieldCheck,
+  SpeakerSimpleHigh, SpeakerSimpleSlash,
 } from "@phosphor-icons/react";
+
+function MuteToggle() {
+  const { muted, toggle } = useSound();
+  return (
+    <button
+      data-testid={NAV.muteBtn}
+      onClick={toggle}
+      title={muted ? "Unmute battle sounds" : "Mute battle sounds"}
+      className={`w-9 h-9 flex items-center justify-center border transition-colors ${
+        muted ? "border-border text-muted-foreground hover:text-foreground" : "border-nvg/50 text-nvg hover:bg-nvg/10"
+      }`}
+    >
+      {muted ? <SpeakerSimpleSlash size={18} weight="fill" /> : <SpeakerSimpleHigh size={18} weight="fill" />}
+    </button>
+  );
+}
 
 function DailyBonus() {
   const { user, refreshUser } = useAuth();
@@ -94,6 +112,7 @@ export function Layout({ children }) {
           </nav>
 
           <div className="flex items-center gap-3">
+            <MuteToggle />
             {user ? (
               <>
                 <DailyBonus />

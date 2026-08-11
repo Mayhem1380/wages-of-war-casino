@@ -60,7 +60,7 @@ SLOT_MACHINES = {
     "gates_of_glory": _machine(
         "gates_of_glory", "Gates of Glory", "Ascend the tactical pantheon", "olympus",
         "High",
-        {"crown": 5, "orb": 6, "chalice": 7, "ring": 8, "hourglass": 10, "gem_red": 12, "gem_blue": 12, "gem_green": 14, "gem_purple": 14},
+        {"crown": 5, "orb": 6, "chalice": 7, "ring": 8, "hourglass": 10, "gem_red": 12, "gem_blue": 12, "gem_green": 14, "gem_purple": 14, "wild": 4, "scatter": 4},
         "wild",
         "scatter",
         {
@@ -81,7 +81,7 @@ SLOT_MACHINES = {
     "book_of_ops": _machine(
         "book_of_ops", "Book of Ops", "Uncover the classified expanding relic", "adventure",
         "High",
-        {"explorer": 5, "idol": 6, "scarab": 8, "ace": 12, "king": 12, "queen": 13, "jack": 14, "ten": 15},
+        {"explorer": 5, "idol": 6, "scarab": 8, "ace": 12, "king": 12, "queen": 13, "jack": 14, "ten": 15, "book": 6},
         "book",   # book is wild + scatter combined (classic)
         "book",
         {
@@ -101,7 +101,7 @@ SLOT_MACHINES = {
     "big_bass_bombardment": _machine(
         "big_bass_bombardment", "Big Bass Bombardment", "Reel in the heavy ordnance", "fishing",
         "Medium",
-        {"fisherman": 5, "boat": 7, "rod": 8, "box": 9, "ace": 11, "king": 12, "queen": 13, "jack": 14, "ten": 15},
+        {"fisherman": 5, "boat": 7, "rod": 8, "box": 9, "ace": 11, "king": 12, "queen": 13, "jack": 14, "ten": 15, "wild": 4, "scatter": 4},
         "wild",
         "scatter",
         {
@@ -122,7 +122,7 @@ SLOT_MACHINES = {
     "wild_west_recon": _machine(
         "wild_west_recon", "Wild West Recon", "Frontier firefight bonanza", "western",
         "Medium",
-        {"sheriff": 5, "revolver": 7, "boot": 8, "horseshoe": 9, "ace": 11, "king": 12, "queen": 13, "jack": 14, "ten": 15},
+        {"sheriff": 5, "revolver": 7, "boot": 8, "horseshoe": 9, "ace": 11, "king": 12, "queen": 13, "jack": 14, "ten": 15, "wild": 4, "scatter": 4},
         "wild",
         "scatter",
         {
@@ -143,7 +143,7 @@ SLOT_MACHINES = {
     "sweet_ammo": _machine(
         "sweet_ammo", "Sweet Ammo", "Sugar-coated tumble multipliers", "candy",
         "High",
-        {"heart": 6, "square": 7, "circle": 8, "grape": 10, "plum": 11, "apple": 12, "banana": 13, "candy": 14},
+        {"heart": 6, "square": 7, "circle": 8, "grape": 10, "plum": 11, "apple": 12, "banana": 13, "candy": 14, "wild": 4, "scatter": 4},
         "wild",
         "scatter",
         {
@@ -163,7 +163,7 @@ SLOT_MACHINES = {
     "money_train_convoy": _machine(
         "money_train_convoy", "Money Train Convoy", "Armoured payload heist", "heist",
         "Extreme",
-        {"vault": 4, "loco": 6, "gunner": 7, "coin": 9, "ace": 12, "king": 13, "queen": 14, "jack": 15},
+        {"vault": 4, "loco": 6, "gunner": 7, "coin": 9, "ace": 12, "king": 13, "queen": 14, "jack": 15, "wild": 4, "scatter": 4},
         "wild",
         "scatter",
         {

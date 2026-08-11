@@ -6,6 +6,7 @@ import { fmt } from "@/data/gameMeta";
 import { COINFLIP } from "@/constants/testIds";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { sfx } from "@/lib/sounds";
 import { Coins, ArrowLeft, Lightning } from "@phosphor-icons/react";
 
 export default function CoinFlipGame() {
@@ -23,14 +24,16 @@ export default function CoinFlipGame() {
     setBusy(true);
     setResult(null);
     setFlip(true);
+    sfx.prime();
+    sfx.spin();
     try {
       const { data } = await api.post("/games/coinflip", { side, bet });
       setTimeout(() => {
         setFlip(false);
         setResult(data);
         refreshUser();
-        if (data.win > 0) toast.success(`${data.outcome.toUpperCase()} — WIN +${fmt(data.win)}`);
-        else toast(`${data.outcome.toUpperCase()} — no dice.`);
+        if (data.win > 0) { sfx.win(); toast.success(`${data.outcome.toUpperCase()} — WIN +${fmt(data.win)}`); }
+        else { sfx.lose(); toast(`${data.outcome.toUpperCase()} — no dice.`); }
         setBusy(false);
       }, 900);
     } catch (e) {

@@ -6,6 +6,7 @@ import { fmt } from "@/data/gameMeta";
 import { KENO } from "@/constants/testIds";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { sfx } from "@/lib/sounds";
 import { Target, ArrowLeft, Coins, Shuffle, Trash, Lightning } from "@phosphor-icons/react";
 
 const NUMS = Array.from({ length: 80 }, (_, i) => i + 1);
@@ -45,12 +46,14 @@ export default function KenoGame() {
     if (user.balance < stake) { toast.error("Insufficient credits"); return; }
     setBusy(true);
     setResult(null);
+    sfx.prime();
+    sfx.spin();
     try {
       const { data } = await api.post("/games/keno/play", { picks, stake });
       setResult(data);
       refreshUser();
-      if (data.win > 0) toast.success(`${data.hit_count} hits — WIN +${fmt(data.win)}`);
-      else toast(`${data.hit_count} hits. No payout this drop.`);
+      if (data.win > 0) { sfx.bigWin(); toast.success(`${data.hit_count} hits — WIN +${fmt(data.win)}`); }
+      else { sfx.lose(); toast(`${data.hit_count} hits. No payout this drop.`); }
     } catch (e) {
       toast.error(e.response?.data?.detail || "Play failed");
     }
