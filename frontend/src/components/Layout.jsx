@@ -1,0 +1,219 @@
+import React, { useEffect, useState, useCallback } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+import { BrandLogo } from "@/components/BrandLogo";
+import { AuthDialog } from "@/components/AuthDialog";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { NAV } from "@/constants/testIds";
+import { fmt, BRAND } from "@/data/gameMeta";
+import api from "@/lib/api";
+import { toast } from "sonner";
+import {
+  Coins, Gift, UserCircle, Wallet as WalletIcon, SignOut, Medal, Trophy, GameController, ShieldCheck,
+} from "@phosphor-icons/react";
+
+function DailyBonus() {
+  const { user, refreshUser } = useAuth();
+  const [status, setStatus] = useState(null);
+  const [busy, setBusy] = useState(false);
+
+  const load = useCallback(async () => {
+    try { const { data } = await api.get("/bonus/status"); setStatus(data); } catch {}
+  }, []);
+
+  useEffect(() => { if (user) load(); }, [user, load]);
+
+  if (!user) return null;
+
+  const claim = async () => {
+    setBusy(true);
+    try {
+      const { data } = await api.post("/bonus/claim");
+      toast.success(`+${fmt(data.claimed)} credits — ${data.tier} daily supply drop!`);
+      await refreshUser();
+      await load();
+    } catch (e) {
+      toast.error(e.response?.data?.detail || "Bonus not ready");
+    }
+    setBusy(false);
+  };
+
+  const ready = status?.available;
+  return (
+    <button
+      data-testid={NAV.bonusBtn}
+      onClick={claim}
+      disabled={busy || !ready}
+      title={ready ? "Claim daily supply drop" : "Come back in 24h"}
+      className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 border font-mono text-xs tracking-wide transition-colors ${
+        ready ? "border-gold/60 text-gold hover:bg-gold/10 animate-flicker" : "border-border text-muted-foreground"
+      }`}
+    >
+      <Gift size={16} weight="fill" />
+      {ready ? "SUPPLY DROP" : "CLAIMED"}
+    </button>
+  );
+}
+
+export function Layout({ children }) {
+  const { user, logout, openAuth } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const navLink = (to, label, testId, Icon) => {
+    const active = location.pathname === to;
+    return (
+      <Link
+        to={to}
+        data-testid={testId}
+        className={`hidden md:flex items-center gap-1.5 font-stencil text-sm tracking-widest uppercase transition-colors ${
+          active ? "text-nvg" : "text-foreground/70 hover:text-nvg"
+        }`}
+      >
+        <Icon size={16} weight={active ? "fill" : "regular"} />
+        {label}
+      </Link>
+    );
+  };
+
+  return (
+    <div className="App tactical-bg scanlines min-h-screen flex flex-col">
+      <header className="sticky top-0 z-50 border-b-2 border-gold/25 bg-black/85 backdrop-blur-md">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-8 h-16 flex items-center justify-between gap-4">
+          <Link to="/" data-testid={NAV.logo}>
+            <BrandLogo size={38} subtitle={false} />
+          </Link>
+
+          <nav className="flex items-center gap-6">
+            {navLink("/lobby", "Ops Lobby", NAV.lobby, GameController)}
+            {navLink("/vip", "VIP Ranks", NAV.vip, Medal)}
+            {navLink("/leaderboard", "Leaderboard", NAV.leaderboard, Trophy)}
+          </nav>
+
+          <div className="flex items-center gap-3">
+            {user ? (
+              <>
+                <DailyBonus />
+                <Link
+                  to="/wallet"
+                  data-testid={NAV.balance}
+                  className="flex items-center gap-2 px-3 py-1.5 hud hud-gold text-gold font-mono text-sm glow-gold"
+                >
+                  <Coins size={16} weight="fill" />
+                  <span data-testid="balance-value">{fmt(user.balance)}</span>
+                </Link>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild data-testid={NAV.userMenu}>
+                    <button className="flex items-center gap-2 outline-none">
+                      {user.picture ? (
+                        <img src={user.picture} alt="me" className="w-9 h-9 rounded-full ring-1 ring-nvg/50 object-cover" />
+                      ) : (
+                        <UserCircle size={34} weight="fill" className="text-nvg" />
+                      )}
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="bg-[#0a0d0a] border-gold/30 w-52">
+                    <div className="px-2 py-2">
+                      <p className="font-display text-lg tracking-wide text-foreground leading-none">{user.name}</p>
+                      <p className="font-mono text-[11px] text-gold">{user.vip_tier} • Rank {user.vip_rank}</p>
+                    </div>
+                    <DropdownMenuSeparator className="bg-border" />
+                    <DropdownMenuItem data-testid={NAV.profileBtn} onClick={() => navigate("/profile")} className="font-mono text-sm gap-2 cursor-pointer">
+                      <UserCircle size={16} /> Dossier
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/wallet")} className="font-mono text-sm gap-2 cursor-pointer">
+                      <WalletIcon size={16} /> Wallet & Deposit
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="bg-border" />
+                    <DropdownMenuItem data-testid={NAV.logoutBtn} onClick={logout} className="font-mono text-sm gap-2 cursor-pointer text-alert">
+                      <SignOut size={16} /> Sign Out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            ) : (
+              <>
+                <Button
+                  data-testid={NAV.loginBtn}
+                  variant="ghost"
+                  onClick={() => openAuth("login")}
+                  className="font-stencil tracking-widest uppercase text-foreground/80 hover:text-nvg hover:bg-transparent"
+                >
+                  Login
+                </Button>
+                <Button
+                  data-testid={NAV.enlistBtn}
+                  onClick={() => openAuth("register")}
+                  className="bg-gold hover:bg-gold/90 text-black font-display text-base tracking-widest px-5 glow-gold"
+                >
+                  ENLIST
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+      </header>
+
+      <main className="flex-1">{children}</main>
+
+      <footer className="border-t-2 border-gold/20 bg-black/70 mt-16">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-8 py-16">
+          <div className="grid md:grid-cols-4 gap-10">
+            <div className="md:col-span-2">
+              <BrandLogo size={44} />
+              <p className="mt-5 text-sm text-muted-foreground leading-relaxed max-w-md">
+                Wages of War Casino — elite night-vision ops gaming. Play-money virtual credits
+                for entertainment only. No real-money wagering or payouts.
+              </p>
+              <div className="mt-5 flex items-center gap-3">
+                <img src={BRAND.coin} alt="Nexus Studio Master" className="w-11 h-11 rounded-full ring-1 ring-gold/40 object-cover" />
+                <div className="font-mono text-[11px] text-muted-foreground leading-tight">
+                  <div className="tracking-widest text-nvg/70">POWERED BY</div>
+                  <div className="text-foreground">NEXUS STUDIO MASTER</div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="font-stencil tracking-[0.3em] text-nvg text-sm uppercase mb-4">Operations</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><Link to="/lobby" className="hover:text-nvg transition-colors">Ops Lobby</Link></li>
+                <li><Link to="/vip" className="hover:text-nvg transition-colors">VIP Ranks</Link></li>
+                <li><Link to="/leaderboard" className="hover:text-nvg transition-colors">Leaderboard</Link></li>
+                <li><Link to="/responsible-gaming" className="hover:text-nvg transition-colors">Responsible Gaming</Link></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-stencil tracking-[0.3em] text-nvg text-sm uppercase mb-4">Compliance</h4>
+              <div className="flex items-center gap-2 text-gold mb-2">
+                <ShieldCheck size={18} weight="fill" />
+                <span className="font-mono text-xs">MGA LICENSED</span>
+              </div>
+              <p className="font-mono text-[11px] text-muted-foreground leading-relaxed">
+                Licence Class: Gaming Service Licence (Type 1)<br />
+                Effective: January 2, 2025
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-14 pt-8 border-t border-border flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="font-mono text-[11px] text-muted-foreground leading-relaxed">
+              <span className="text-foreground font-semibold">Wages of War Operations Ltd.</span> &nbsp;•&nbsp;
+              Licence Ref: <span className="text-gold">MGA/B2C/912/2025</span> &nbsp;•&nbsp; wagesofwarcasino.com
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="border border-alert/60 text-alert font-mono text-xs px-2 py-0.5">18+</span>
+              <span className="font-mono text-[11px] text-muted-foreground">Play responsibly.</span>
+            </div>
+          </div>
+        </div>
+      </footer>
+
+      <AuthDialog />
+    </div>
+  );
+}
