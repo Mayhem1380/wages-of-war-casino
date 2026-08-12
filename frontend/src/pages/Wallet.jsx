@@ -5,23 +5,43 @@ import { fmt, BRAND } from "@/data/gameMeta";
 import { WALLET } from "@/constants/testIds";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Coins, Package, Lightning, ArrowUp, ArrowDown, Gift, ShieldCheck } from "@phosphor-icons/react";
+import { Coins, Package, Lightning, ArrowUp, ArrowDown, Gift, ShieldCheck, Percent } from "@phosphor-icons/react";
 
 const TXN_LABEL = {
   slots: "Slots", keno: "Warhead Keno", coinflip: "Dog-Tag Flip",
   daily_bonus: "Daily Supply Drop", signup_bonus: "Enlistment Bonus", deposit: "Credit Resupply",
+  free_spin: "Free Fire Spin", cashback: "VIP Cashback",
 };
 
 export default function Wallet() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [packages, setPackages] = useState([]);
   const [txns, setTxns] = useState([]);
   const [busy, setBusy] = useState(null);
+  const [cashback, setCashback] = useState(null);
+  const [claiming, setClaiming] = useState(false);
+
+  const loadCashback = () => api.get("/cashback/status").then(({ data }) => setCashback(data)).catch(() => {});
 
   useEffect(() => {
     api.get("/payments/packages").then(({ data }) => setPackages(data)).catch(() => {});
     api.get("/wallet/transactions").then(({ data }) => setTxns(data)).catch(() => {});
+    loadCashback();
   }, []);
+
+  const claimCashback = async () => {
+    setClaiming(true);
+    try {
+      const { data } = await api.post("/cashback/claim");
+      toast.success(`VIP cashback secured — +${fmt(data.claimed)} credits`);
+      await refreshUser();
+      await loadCashback();
+      api.get("/wallet/transactions").then(({ data }) => setTxns(data)).catch(() => {});
+    } catch (e) {
+      toast.error(e.response?.data?.detail || "Cashback not ready");
+    }
+    setClaiming(false);
+  };
 
   const buy = async (pkg) => {
     setBusy(pkg.id);
@@ -47,6 +67,32 @@ export default function Wallet() {
         </div>
         <img src={BRAND.emblem} alt="emblem" className="w-16 h-16 rounded-full ring-1 ring-gold/40 object-cover" />
       </div>
+
+      {cashback && cashback.percent > 0 && (
+        <div data-testid={WALLET.cashback} className="hud p-6 flex flex-wrap items-center justify-between gap-4 mb-10">
+          <div className="flex items-center gap-4">
+            <Percent size={30} weight="fill" className="text-nvg" />
+            <div>
+              <p className="font-mono text-xs tracking-widest text-nvg/70">{cashback.tier} WEEKLY CASHBACK · {cashback.percent}%</p>
+              <div className="font-display text-3xl tracking-wide text-foreground leading-none mt-1">
+                {cashback.available ? <span className="gold-gradient">+{fmt(cashback.amount)} READY</span> : <span className="text-muted-foreground">Accruing…</span>}
+              </div>
+              <p className="font-mono text-[11px] text-muted-foreground mt-1">
+                {cashback.available ? "Cashback on your weekly net losses is ready to bank." :
+                  cashback.seconds_left > 0 ? `Next payout in ${Math.ceil(cashback.seconds_left / 3600)}h` : "Play more to accrue cashback on net losses."}
+              </p>
+            </div>
+          </div>
+          <Button
+            data-testid={WALLET.cashbackClaim}
+            onClick={claimCashback}
+            disabled={!cashback.available || claiming}
+            className="bg-nvg hover:bg-nvg/90 text-black font-display text-lg tracking-widest px-6 glow-nvg disabled:opacity-50"
+          >
+            {claiming ? "CLAIMING..." : "CLAIM CASHBACK"}
+          </Button>
+        </div>
+      )}
 
       <div className="mb-6">
         <p className="font-mono text-xs tracking-[0.4em] text-nvg/70">// RESUPPLY DEPOT</p>

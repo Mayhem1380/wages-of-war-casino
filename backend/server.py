@@ -43,6 +43,7 @@ TAX_MODE = "full"  # US + digital credits -> Stripe managed payments
 
 STARTING_BALANCE = 10000.0
 DAILY_BONUS_COOLDOWN_HOURS = 24
+CASHBACK_COOLDOWN_HOURS = 168  # weekly
 
 app = FastAPI(title="Wages of War Casino API")
 api = APIRouter(prefix="/api")
@@ -163,6 +164,44 @@ async def record_transaction(user_id: str, ttype: str, amount: float, meta: dict
     })
 
 
+def _cashback_preview(user: dict):
+    """Returns (percent, amount, seconds_left, tier_name) without granting."""
+    tier, _ = tier_for_wagered(user.get("total_wagered", 0.0))
+    pct = tier["cashback"]
+    seconds_left = 0
+    last = user.get("last_cashback_at")
+    if last:
+        ld = datetime.fromisoformat(last) if isinstance(last, str) else last
+        if ld.tzinfo is None:
+            ld = ld.replace(tzinfo=timezone.utc)
+        elapsed = datetime.now(timezone.utc) - ld
+        cooldown = timedelta(hours=CASHBACK_COOLDOWN_HOURS)
+        if elapsed < cooldown:
+            seconds_left = int((cooldown - elapsed).total_seconds())
+    snap_w = user.get("cashback_wagered_snapshot", 0.0)
+    snap_won = user.get("cashback_won_snapshot", 0.0)
+    net_loss = (user.get("total_wagered", 0.0) - snap_w) - (user.get("total_won", 0.0) - snap_won)
+    amount = round(max(0.0, net_loss) * pct / 100.0, 2)
+    return pct, amount, seconds_left, tier["name"]
+
+
+async def grant_cashback(user: dict):
+    """Grant weekly cashback if cooldown elapsed and there is a positive amount.
+    The window stays open until an actual (>0) payout is made, then a 7-day cooldown begins."""
+    pct, amount, seconds_left, tier_name = _cashback_preview(user)
+    if pct <= 0 or seconds_left > 0 or amount <= 0:
+        return None
+    now_iso = datetime.now(timezone.utc).isoformat()
+    upd = {
+        "last_cashback_at": now_iso,
+        "cashback_wagered_snapshot": user.get("total_wagered", 0.0),
+        "cashback_won_snapshot": user.get("total_won", 0.0),
+    }
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": upd, "$inc": {"balance": amount}})
+    await record_transaction(user["user_id"], "cashback", amount, {"tier": tier_name, "percent": pct})
+    return amount
+
+
 # ---------------------------------------------------------------------------
 # Models
 # ---------------------------------------------------------------------------
@@ -223,6 +262,9 @@ async def register(payload: RegisterInput, response: Response):
         "biggest_win": 0.0,
         "games_played": 0,
         "last_bonus_claim": None,
+        "last_cashback_at": datetime.now(timezone.utc).isoformat(),
+        "cashback_wagered_snapshot": 0.0,
+        "cashback_won_snapshot": 0.0,
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
     await db.users.insert_one(doc)
@@ -255,7 +297,25 @@ async def logout(request: Request, response: Response):
 
 @api.get("/auth/me")
 async def me(user: dict = Depends(require_user)):
-    return public_user(user)
+    await grant_cashback(user)
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
+    return public_user(fresh)
+
+
+@api.get("/cashback/status")
+async def cashback_status(user: dict = Depends(require_user)):
+    pct, amount, seconds_left, tier_name = _cashback_preview(user)
+    return {"available": pct > 0 and seconds_left == 0 and amount > 0,
+            "amount": amount, "percent": pct, "seconds_left": seconds_left, "tier": tier_name}
+
+
+@api.post("/cashback/claim")
+async def cashback_claim(user: dict = Depends(require_user)):
+    granted = await grant_cashback(user)
+    if granted is None:
+        raise HTTPException(status_code=400, detail="Weekly cashback not ready yet")
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
+    return {"claimed": granted, "balance": round(fresh["balance"], 2)}
 
 
 @api.post("/auth/session")
@@ -297,6 +357,9 @@ async def google_session(request: Request, response: Response):
             "biggest_win": 0.0,
             "games_played": 0,
             "last_bonus_claim": None,
+            "last_cashback_at": datetime.now(timezone.utc).isoformat(),
+            "cashback_wagered_snapshot": 0.0,
+            "cashback_won_snapshot": 0.0,
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
         await db.users.insert_one(user_doc)

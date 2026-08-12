@@ -82,7 +82,11 @@ export const WALLET = {
   pkg: (id) => `wallet-pkg-${id}`,
   buy: (id) => `wallet-buy-${id}`,
   txn: "wallet-txn-list",
+  cashback: "wallet-cashback-card",
+  cashbackClaim: "wallet-cashback-claim",
 };
+
+export const BIGWIN = { overlay: "bigwin-overlay", amount: "bigwin-amount" };
 
 export const VIPT = { root: "vip-root", tier: (r) => `vip-tier-${r}` };
 export const LB = { root: "leaderboard-root", row: (r) => `lb-row-${r}` };
