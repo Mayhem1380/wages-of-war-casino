@@ -87,4 +87,16 @@ export const sfx = {
     noiseBurst({ dur: 0.7, gain: 0.07, hp: 900 });
   },
   freeSpinTick: (level = 0) => tone({ freq: 500 + level * 60, dur: 0.06, type: "square", gain: 0.18 }),
+  promote: () => {
+    [523, 659, 784, 1046, 1318].forEach((f, i) => tone({ freq: f, dur: 0.22, type: "triangle", gain: 0.3, start: i * 0.11 }));
+    tone({ freq: 1046, dur: 0.5, type: "sawtooth", gain: 0.18, start: 0.55 });
+    noiseBurst({ dur: 0.5, gain: 0.06, start: 0.55, hp: 2500 });
+  },
+  nearMiss: () => {
+    // rising two-tone alarm
+    tone({ freq: 380, dur: 0.36, type: "sawtooth", gain: 0.22, glideTo: 880 });
+    tone({ freq: 300, dur: 0.36, type: "square", gain: 0.14, glideTo: 760, start: 0.02 });
+    tone({ freq: 460, dur: 0.36, type: "sawtooth", gain: 0.22, glideTo: 1020, start: 0.4 });
+    tone({ freq: 360, dur: 0.36, type: "square", gain: 0.14, glideTo: 900, start: 0.42 });
+  },
 };

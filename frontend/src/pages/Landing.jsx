@@ -134,6 +134,13 @@ export default function Landing() {
       <section className="max-w-[1400px] mx-auto px-4 sm:px-8 pb-20" data-testid={LANDING.giveaway}>
         <div className="hud hud-gold overflow-hidden grid md:grid-cols-2 items-center gap-8 p-8">
           <div>
+            <img
+              src={BRAND.nexusBanner}
+              alt="Nexus Studio Master — Global Gaming Fleet Sales"
+              data-testid="giveaway-nexus-banner"
+              className="w-full mb-6 border border-gold/25 ring-1 ring-black/40"
+              style={{ boxShadow: "0 0 22px rgba(212,175,55,0.18)" }}
+            />
             <p className="font-mono text-xs tracking-[0.4em] text-gold animate-flicker">// MISSION ALERT</p>
             <h2 className="font-display text-4xl sm:text-5xl tracking-wide gold-gradient mt-2">THE $35,000 GIVEAWAY IS LIVE</h2>
             <p className="text-muted-foreground mt-4 leading-relaxed">

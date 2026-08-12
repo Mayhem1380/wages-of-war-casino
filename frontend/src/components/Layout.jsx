@@ -4,6 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useSound } from "@/context/SoundContext";
 import { BrandLogo } from "@/components/BrandLogo";
 import { AuthDialog } from "@/components/AuthDialog";
+import { RankUpBanner } from "@/components/RankUpBanner";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
@@ -233,6 +234,7 @@ export function Layout({ children }) {
       </footer>
 
       <AuthDialog />
+      <RankUpBanner />
     </div>
   );
 }
