@@ -160,3 +160,20 @@ body {
 .bw-ring { animation: gold-burst 1.6s ease-out forwards; }
 .bw-radar { animation: radar-spin 2.4s linear infinite; }
 .bw-amount { animation: bigwin-pop 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.4) both; }
+
+@keyframes shake-x {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-7px) rotate(-0.4deg); }
+  30% { transform: translateX(7px) rotate(0.4deg); }
+  45% { transform: translateX(-5px); }
+  60% { transform: translateX(5px); }
+  75% { transform: translateX(-3px); }
+}
+.animate-shake { animation: shake-x 0.55s cubic-bezier(0.36, 0.07, 0.19, 0.97); }
+
+@keyframes rankup-in {
+  0% { transform: translateY(-40px) scale(0.9); opacity: 0; }
+  60% { transform: translateY(6px) scale(1.02); opacity: 1; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+.animate-rankup { animation: rankup-in 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.3) both; }
