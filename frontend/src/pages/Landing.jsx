@@ -6,8 +6,47 @@ import { BRAND, fmt } from "@/data/gameMeta";
 import { LANDING } from "@/constants/testIds";
 import api from "@/lib/api";
 import {
-  Coins, GameController, Medal, Trophy, ShieldCheck, Lightning, CaretRight, Target, Gift,
+  Coins, GameController, Medal, Trophy, ShieldCheck, Lightning, CaretRight, Target, Gift, Clock, ArrowUpRight,
 } from "@phosphor-icons/react";
+
+const GIVEAWAY_END = new Date("2026-07-15T20:00:00Z");
+
+function GiveawayCountdown() {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const diff = Math.max(0, GIVEAWAY_END.getTime() - now);
+  const d = Math.floor(diff / 86400000);
+  const h = Math.floor((diff % 86400000) / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+  const ended = diff <= 0;
+  const unit = (val, label) => (
+    <div className="text-center">
+      <div className="font-display text-4xl sm:text-5xl tracking-wide gold-gradient leading-none tabular-nums">{String(val).padStart(2, "0")}</div>
+      <div className="font-mono text-[9px] tracking-[0.3em] text-muted-foreground mt-1">{label}</div>
+    </div>
+  );
+  return (
+    <div data-testid="giveaway-countdown" className="mt-5">
+      <div className="flex items-center gap-2 font-mono text-[11px] tracking-[0.3em] text-nvg mb-2">
+        <Clock size={14} weight="fill" /> {ended ? "EXTRACTION IN PROGRESS" : "TIME TO EXTRACTION"}
+      </div>
+      {ended ? (
+        <div className="font-display text-3xl gold-gradient animate-flicker">DRAWING NOW</div>
+      ) : (
+        <div className="flex items-center gap-3 sm:gap-5">
+          {unit(d, "DAYS")}<span className="text-gold/40 text-3xl -mt-3">:</span>
+          {unit(h, "HRS")}<span className="text-gold/40 text-3xl -mt-3">:</span>
+          {unit(m, "MIN")}<span className="text-gold/40 text-3xl -mt-3">:</span>
+          {unit(s, "SEC")}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Landing() {
   const { user, openAuth } = useAuth();
@@ -134,19 +173,28 @@ export default function Landing() {
       <section className="max-w-[1400px] mx-auto px-4 sm:px-8 pb-20" data-testid={LANDING.giveaway}>
         <div className="hud hud-gold overflow-hidden grid md:grid-cols-2 items-center gap-8 p-8">
           <div>
-            <img
-              src={BRAND.nexusBanner}
-              alt="Nexus Studio Master — Global Gaming Fleet Sales"
+            <button
+              onClick={() => navigate("/fleet-sales")}
               data-testid="giveaway-nexus-banner"
-              className="w-full mb-6 border border-gold/25 ring-1 ring-black/40"
+              className="group relative block w-full mb-6 overflow-hidden border border-gold/25 ring-1 ring-black/40 hover:border-gold/70 transition-colors"
               style={{ boxShadow: "0 0 22px rgba(212,175,55,0.18)" }}
-            />
+            >
+              <img
+                src={BRAND.nexusBanner}
+                alt="Nexus Studio Master — Global Gaming Fleet Sales"
+                className="w-full transition-transform duration-500 group-hover:scale-[1.03]"
+              />
+              <span className="absolute bottom-2 right-2 flex items-center gap-1 bg-black/70 border border-gold/40 text-gold font-mono text-[10px] tracking-widest px-2 py-1 opacity-90 group-hover:opacity-100">
+                FLEET SALES <ArrowUpRight size={12} weight="bold" />
+              </span>
+            </button>
             <p className="font-mono text-xs tracking-[0.4em] text-gold animate-flicker">// MISSION ALERT</p>
             <h2 className="font-display text-4xl sm:text-5xl tracking-wide gold-gradient mt-2">THE $35,000 GIVEAWAY IS LIVE</h2>
             <p className="text-muted-foreground mt-4 leading-relaxed">
               To celebrate the launch of the Nexus Studio Master fleet, one full Turnkey Platform
               License is up for extraction. Enlist, climb the ranks, and join the elite.
             </p>
+            <GiveawayCountdown />
             <Button onClick={primaryCta} className="mt-6 bg-nvg hover:bg-nvg/90 text-black font-display text-lg tracking-widest px-6 glow-nvg">
               JOIN THE ELITE
             </Button>

@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
 import api, { apiError } from "@/lib/api";
+import { toast } from "sonner";
+import { fmt } from "@/data/gameMeta";
 
 const AuthContext = createContext(null);
 
@@ -24,6 +26,9 @@ export function AuthProvider({ children }) {
     try {
       const { data } = await api.get("/auth/me");
       applyUser(data);
+      if (data.cashback_just_paid > 0) {
+        toast.success(`Welcome back, operative — ${data.vip_tier} weekly cashback of +${fmt(data.cashback_just_paid)} credits was auto-deposited.`, { duration: 6000 });
+      }
       return data;
     } catch {
       setUser(false);

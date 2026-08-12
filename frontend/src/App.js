@@ -15,6 +15,7 @@ import Profile from "@/pages/Profile";
 import Leaderboard from "@/pages/Leaderboard";
 import Vip from "@/pages/Vip";
 import ResponsibleGaming from "@/pages/ResponsibleGaming";
+import FleetSales from "@/pages/FleetSales";
 import PaymentSuccess from "@/pages/PaymentSuccess";
 import AuthCallback from "@/pages/AuthCallback";
 
@@ -46,6 +47,7 @@ function AppRouter() {
         <Route path="/leaderboard" element={<Leaderboard />} />
         <Route path="/vip" element={<Vip />} />
         <Route path="/responsible-gaming" element={<ResponsibleGaming />} />
+        <Route path="/fleet-sales" element={<FleetSales />} />
         <Route path="/wallet" element={<Protected><Wallet /></Protected>} />
         <Route path="/profile" element={<Protected><Profile /></Protected>} />
         <Route path="/payment/success" element={<PaymentSuccess />} />

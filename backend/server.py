@@ -297,9 +297,12 @@ async def logout(request: Request, response: Response):
 
 @api.get("/auth/me")
 async def me(user: dict = Depends(require_user)):
-    await grant_cashback(user)
+    granted = await grant_cashback(user)
     fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
-    return public_user(fresh)
+    resp = public_user(fresh)
+    if granted:
+        resp["cashback_just_paid"] = granted
+    return resp
 
 
 @api.get("/cashback/status")
