@@ -29,6 +29,13 @@ export default function Landing() {
           style={{ backgroundImage: `url(${BRAND.hero})` }}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-[#050605]" />
+        <img
+          src={BRAND.coinNightOps}
+          alt="Wages of War Casino — Night Ops Edition"
+          data-testid="hero-nightops-coin"
+          className="absolute top-4 right-4 sm:top-8 sm:right-8 w-24 sm:w-36 md:w-48 lg:w-56 z-20 animate-float pointer-events-none select-none"
+          style={{ filter: "drop-shadow(0 0 34px rgba(212,175,55,0.5))" }}
+        />
         <div className="relative max-w-[1400px] mx-auto px-4 sm:px-8 pt-24 pb-28 md:pt-32 md:pb-40">
           <div className="max-w-3xl">
             <div className="flex items-center gap-2 mb-6 animate-pop">

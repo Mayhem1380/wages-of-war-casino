@@ -73,5 +73,6 @@ export const BRAND = {
   emblem: "/brand/emblem.jpeg",
   promo: "/brand/promo-platforms.jpeg",
   coin: "/brand/coin.jpeg",
+  coinNightOps: "/brand/coin-nightops.png",
   giveaway: "/brand/giveaway.webp",
 };
