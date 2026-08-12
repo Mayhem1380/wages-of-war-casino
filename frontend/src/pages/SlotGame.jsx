@@ -8,6 +8,7 @@ import { SLOT } from "@/constants/testIds";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { sfx } from "@/lib/sounds";
+import { BigWinOverlay } from "@/components/BigWinOverlay";
 import { Lightning, Minus, Plus, ArrowLeft, Coins, Info, Sparkle, Target } from "@phosphor-icons/react";
 
 const MIN_BET = 20;
@@ -25,6 +26,7 @@ export default function SlotGame() {
   const [winCells, setWinCells] = useState(new Set());
   const [lastWin, setLastWin] = useState(0);
   const [free, setFree] = useState(null); // {active, spinsLeft, multiplier, total, done, sessionId}
+  const [bigWin, setBigWin] = useState(null); // {win, multiplier}
   const spinRef = useRef();
   const machineRef = useRef(null);
 
@@ -97,6 +99,7 @@ export default function SlotGame() {
     refreshUser();
     if (data.total_win >= bet * 15) sfx.bigWin();
     else if (data.total_win > 0) sfx.win();
+    if (data.total_win >= bet * 50) setBigWin({ win: data.total_win, multiplier: 1 });
     if (data.total_win > 0) toast.success(`WIN +${fmt(data.total_win)} credits`);
     if (data.free_session) {
       sfx.scatter();
@@ -115,6 +118,7 @@ export default function SlotGame() {
         setFree((f) => ({ ...f, spinsLeft: data.spins_left, multiplier: data.next_multiplier, total: data.total_session_win, done: !data.active }));
         if (data.win >= machineRef.current.paylines * 5) sfx.bigWin();
         else if (data.win > 0) sfx.win();
+        if (data.win >= bet * 50) setBigWin({ win: data.win, multiplier: data.multiplier });
         if (data.retrigger) { sfx.scatter(); toast.success("★ RETRIGGER +5 SPINS"); }
         refreshUser();
         if (data.active) setTimeout(() => runFree(sessionId), 950);
@@ -143,6 +147,7 @@ export default function SlotGame() {
 
   return (
     <div data-testid={SLOT.root} className="max-w-6xl mx-auto px-4 sm:px-8 py-8">
+      {bigWin && <BigWinOverlay win={bigWin.win} multiplier={bigWin.multiplier} onDone={() => setBigWin(null)} />}
       <button onClick={() => navigate("/lobby")} className="flex items-center gap-2 text-muted-foreground hover:text-nvg font-mono text-sm mb-6">
         <ArrowLeft size={16} /> RETURN TO LOBBY
       </button>

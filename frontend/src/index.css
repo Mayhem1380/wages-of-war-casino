@@ -134,3 +134,29 @@ body {
   50% { transform: translateY(-10px); }
 }
 .animate-float { animation: float-y 4.5s ease-in-out infinite; }
+
+@keyframes coin-intro {
+  0% { transform: rotateY(-720deg) scale(0.35); opacity: 0; }
+  70% { opacity: 1; }
+  100% { transform: rotateY(0deg) scale(1); opacity: 1; }
+}
+.animate-coin-intro {
+  transform-style: preserve-3d;
+  animation: coin-intro 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) both, float-y 4.5s ease-in-out 1.3s infinite;
+}
+
+@keyframes radar-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes gold-burst {
+  0% { transform: scale(0.2); opacity: 0; }
+  30% { opacity: 1; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+@keyframes bigwin-pop {
+  0% { transform: scale(0.4) translateY(20px); opacity: 0; }
+  50% { transform: scale(1.15) translateY(0); opacity: 1; }
+  70% { transform: scale(0.96); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.bw-ring { animation: gold-burst 1.6s ease-out forwards; }
+.bw-radar { animation: radar-spin 2.4s linear infinite; }
+.bw-amount { animation: bigwin-pop 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.4) both; }
