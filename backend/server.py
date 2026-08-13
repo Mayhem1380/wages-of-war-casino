@@ -240,6 +240,14 @@ class CheckoutInput(BaseModel):
     origin_url: str
 
 
+class FleetEnquiryInput(BaseModel):
+    name: str = Field(min_length=1)
+    email: EmailStr
+    company: Optional[str] = ""
+    country: Optional[str] = ""
+    message: str = Field(min_length=1)
+
+
 # ---------------------------------------------------------------------------
 # Auth routes
 # ---------------------------------------------------------------------------
@@ -615,6 +623,29 @@ async def leaderboard():
 @api.get("/vip/tiers")
 async def vip_tiers():
     return VIP_TIERS
+
+
+@api.post("/fleet/enquiry")
+async def fleet_enquiry(payload: FleetEnquiryInput):
+    doc = {
+        "id": str(uuid.uuid4()),
+        "name": payload.name.strip(),
+        "email": payload.email.lower().strip(),
+        "company": (payload.company or "").strip(),
+        "country": (payload.country or "").strip(),
+        "message": payload.message.strip(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.fleet_enquiries.insert_one(doc)
+    return {"ok": True, "id": doc["id"]}
+
+
+@api.get("/cashback/history")
+async def cashback_history(user: dict = Depends(require_user)):
+    rows = await db.transactions.find(
+        {"user_id": user["user_id"], "type": "cashback"}, {"_id": 0}
+    ).sort("created_at", -1).to_list(50)
+    return rows
 
 
 # ---------------------------------------------------------------------------

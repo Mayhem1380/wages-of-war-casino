@@ -32,21 +32,23 @@ function GiveawayCountdown() {
   const h = Math.floor((diff % 86400000) / 3600000);
   const m = Math.floor((diff % 3600000) / 60000);
   const s = Math.floor((diff % 60000) / 1000);
+  const urgent = diff < 86400000; // final 24 hours
   const unit = (val, label) => (
     <div className="text-center">
-      <div className="font-display text-4xl sm:text-5xl tracking-wide gold-gradient leading-none tabular-nums">{String(val).padStart(2, "0")}</div>
+      <div className={`font-display text-4xl sm:text-5xl tracking-wide leading-none tabular-nums ${urgent ? "text-alert" : "gold-gradient"}`}
+        style={urgent ? { textShadow: "0 0 16px rgba(255,59,48,0.7)" } : undefined}>{String(val).padStart(2, "0")}</div>
       <div className="font-mono text-[9px] tracking-[0.3em] text-muted-foreground mt-1">{label}</div>
     </div>
   );
   return (
-    <div data-testid="giveaway-countdown" className="mt-5">
-      <div className="flex items-center gap-2 font-mono text-[11px] tracking-[0.3em] text-nvg mb-2">
-        <Clock size={14} weight="fill" /> TIME TO EXTRACTION
+    <div data-testid="giveaway-countdown" className={`mt-5 ${urgent ? "animate-flicker" : ""}`}>
+      <div className={`flex items-center gap-2 font-mono text-[11px] tracking-[0.3em] mb-2 ${urgent ? "text-alert" : "text-nvg"}`}>
+        <Clock size={14} weight="fill" /> {urgent ? "⚠ FINAL 24 HOURS — EXTRACTION IMMINENT" : "TIME TO EXTRACTION"}
       </div>
-      <div className="flex items-center gap-3 sm:gap-5">
-        {unit(d, "DAYS")}<span className="text-gold/40 text-3xl -mt-3">:</span>
-        {unit(h, "HRS")}<span className="text-gold/40 text-3xl -mt-3">:</span>
-        {unit(m, "MIN")}<span className="text-gold/40 text-3xl -mt-3">:</span>
+      <div className={`flex items-center gap-3 sm:gap-5 ${urgent ? "sep-alert" : ""}`}>
+        {unit(d, "DAYS")}<span className={`text-3xl -mt-3 ${urgent ? "text-alert/50" : "text-gold/40"}`}>:</span>
+        {unit(h, "HRS")}<span className={`text-3xl -mt-3 ${urgent ? "text-alert/50" : "text-gold/40"}`}>:</span>
+        {unit(m, "MIN")}<span className={`text-3xl -mt-3 ${urgent ? "text-alert/50" : "text-gold/40"}`}>:</span>
         {unit(s, "SEC")}
       </div>
     </div>

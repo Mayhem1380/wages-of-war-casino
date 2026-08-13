@@ -92,3 +92,14 @@ export const VIPT = { root: "vip-root", tier: (r) => `vip-tier-${r}` };
 export const LB = { root: "leaderboard-root", row: (r) => `lb-row-${r}` };
 export const PROFILE = { root: "profile-root" };
 export const RG = { root: "responsible-gaming-root" };
+
+export const FLEET = {
+  root: "fleet-root",
+  name: "fleet-name",
+  company: "fleet-company",
+  email: "fleet-email",
+  country: "fleet-country",
+  message: "fleet-message",
+  submit: "fleet-submit",
+  success: "fleet-success",
+};

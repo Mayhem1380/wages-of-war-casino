@@ -19,14 +19,17 @@ export default function Wallet() {
   const [txns, setTxns] = useState([]);
   const [busy, setBusy] = useState(null);
   const [cashback, setCashback] = useState(null);
+  const [cashbackLog, setCashbackLog] = useState([]);
   const [claiming, setClaiming] = useState(false);
 
   const loadCashback = () => api.get("/cashback/status").then(({ data }) => setCashback(data)).catch(() => {});
+  const loadCashbackLog = () => api.get("/cashback/history").then(({ data }) => setCashbackLog(data)).catch(() => {});
 
   useEffect(() => {
     api.get("/payments/packages").then(({ data }) => setPackages(data)).catch(() => {});
     api.get("/wallet/transactions").then(({ data }) => setTxns(data)).catch(() => {});
     loadCashback();
+    loadCashbackLog();
   }, []);
 
   const claimCashback = async () => {
@@ -36,6 +39,7 @@ export default function Wallet() {
       toast.success(`VIP cashback secured — +${fmt(data.claimed)} credits`);
       await refreshUser();
       await loadCashback();
+      loadCashbackLog();
       api.get("/wallet/transactions").then(({ data }) => setTxns(data)).catch(() => {});
     } catch (e) {
       toast.error(e.response?.data?.detail || "Cashback not ready");
@@ -91,6 +95,31 @@ export default function Wallet() {
           >
             {claiming ? "CLAIMING..." : "CLAIM CASHBACK"}
           </Button>
+        </div>
+      )}
+
+      {cashbackLog.length > 0 && (
+        <div data-testid="wallet-cashback-log" className="mb-10">
+          <div className="mb-3">
+            <p className="font-mono text-xs tracking-[0.4em] text-nvg/70">// CASHBACK LEDGER</p>
+            <h2 className="font-display text-3xl tracking-wide text-foreground">WEEKLY CASHBACK HISTORY</h2>
+          </div>
+          <div className="hud divide-y divide-border">
+            {cashbackLog.map((c) => (
+              <div key={c.id} className="flex items-center justify-between px-5 py-3">
+                <div className="flex items-center gap-3">
+                  <Percent size={18} weight="fill" className="text-nvg" />
+                  <div>
+                    <div className="font-stencil tracking-wide text-foreground uppercase text-sm">
+                      {c.meta?.tier || "VIP"} Cashback{c.meta?.percent ? ` · ${c.meta.percent}%` : ""}
+                    </div>
+                    <div className="font-mono text-[10px] text-muted-foreground">{new Date(c.created_at).toLocaleString()}</div>
+                  </div>
+                </div>
+                <div className="font-mono text-lg text-nvg">+{fmt(c.amount)}</div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
