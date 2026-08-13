@@ -1,15 +1,38 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { BRAND } from "@/data/gameMeta";
+import { FLEET } from "@/constants/testIds";
+import api, { apiError } from "@/lib/api";
+import { toast } from "sonner";
 import {
-  ArrowLeft, GlobeHemisphereWest, Cube, ShieldCheck, Lightning, Headset, Gauge, RocketLaunch, CheckCircle, Airplane,
+  ArrowLeft, GlobeHemisphereWest, Cube, ShieldCheck, Lightning, Headset, Gauge, RocketLaunch, CheckCircle, Airplane, PaperPlaneTilt,
 } from "@phosphor-icons/react";
 
 export default function FleetSales() {
   const navigate = useNavigate();
   const { user, openAuth } = useAuth();
+  const [form, setForm] = useState({ name: "", company: "", email: "", country: "", message: "" });
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  const setField = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
+
+  const submitEnquiry = async (e) => {
+    e.preventDefault();
+    setSending(true);
+    try {
+      await api.post("/fleet/enquiry", form);
+      setSent(true);
+      toast.success("Enquiry transmitted — the Nexus command team will be in contact.");
+    } catch (err) {
+      toast.error(apiError(err.response?.data?.detail, "Could not send enquiry. Try again."));
+    }
+    setSending(false);
+  };
 
   const features = [
     { Icon: Cube, title: "Turnkey Platforms", body: "Fully-built, brandable online casino platforms deployed and ready for launch — the same engine powering Wages of War." },
@@ -21,7 +44,7 @@ export default function FleetSales() {
   ];
 
   return (
-    <div className="max-w-[1200px] mx-auto px-4 sm:px-8 py-10">
+    <div data-testid={FLEET.root} className="max-w-[1200px] mx-auto px-4 sm:px-8 py-10">
       <button onClick={() => navigate("/")} className="flex items-center gap-2 text-muted-foreground hover:text-nvg font-mono text-sm mb-6">
         <ArrowLeft size={16} /> RETURN TO BASE
       </button>
@@ -74,6 +97,40 @@ export default function FleetSales() {
           </Button>
         </div>
         <img src={BRAND.giveaway} alt="Wages of War Casino giveaway" className="w-full max-w-sm mx-auto ring-1 ring-gold/30" />
+      </div>
+
+      <div className="hud hud-gold p-8 mb-10" id="enquiry">
+        <div className="mb-6">
+          <p className="font-mono text-xs tracking-[0.4em] text-nvg/70">// REQUEST A PLATFORM QUOTE</p>
+          <h2 className="font-display text-4xl tracking-wide gold-gradient flex items-center gap-3">
+            <PaperPlaneTilt size={32} weight="fill" className="text-gold" /> FLEET ENQUIRY
+          </h2>
+          <p className="text-muted-foreground mt-2 text-sm">Operators only. Tell us about your deployment and the Nexus command team will respond.</p>
+        </div>
+
+        {sent ? (
+          <div data-testid={FLEET.success} className="flex flex-col items-center text-center py-8 animate-pop">
+            <CheckCircle size={56} weight="fill" className="text-nvg" />
+            <h3 className="font-display text-3xl tracking-wide text-foreground mt-4">TRANSMISSION RECEIVED</h3>
+            <p className="text-muted-foreground mt-1 max-w-md">Your fleet enquiry is logged. Expect contact from the Nexus Studio Master command team shortly.</p>
+            <Button onClick={() => { setSent(false); setForm({ name: "", company: "", email: "", country: "", message: "" }); }}
+              variant="outline" className="mt-6 border-nvg/40 text-nvg font-stencil tracking-widest">SEND ANOTHER</Button>
+          </div>
+        ) : (
+          <form onSubmit={submitEnquiry} className="space-y-4">
+            <div className="grid sm:grid-cols-2 gap-4">
+              <Input data-testid={FLEET.name} required placeholder="Your name" value={form.name} onChange={setField("name")} className="bg-black/40 border-border font-mono" />
+              <Input data-testid={FLEET.company} placeholder="Company / operator" value={form.company} onChange={setField("company")} className="bg-black/40 border-border font-mono" />
+              <Input data-testid={FLEET.email} required type="email" placeholder="Email" value={form.email} onChange={setField("email")} className="bg-black/40 border-border font-mono" />
+              <Input data-testid={FLEET.country} placeholder="Target market / country" value={form.country} onChange={setField("country")} className="bg-black/40 border-border font-mono" />
+            </div>
+            <Textarea data-testid={FLEET.message} required rows={4} placeholder="Tell us about your platform requirements, target markets, and timeline…" value={form.message} onChange={setField("message")} className="bg-black/40 border-border font-mono" />
+            <Button data-testid={FLEET.submit} type="submit" disabled={sending}
+              className="bg-gold hover:bg-gold/90 text-black font-display text-lg tracking-widest px-6 glow-gold gap-2">
+              <PaperPlaneTilt size={18} weight="fill" /> {sending ? "TRANSMITTING..." : "TRANSMIT ENQUIRY"}
+            </Button>
+          </form>
+        )}
       </div>
 
       <div className="flex items-center gap-3 justify-center text-center">

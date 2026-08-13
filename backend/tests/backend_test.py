@@ -299,3 +299,136 @@ class TestCashback:
         # And status should show seconds_left ~ 7 days
         s2 = requests.get(f"{API}/cashback/status", headers=h).json()
         assert s2["seconds_left"] > 0
+
+
+# ---------------- FLEET ENQUIRY ----------------
+class TestFleetEnquiry:
+    def test_fleet_enquiry_success(self):
+        payload = {
+            "name": "TEST_Commander Ops",
+            "email": f"test_fleet_{uuid.uuid4().hex[:6]}@wowtest.com",
+            "company": "Alpha Squad",
+            "country": "USA",
+            "message": "TEST_ Requesting fleet quote for 3 units.",
+        }
+        r = requests.post(f"{API}/fleet/enquiry", json=payload)
+        assert r.status_code == 200, r.text
+        d = r.json()
+        assert d.get("ok") is True
+        assert isinstance(d.get("id"), str) and len(d["id"]) > 5
+
+    def test_fleet_enquiry_persists(self):
+        payload = {
+            "name": "TEST_Persist",
+            "email": f"test_persist_{uuid.uuid4().hex[:6]}@wowtest.com",
+            "company": "",
+            "country": "",
+            "message": "TEST_ persistence check",
+        }
+        r = requests.post(f"{API}/fleet/enquiry", json=payload)
+        assert r.status_code == 200
+        eid = r.json()["id"]
+        # verify persisted via mongo
+        try:
+            from motor.motor_asyncio import AsyncIOMotorClient
+            import asyncio
+        except ImportError:
+            pytest.skip("motor not installed")
+        mongo_url = os.environ.get("MONGO_URL", "mongodb://localhost:27017")
+        db_name = os.environ.get("DB_NAME", "test_database")
+
+        async def check():
+            client = AsyncIOMotorClient(mongo_url)
+            doc = await client[db_name].fleet_enquiries.find_one({"id": eid})
+            client.close()
+            return doc
+        doc = asyncio.run(check())
+        assert doc is not None
+        assert doc["email"] == payload["email"]
+        assert doc["name"] == "TEST_Persist"
+
+    def test_fleet_enquiry_missing_name(self):
+        r = requests.post(f"{API}/fleet/enquiry", json={"email": "x@y.com", "message": "hi"})
+        assert r.status_code == 422
+
+    def test_fleet_enquiry_missing_email(self):
+        r = requests.post(f"{API}/fleet/enquiry", json={"name": "x", "message": "hi"})
+        assert r.status_code == 422
+
+    def test_fleet_enquiry_missing_message(self):
+        r = requests.post(f"{API}/fleet/enquiry", json={"name": "x", "email": "x@y.com"})
+        assert r.status_code == 422
+
+    def test_fleet_enquiry_empty_name(self):
+        r = requests.post(f"{API}/fleet/enquiry", json={"name": "", "email": "x@y.com", "message": "hi"})
+        assert r.status_code == 422
+
+    def test_fleet_enquiry_invalid_email(self):
+        r = requests.post(f"{API}/fleet/enquiry", json={"name": "x", "email": "notanemail", "message": "hi"})
+        assert r.status_code == 422
+
+
+# ---------------- CASHBACK HISTORY ----------------
+class TestCashbackHistory:
+    def test_history_unauth(self):
+        r = requests.get(f"{API}/cashback/history")
+        assert r.status_code == 401
+
+    def test_history_empty_for_new_user(self, auth_headers):
+        r = requests.get(f"{API}/cashback/history", headers=auth_headers)
+        assert r.status_code == 200
+        assert r.json() == []
+
+    def test_history_after_payout(self):
+        """Trigger a Private-tier cashback payout via /auth/me, then history should list it."""
+        try:
+            from motor.motor_asyncio import AsyncIOMotorClient
+            import asyncio
+        except ImportError:
+            pytest.skip("motor not installed")
+        mongo_url = os.environ.get("MONGO_URL", "mongodb://localhost:27017")
+        db_name = os.environ.get("DB_NAME", "test_database")
+
+        email = f"test_cbh_{uuid.uuid4().hex[:8]}@wowtest.com"
+        pw = "SecretPass123"
+        r = requests.post(f"{API}/auth/register", json={"email": email, "password": pw, "name": "CBH"})
+        assert r.status_code == 200
+        token = r.json()["token"]
+        uid = r.json()["user"]["user_id"]
+        h = {"Authorization": f"Bearer {token}"}
+
+        async def prep():
+            client = AsyncIOMotorClient(mongo_url)
+            await client[db_name].users.update_one({"user_id": uid}, {"$set": {
+                "total_wagered": 6000.0,
+                "total_won": 5000.0,
+                "cashback_wagered_snapshot": 0.0,
+                "cashback_won_snapshot": 0.0,
+                "last_cashback_at": None,
+            }})
+            client.close()
+        asyncio.run(prep())
+
+        # trigger auto-grant
+        me = requests.get(f"{API}/auth/me", headers=h).json()
+        assert me.get("cashback_just_paid", 0) > 0
+
+        # history should now have 1 entry with type=cashback
+        r = requests.get(f"{API}/cashback/history", headers=h)
+        assert r.status_code == 200
+        rows = r.json()
+        assert isinstance(rows, list) and len(rows) >= 1
+        row = rows[0]
+        assert row.get("type") == "cashback"
+        assert row.get("amount", 0) > 0
+        # should carry tier/percent metadata (per playbook)
+        # accept either flat fields or nested meta
+        has_tier = "tier" in row or ("meta" in row and "tier" in (row.get("meta") or {}))
+        has_pct = ("percent" in row) or ("meta" in row and "percent" in (row.get("meta") or {}))
+        assert has_tier, f"missing tier field in cashback tx: {row}"
+        assert has_pct, f"missing percent field in cashback tx: {row}"
+        # newest-first: created_at present and sorted
+        if len(rows) > 1:
+            assert rows[0]["created_at"] >= rows[1]["created_at"]
+        # no mongo _id leaked
+        assert "_id" not in row
