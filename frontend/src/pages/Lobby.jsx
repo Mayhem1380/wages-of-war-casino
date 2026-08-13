@@ -76,7 +76,7 @@ export default function Lobby() {
 
                 <div className="flex items-center gap-4 my-4">
                   {(symbolPreview[s.id] || []).map((sym, idx) => (
-                    <div key={idx} className="animate-pop" style={{ animationDelay: `${idx * 0.06}s` }}>
+                    <div key={`${s.id}-${sym}-${idx}`} className="animate-pop" style={{ animationDelay: `${idx * 0.06}s` }}>
                       <SymbolTile id={sym} size={feature ? 60 : 46} />
                     </div>
                   ))}

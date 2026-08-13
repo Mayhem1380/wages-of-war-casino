@@ -57,24 +57,23 @@ function AppRouter() {
   );
 }
 
+const TOAST_OPTIONS = {
+  style: {
+    background: "#0a0d0a",
+    border: "1px solid rgba(78,228,78,0.3)",
+    color: "#eafff0",
+    fontFamily: "IBM Plex Mono, monospace",
+    borderRadius: "2px",
+  },
+};
+
 function App() {
   return (
     <AuthProvider>
       <SoundProvider>
         <BrowserRouter>
           <AppRouter />
-          <Toaster
-            position="top-right"
-            toastOptions={{
-              style: {
-                background: "#0a0d0a",
-                border: "1px solid rgba(78,228,78,0.3)",
-                color: "#eafff0",
-                fontFamily: "IBM Plex Mono, monospace",
-                borderRadius: "2px",
-              },
-            }}
-          />
+          <Toaster position="top-right" toastOptions={TOAST_OPTIONS} />
         </BrowserRouter>
       </SoundProvider>
     </AuthProvider>

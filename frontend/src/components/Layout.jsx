@@ -40,7 +40,7 @@ function DailyBonus() {
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
-    try { const { data } = await api.get("/bonus/status"); setStatus(data); } catch {}
+    try { const { data } = await api.get("/bonus/status"); setStatus(data); } catch (e) { console.warn("bonus status load failed", e); }
   }, []);
 
   useEffect(() => { if (user) load(); }, [user, load]);

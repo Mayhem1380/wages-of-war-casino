@@ -220,3 +220,82 @@ class TestPayments:
         r = requests.post(f"{API}/payments/checkout",
                           json={"lookup_key": "nope", "origin_url": BASE_URL}, headers=auth_headers)
         assert r.status_code == 400
+
+
+
+# ---------------- CASHBACK ----------------
+class TestCashback:
+    def test_cashback_status_shape(self, auth_headers):
+        r = requests.get(f"{API}/cashback/status", headers=auth_headers)
+        assert r.status_code == 200, r.text
+        d = r.json()
+        for k in ("percent", "amount", "seconds_left", "tier"):
+            assert k in d, f"missing {k}"
+        assert isinstance(d["percent"], (int, float))
+        assert isinstance(d["amount"], (int, float))
+        assert isinstance(d["seconds_left"], int)
+
+    def test_cashback_claim_not_ready_for_new_user(self, auth_headers):
+        # Freshly registered user has no net losses -> claim should 400
+        r = requests.post(f"{API}/cashback/claim", headers=auth_headers)
+        assert r.status_code == 400
+
+    def test_cashback_private_tier_payout(self):
+        """Simulate a Private-tier user (>=5000 wagered) with net losses and open cashback window.
+        Verify /cashback/claim pays out, then a cooldown starts and /auth/me returns cashback_just_paid on auto-grant."""
+        import asyncio
+        try:
+            from motor.motor_asyncio import AsyncIOMotorClient
+        except ImportError:
+            pytest.skip("motor not installed")
+        mongo_url = os.environ.get("MONGO_URL", "mongodb://localhost:27017")
+        db_name = os.environ.get("DB_NAME", "test_database")
+
+        # Register a fresh user
+        email = f"test_cb_{uuid.uuid4().hex[:8]}@wowtest.com"
+        pw = "SecretPass123"
+        r = requests.post(f"{API}/auth/register", json={"email": email, "password": pw, "name": "CB"})
+        assert r.status_code == 200
+        token = r.json()["token"]
+        uid = r.json()["user"]["user_id"]
+        h = {"Authorization": f"Bearer {token}"}
+
+        async def prep():
+            client = AsyncIOMotorClient(mongo_url)
+            db = client[db_name]
+            # Private tier requires >=5000 wagered. Give the user losses of 1000 and open the window.
+            await db.users.update_one({"user_id": uid}, {"$set": {
+                "total_wagered": 6000.0,
+                "total_won": 5000.0,  # net loss 1000
+                "cashback_wagered_snapshot": 0.0,
+                "cashback_won_snapshot": 0.0,
+                "last_cashback_at": None,
+            }})
+            client.close()
+        asyncio.get_event_loop().run_until_complete(prep()) if False else asyncio.run(prep())
+
+        # Status should show a positive amount and seconds_left=0
+        s = requests.get(f"{API}/cashback/status", headers=h).json()
+        assert s["percent"] > 0, s
+        assert s["amount"] > 0, s
+        assert s["seconds_left"] == 0
+
+        # /auth/me should auto-grant and return cashback_just_paid one-time
+        me = requests.get(f"{API}/auth/me", headers=h)
+        assert me.status_code == 200
+        me_d = me.json()
+        assert me_d.get("cashback_just_paid") and me_d["cashback_just_paid"] > 0, me_d
+        new_balance = me_d.get("balance") or me_d.get("user", {}).get("balance")
+        assert new_balance > 10000.0  # got cashback on top of signup bonus
+
+        # A subsequent claim should now be on cooldown (seconds_left > 0), so 400
+        r2 = requests.post(f"{API}/cashback/claim", headers=h)
+        assert r2.status_code == 400
+
+        # /auth/me again should NOT include cashback_just_paid
+        me2 = requests.get(f"{API}/auth/me", headers=h).json()
+        assert "cashback_just_paid" not in me2 or not me2.get("cashback_just_paid")
+
+        # And status should show seconds_left ~ 7 days
+        s2 = requests.get(f"{API}/cashback/status", headers=h).json()
+        assert s2["seconds_left"] > 0

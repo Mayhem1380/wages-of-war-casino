@@ -21,7 +21,7 @@ export const soundManager = {
   isMuted: () => muted,
   setMuted: (v) => {
     muted = v;
-    try { localStorage.setItem("wow_muted", v ? "1" : "0"); } catch {}
+    try { localStorage.setItem("wow_muted", v ? "1" : "0"); } catch (e) { console.warn("sound pref persist failed", e); }
     if (masterGain) masterGain.gain.value = v ? 0 : 0.5;
   },
   toggle: () => { soundManager.setMuted(!muted); return muted; },

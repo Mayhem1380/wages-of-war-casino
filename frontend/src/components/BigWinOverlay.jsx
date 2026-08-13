@@ -24,7 +24,7 @@ export function BigWinOverlay({ win, multiplier, onDone }) {
 
       {/* gold bursts */}
       {[0, 0.25, 0.5].map((d, i) => (
-        <div key={i} className="absolute w-[50vmin] h-[50vmin] rounded-full bw-ring"
+        <div key={d} className="absolute w-[50vmin] h-[50vmin] rounded-full bw-ring"
           style={{ background: "radial-gradient(circle, rgba(246,226,122,0.55) 0%, rgba(212,175,55,0.15) 40%, transparent 70%)", animationDelay: `${d}s` }} />
       ))}
 
