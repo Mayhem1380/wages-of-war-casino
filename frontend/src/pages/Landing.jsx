@@ -9,7 +9,17 @@ import {
   Coins, GameController, Medal, Trophy, ShieldCheck, Lightning, CaretRight, Target, Gift, Clock, ArrowUpRight,
 } from "@phosphor-icons/react";
 
-const GIVEAWAY_END = new Date("2026-07-15T20:00:00Z");
+const GIVEAWAY_ANCHOR = Date.UTC(2026, 0, 2, 20, 0, 0); // launch reference
+const GIVEAWAY_CYCLE = 30 * 86400000; // rolling 30-day draw cycle
+
+function nextDrawTarget(now) {
+  let target = GIVEAWAY_ANCHOR;
+  if (now >= target) {
+    const cycles = Math.ceil((now - target + 1) / GIVEAWAY_CYCLE);
+    target += cycles * GIVEAWAY_CYCLE;
+  }
+  return target;
+}
 
 function GiveawayCountdown() {
   const [now, setNow] = useState(Date.now());
@@ -17,12 +27,11 @@ function GiveawayCountdown() {
     const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
   }, []);
-  const diff = Math.max(0, GIVEAWAY_END.getTime() - now);
+  const diff = Math.max(0, nextDrawTarget(now) - now);
   const d = Math.floor(diff / 86400000);
   const h = Math.floor((diff % 86400000) / 3600000);
   const m = Math.floor((diff % 3600000) / 60000);
   const s = Math.floor((diff % 60000) / 1000);
-  const ended = diff <= 0;
   const unit = (val, label) => (
     <div className="text-center">
       <div className="font-display text-4xl sm:text-5xl tracking-wide gold-gradient leading-none tabular-nums">{String(val).padStart(2, "0")}</div>
@@ -32,18 +41,14 @@ function GiveawayCountdown() {
   return (
     <div data-testid="giveaway-countdown" className="mt-5">
       <div className="flex items-center gap-2 font-mono text-[11px] tracking-[0.3em] text-nvg mb-2">
-        <Clock size={14} weight="fill" /> {ended ? "EXTRACTION IN PROGRESS" : "TIME TO EXTRACTION"}
+        <Clock size={14} weight="fill" /> TIME TO EXTRACTION
       </div>
-      {ended ? (
-        <div className="font-display text-3xl gold-gradient animate-flicker">DRAWING NOW</div>
-      ) : (
-        <div className="flex items-center gap-3 sm:gap-5">
-          {unit(d, "DAYS")}<span className="text-gold/40 text-3xl -mt-3">:</span>
-          {unit(h, "HRS")}<span className="text-gold/40 text-3xl -mt-3">:</span>
-          {unit(m, "MIN")}<span className="text-gold/40 text-3xl -mt-3">:</span>
-          {unit(s, "SEC")}
-        </div>
-      )}
+      <div className="flex items-center gap-3 sm:gap-5">
+        {unit(d, "DAYS")}<span className="text-gold/40 text-3xl -mt-3">:</span>
+        {unit(h, "HRS")}<span className="text-gold/40 text-3xl -mt-3">:</span>
+        {unit(m, "MIN")}<span className="text-gold/40 text-3xl -mt-3">:</span>
+        {unit(s, "SEC")}
+      </div>
     </div>
   );
 }
@@ -125,7 +130,7 @@ export default function Landing() {
             { Icon: Medal, label: "VIP RANKS", value: "8 Tiers" },
             { Icon: Gift, label: "DAILY SUPPLY DROP", value: "Every 24h" },
           ].map((s, i) => (
-            <div key={i} className="flex items-center gap-3 py-6 px-4 border-r border-border last:border-r-0">
+            <div key={s.label} className="flex items-center gap-3 py-6 px-4 border-r border-border last:border-r-0">
               <s.Icon size={30} weight="fill" className="text-nvg" />
               <div>
                 <div className="font-display text-2xl tracking-wide text-gold leading-none">{s.value}</div>

@@ -43,7 +43,7 @@ export default function FleetSales() {
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-14">
         {features.map((f, i) => (
-          <div key={i} className="hud p-6 hover:border-gold/60 transition-colors animate-pop" style={{ animationDelay: `${i * 0.06}s` }}>
+          <div key={f.title} className="hud p-6 hover:border-gold/60 transition-colors animate-pop" style={{ animationDelay: `${i * 0.06}s` }}>
             <f.Icon size={30} weight="fill" className="text-nvg" />
             <h3 className="font-display text-2xl tracking-wide text-foreground mt-3">{f.title}</h3>
             <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{f.body}</p>

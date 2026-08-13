@@ -28,7 +28,7 @@ export default function ResponsibleGaming() {
 
       <div className="grid sm:grid-cols-2 gap-4 mb-10">
         {items.map((it, i) => (
-          <div key={i} className="hud p-6">
+          <div key={it.title} className="hud p-6">
             <it.Icon size={30} weight="fill" className="text-nvg" />
             <h3 className="font-display text-2xl tracking-wide text-foreground mt-3">{it.title}</h3>
             <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{it.body}</p>
