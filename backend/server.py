@@ -143,6 +143,13 @@ async def require_user(request: Request) -> dict:
     return u
 
 
+async def require_admin(request: Request) -> dict:
+    u = await require_user(request)
+    if u.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return u
+
+
 async def adjust_balance(user_id: str, delta_balance: float, wagered: float = 0.0,
                          won: float = 0.0, biggest: float = None, played: int = 0):
     update = {"$inc": {"balance": delta_balance, "total_wagered": wagered,
@@ -623,6 +630,62 @@ async def leaderboard():
 @api.get("/vip/tiers")
 async def vip_tiers():
     return VIP_TIERS
+
+
+# ---------------------------------------------------------------------------
+# Admin dashboard (role: admin)
+# ---------------------------------------------------------------------------
+class BalanceAdjustInput(BaseModel):
+    amount: float
+    mode: str = "delta"  # "delta" or "set"
+
+
+@api.get("/admin/stats")
+async def admin_stats(admin: dict = Depends(require_admin)):
+    users = await db.users.find({}, {"_id": 0, "balance": 1, "total_wagered": 1, "total_won": 1, "games_played": 1}).to_list(100000)
+    return {
+        "players": len(users),
+        "total_balance": round(sum(u.get("balance", 0.0) for u in users), 2),
+        "total_wagered": round(sum(u.get("total_wagered", 0.0) for u in users), 2),
+        "total_won": round(sum(u.get("total_won", 0.0) for u in users), 2),
+        "games_played": sum(u.get("games_played", 0) for u in users),
+        "enquiries": await db.fleet_enquiries.count_documents({}),
+        "deposits": await db.payment_transactions.count_documents({"payment_status": "paid"}),
+    }
+
+
+@api.get("/admin/players")
+async def admin_players(search: str = "", admin: dict = Depends(require_admin)):
+    q = {}
+    if search:
+        q = {"$or": [
+            {"email": {"$regex": search, "$options": "i"}},
+            {"name": {"$regex": search, "$options": "i"}},
+        ]}
+    docs = await db.users.find(q, {"_id": 0}).sort("created_at", -1).to_list(200)
+    return [public_user(d) for d in docs]
+
+
+@api.post("/admin/players/{user_id}/balance")
+async def admin_adjust_balance(user_id: str, payload: BalanceAdjustInput, admin: dict = Depends(require_admin)):
+    target = await db.users.find_one({"user_id": user_id}, {"_id": 0})
+    if not target:
+        raise HTTPException(status_code=404, detail="Player not found")
+    if payload.mode == "set":
+        new_balance = round(payload.amount, 2)
+        await db.users.update_one({"user_id": user_id}, {"$set": {"balance": new_balance}})
+        delta = new_balance - target.get("balance", 0.0)
+    else:
+        delta = round(payload.amount, 2)
+        await db.users.update_one({"user_id": user_id}, {"$inc": {"balance": delta}})
+    await record_transaction(user_id, "admin_adjust", delta, {"by": admin["email"], "mode": payload.mode})
+    fresh = await db.users.find_one({"user_id": user_id}, {"_id": 0})
+    return {"user_id": user_id, "balance": round(fresh["balance"], 2)}
+
+
+@api.get("/admin/enquiries")
+async def admin_enquiries(admin: dict = Depends(require_admin)):
+    return await db.fleet_enquiries.find({}, {"_id": 0}).sort("created_at", -1).to_list(200)
 
 
 @api.post("/fleet/enquiry")
