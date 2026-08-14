@@ -5,6 +5,7 @@ import { MACHINE_ART, FLAGSHIP_ART } from "@/data/gameMeta";
 import { LOBBY } from "@/constants/testIds";
 import { SymbolTile } from "@/components/SymbolTile";
 import { AnimatedShowcase } from "@/components/AnimatedShowcase";
+import { LobbyHype } from "@/components/LobbyHype";
 import { Target, CaretRight, Coins, GameController, Skull } from "@phosphor-icons/react";
 
 function CornerCard({ children, onClick, testId, accent = "#4EE44E", className = "" }) {
@@ -70,6 +71,7 @@ export default function Lobby() {
       </div>
 
       {/* SLOTS GRID (asymmetric) */}
+      <LobbyHype />
       <div className="flex items-center gap-3 mb-5">
         <span className="font-display text-2xl gold-gradient tracking-widest">★ AAA FLAGSHIPS</span>
         <span className="font-mono text-[10px] tracking-widest text-gold/60">HOLD &amp; WIN · JACKPOTS · POWER WHEEL</span>
