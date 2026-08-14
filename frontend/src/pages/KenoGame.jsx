@@ -61,7 +61,9 @@ export default function KenoGame() {
   };
 
   return (
-    <div data-testid={KENO.root} className="max-w-5xl mx-auto px-4 sm:px-8 py-8">
+    <div data-testid={KENO.root} className="relative min-h-screen"
+      style={{ backgroundImage: "linear-gradient(rgba(6,10,8,0.86), rgba(4,7,5,0.94)), url(/slots/keno_bg.jpg)", backgroundSize: "cover", backgroundPosition: "center", backgroundAttachment: "fixed" }}>
+    <div className="max-w-5xl mx-auto px-4 sm:px-8 py-8">
       <button onClick={() => navigate("/lobby")} className="flex items-center gap-2 text-muted-foreground hover:text-nvg font-mono text-sm mb-6">
         <ArrowLeft size={16} /> RETURN TO LOBBY
       </button>
@@ -94,9 +96,11 @@ export default function KenoGame() {
                   key={n}
                   data-testid={KENO.num(n)}
                   onClick={() => toggle(n)}
-                  className={`aspect-square flex items-center justify-center font-mono text-sm border transition-all ${cls} ${isHit ? "animate-pop" : ""}`}
+                  className={`relative aspect-square flex items-center justify-center font-mono text-sm border transition-all overflow-hidden ${cls} ${isHit ? "animate-pop" : ""}`}
                 >
-                  {n}
+                  {picked && !result && <img src="/slots/keno_warhead.png" alt="" className="absolute inset-0 w-full h-full object-contain p-0.5 pointer-events-none opacity-90" />}
+                  {isHit && <img src="/slots/keno_blast.png" alt="" className="absolute inset-0 w-full h-full object-contain pointer-events-none animate-pop" />}
+                  <span className="relative z-10 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">{n}</span>
                 </button>
               );
             })}
@@ -149,6 +153,7 @@ export default function KenoGame() {
           )}
         </div>
       </div>
+    </div>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
@@ -55,8 +56,13 @@ export default function CoinFlipGame() {
     </button>
   );
 
+  const face = flip ? side : (result ? result.outcome : side);
+  const faceImg = face === "heads" ? "/slots/coin_heads.png" : "/slots/coin_tails.png";
+
   return (
-    <div data-testid={COINFLIP.root} className="max-w-lg mx-auto px-4 sm:px-8 py-8">
+    <div data-testid={COINFLIP.root} className="relative min-h-screen"
+      style={{ backgroundImage: "linear-gradient(rgba(10,8,4,0.88), rgba(6,5,3,0.95)), url(/slots/keno_bg.jpg)", backgroundSize: "cover", backgroundPosition: "center", backgroundAttachment: "fixed" }}>
+    <div className="max-w-lg mx-auto px-4 sm:px-8 py-8">
       <button onClick={() => navigate("/lobby")} className="flex items-center gap-2 text-muted-foreground hover:text-nvg font-mono text-sm mb-6">
         <ArrowLeft size={16} /> RETURN TO LOBBY
       </button>
@@ -66,13 +72,19 @@ export default function CoinFlipGame() {
         <h1 className="font-display text-5xl tracking-wide gold-gradient">DOG-TAG FLIP</h1>
       </div>
 
-      <div className="hud hud-gold p-8 flex flex-col items-center gap-6">
-        <div
-          className={`w-40 h-40 rounded-full flex items-center justify-center border-4 border-gold ${flip ? "animate-spin" : "animate-pop"}`}
-          style={{ background: "radial-gradient(circle at 40% 30%, #F6E27A, #9B7A1E)", transition: "transform 0.3s" }}
+      <div className="hud hud-gold p-8 flex flex-col items-center gap-6" style={{ perspective: "900px" }}>
+        <motion.div
+          className="w-44 h-44 flex items-center justify-center"
+          animate={flip ? { rotateY: [0, 2160], scale: [1, 1.12, 1] } : { rotateY: 0, scale: 1 }}
+          transition={flip ? { duration: 0.9, ease: "easeInOut" } : { duration: 0.3 }}
+          style={{ transformStyle: "preserve-3d" }}
         >
-          <Coins size={80} weight="fill" className="text-black/70" />
-        </div>
+          <img
+            src={faceImg}
+            alt={face}
+            className={`w-full h-full object-contain drop-shadow-[0_0_24px_rgba(246,198,74,0.5)] ${result && !flip && result.win > 0 ? "animate-pop" : ""}`}
+          />
+        </motion.div>
         <div data-testid={COINFLIP.result} className="h-10 text-center">
           {result && !flip && (
             <p className={`font-display text-3xl tracking-wide animate-pop ${result.win > 0 ? "gold-gradient" : "text-alert"}`}>
@@ -99,6 +111,7 @@ export default function CoinFlipGame() {
         </Button>
         <p className="font-mono text-xs text-muted-foreground">Balance: <span className="text-gold">{fmt(user?.balance || 0)}</span></p>
       </div>
+    </div>
     </div>
   );
 }

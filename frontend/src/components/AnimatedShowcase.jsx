@@ -5,21 +5,30 @@ import { VideoCamera, Lightning } from "@phosphor-icons/react";
 
 const COINS = "/slots/sym_firecoin.png";
 
+const F = FLAGSHIP_ART;
 const SLIDES = {
   "game-preview": [
-    { img: FLAGSHIP_ART.pharaohs_arsenal.thumb, kicker: "AAA FLAGSHIP", title: "PHARAOH'S ARSENAL", sub: "HOLD & WIN · ROYAL 10,000×", accent: "#F6C64A" },
-    { img: FLAGSHIP_ART.inferno_airstrike.thumb, kicker: "AAA FLAGSHIP", title: "INFERNO AIRSTRIKE", sub: "FIRE-COIN JACKPOT BARRAGE", accent: "#FF8A2E" },
-    { img: FLAGSHIP_ART.golden_dynasty.thumb, kicker: "AAA FLAGSHIP", title: "GOLDEN DYNASTY", sub: "IMPERIAL FORTUNE · 88,000×", accent: "#FFC04A" },
+    { img: F.pharaohs_arsenal.thumb, kicker: "AAA FLAGSHIP", title: "PHARAOH'S ARSENAL", sub: "HOLD & WIN · ROYAL 10,000×", accent: "#F6C64A" },
+    { img: F.inferno_airstrike.thumb, kicker: "AAA FLAGSHIP", title: "INFERNO AIRSTRIKE", sub: "FIRE-COIN JACKPOT BARRAGE", accent: "#FF8A2E" },
+    { img: F.golden_dynasty.thumb, kicker: "AAA FLAGSHIP", title: "GOLDEN DYNASTY", sub: "IMPERIAL FORTUNE · 88,000×", accent: "#FFC04A" },
+    { img: F.book_of_ops.thumb, kicker: "AAA FLAGSHIP", title: "BOOK OF OPS", sub: "EXPANDING RELIC · HOLD & WIN", accent: "#E0B24A" },
+    { img: F.big_bass_bombardment.thumb, kicker: "AAA FLAGSHIP", title: "BIG BASS BOMBARDMENT", sub: "REEL IN THE HEAVY ORDNANCE", accent: "#5AA6FF" },
+    { img: F.money_train_convoy.thumb, kicker: "AAA FLAGSHIP", title: "MONEY TRAIN CONVOY", sub: "ARMOURED PAYLOAD · POWER WHEEL", accent: "#F6C64A" },
   ],
   promo: [
-    { img: BRAND.hero, kicker: "// BRIEFING REEL", title: "15 ELITE SLOTS", sub: "3 AAA FLAGSHIPS · HOLD & WIN", accent: "#F6C64A" },
-    { img: FLAGSHIP_ART.pharaohs_arsenal.thumb, kicker: "JACKPOT LADDER", title: "ROYAL 10,000×", sub: "GRAND · MAJOR · MIDI · MINOR · MINI", accent: "#FF5A5A" },
-    { img: FLAGSHIP_ART.golden_dynasty.thumb, kicker: "ENLIST NOW", title: "10,000 FREE CREDITS", sub: "DEPLOY INTO THE FLOOR", accent: "#4EE44E" },
+    { img: BRAND.hero, kicker: "// BRIEFING REEL", title: "15 ELITE SLOTS", sub: "6 AAA FLAGSHIPS · HOLD & WIN", accent: "#F6C64A" },
+    { img: F.pharaohs_arsenal.thumb, kicker: "JACKPOT LADDER", title: "ROYAL 10,000×", sub: "GRAND · MAJOR · MIDI · MINOR · MINI", accent: "#FF5A5A" },
+    { img: F.inferno_airstrike.thumb, kicker: "POWER FEATURE", title: "HOLD & WIN", sub: "FIRE COINS LOCK · POWER WHEEL", accent: "#FF8A2E" },
+    { img: F.money_train_convoy.thumb, kicker: "WARHEAD KENO", title: "UP TO 5,000×", sub: "MARK · LAUNCH · DETONATE", accent: "#4EE44E" },
+    { img: F.book_of_ops.thumb, kicker: "8 VIP RANKS", title: "WEEKLY CASHBACK", sub: "CLIMB · EARN · DOMINATE", accent: "#57E6C6" },
+    { img: F.golden_dynasty.thumb, kicker: "ENLIST NOW", title: "10,000 FREE CREDITS", sub: "DEPLOY INTO THE FLOOR", accent: "#4EE44E" },
   ],
   giveaway: [
     { img: BRAND.giveaway, kicker: "// MISSION ALERT", title: "$35,000 GIVEAWAY", sub: "TURNKEY PLATFORM LICENSE", accent: "#F6C64A" },
     { img: BRAND.nexusBanner, kicker: "FLEET LAUNCH", title: "NEXUS STUDIO MASTER", sub: "GLOBAL GAMING FLEET", accent: "#FF8A2E" },
-    { img: FLAGSHIP_ART.inferno_airstrike.thumb, kicker: "CLIMB THE RANKS", title: "JOIN THE ELITE", sub: "ONE LICENSE UP FOR EXTRACTION", accent: "#FFC04A" },
+    { img: F.golden_dynasty.thumb, kicker: "PRIZE POOL", title: "ONE FULL LICENSE", sub: "UP FOR EXTRACTION", accent: "#FFC04A" },
+    { img: F.pharaohs_arsenal.thumb, kicker: "CLIMB THE RANKS", title: "JOIN THE ELITE", sub: "ENLIST TO QUALIFY", accent: "#F6C64A" },
+    { img: F.inferno_airstrike.thumb, kicker: "LIMITED WINDOW", title: "DON'T MISS OUT", sub: "DRAW CLOSING SOON", accent: "#FF5A5A" },
   ],
 };
 
@@ -54,7 +63,7 @@ export function AnimatedShowcase({ variant = "promo", testId }) {
   const [i, setI] = useState(0);
 
   useEffect(() => {
-    const t = setInterval(() => setI((p) => (p + 1) % slides.length), 4200);
+    const t = setInterval(() => setI((p) => (p + 1) % slides.length), 5200);
     return () => clearInterval(t);
   }, [slides.length]);
 
