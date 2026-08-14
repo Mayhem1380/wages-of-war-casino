@@ -365,6 +365,59 @@ SLOT_MACHINES = {
         8,
         78,
     ),
+    "happy_prosperity": _machine(
+        "happy_prosperity", "Happy Prosperity", "Fortune god's golden barrage", "fortune",
+        "Extreme",
+        {"caishen": 5, "ingot": 7, "envelope": 8, "firecracker": 9, "ace": 12, "king": 13, "queen": 14, "jack": 15, "wild": 4, "scatter": 4},
+        "wild", "scatter",
+        {
+            "caishen": {"3": 12, "4": 30, "5": 75},
+            "ingot": {"3": 6, "4": 18, "5": 40},
+            "envelope": {"3": 4, "4": 12, "5": 25},
+            "firecracker": {"3": 2, "4": 6, "5": 15},
+            "ace": {"3": 1, "4": 4, "5": 10},
+            "king": {"3": 0.8, "4": 3, "5": 8},
+            "queen": {"3": 0.6, "4": 2, "5": 6},
+            "jack": {"3": 0.5, "4": 1.5, "5": 5},
+        },
+        {"3": 2, "4": 10, "5": 88}, 12, 96,
+    ),
+    "panda_magic": _machine(
+        "panda_magic", "Panda Magic", "Mystic bamboo fortune spins", "panda",
+        "High",
+        {"panda": 5, "bamboo": 7, "koi": 8, "lotus": 9, "ace": 11, "king": 12, "queen": 13, "jack": 14, "ten": 15, "wild": 4, "scatter": 4},
+        "wild", "scatter",
+        {
+            "panda": {"3": 10, "4": 25, "5": 60},
+            "bamboo": {"3": 4, "4": 12, "5": 30},
+            "koi": {"3": 3, "4": 8, "5": 20},
+            "lotus": {"3": 2, "4": 6, "5": 15},
+            "ace": {"3": 1, "4": 4, "5": 10},
+            "king": {"3": 0.8, "4": 3, "5": 8},
+            "queen": {"3": 0.6, "4": 2, "5": 6},
+            "jack": {"3": 0.5, "4": 1.5, "5": 5},
+            "ten": {"3": 0.4, "4": 1, "5": 4},
+        },
+        {"3": 3, "4": 10, "5": 50}, 10, 94,
+    ),
+    "gold_bonanza": _machine(
+        "gold_bonanza", "Gold Bonanza", "Strike the mother lode", "goldrush",
+        "Extreme",
+        {"prospector": 5, "goldbar": 7, "nugget": 8, "pickaxe": 9, "ace": 11, "king": 12, "queen": 13, "jack": 14, "ten": 15, "wild": 4, "scatter": 4},
+        "wild", "scatter",
+        {
+            "prospector": {"3": 10, "4": 25, "5": 60},
+            "goldbar": {"3": 5, "4": 15, "5": 35},
+            "nugget": {"3": 3, "4": 8, "5": 20},
+            "pickaxe": {"3": 2, "4": 6, "5": 15},
+            "ace": {"3": 1, "4": 4, "5": 10},
+            "king": {"3": 0.8, "4": 3, "5": 8},
+            "queen": {"3": 0.6, "4": 2, "5": 6},
+            "jack": {"3": 0.5, "4": 1.5, "5": 5},
+            "ten": {"3": 0.4, "4": 1, "5": 4},
+        },
+        {"3": 2, "4": 10, "5": 66}, 10, 93,
+    ),
 }
 
 
@@ -463,7 +516,8 @@ def spin_slot(machine_id, total_bet, free=False):
 # ---------------------------------------------------------------------------
 FLAGSHIP_IDS = {"pharaohs_arsenal", "inferno_airstrike", "golden_dynasty",
                 "book_of_ops", "big_bass_bombardment", "money_train_convoy",
-                "wild_west_recon", "kraken_depths", "frozen_front"}
+                "wild_west_recon", "kraken_depths", "frozen_front",
+                "happy_prosperity", "panda_magic", "gold_bonanza"}
 
 # jackpot name -> multiplier of the total bet
 JACKPOT_LADDER = {
