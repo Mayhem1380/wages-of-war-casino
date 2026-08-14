@@ -27,10 +27,10 @@ export const SYMBOL_META = {
   rod: { Icon: Anchor, color: "#B8C4B8", img: "/slots/sym_rod.png" },
   box: { Icon: Package, color: "#FFB454", img: "/slots/sym_box.png" },
 
-  sheriff: { Icon: Star, color: "#F6E27A" },
-  revolver: { Icon: Crosshair, color: "#FF5A5A" },
-  boot: { Icon: Cube, color: "#C9A06A" },
-  horseshoe: { Icon: Horse, color: "#57E6C6" },
+  sheriff: { Icon: Star, color: "#F6E27A", img: "/slots/sym_sheriff.png" },
+  revolver: { Icon: Crosshair, color: "#FF5A5A", img: "/slots/sym_revolver.png" },
+  boot: { Icon: Cube, color: "#C9A06A", img: "/slots/sym_boot.png" },
+  horseshoe: { Icon: Horse, color: "#57E6C6", img: "/slots/sym_horseshoe.png" },
 
   heart: { Icon: Heart, color: "#FF5A8A" },
   square: { Icon: Square, color: "#5AA6FF" },
@@ -51,20 +51,20 @@ export const SYMBOL_META = {
   eye_ra: { Icon: Eye, color: "#7FE3FF", img: "/slots/sym_eye_ra.png" },
   ankh: { Icon: Sparkle, color: "#D4AF37", label: "ANKH", img: "/slots/sym_ankh.png" },
 
-  kraken: { Icon: Ghost, color: "#57E6C6" },
-  harpoon: { Icon: Knife, color: "#B8C4B8" },
-  pearl: { Icon: Drop, color: "#7FE3FF" },
-  shell: { Icon: Shrimp, color: "#FF9EC4" },
+  kraken: { Icon: Ghost, color: "#57E6C6", img: "/slots/sym_kraken.png" },
+  harpoon: { Icon: Knife, color: "#B8C4B8", img: "/slots/sym_harpoon.png" },
+  pearl: { Icon: Drop, color: "#7FE3FF", img: "/slots/sym_pearl.png" },
+  shell: { Icon: Shrimp, color: "#FF9EC4", img: "/slots/sym_shell.png" },
 
   jet: { Icon: AirplaneTilt, color: "#B8C4B8", img: "/slots/sym_jet.png" },
   missile: { Icon: Rocket, color: "#FF5A5A", img: "/slots/sym_missile.png" },
   bomb_sym: { Icon: Bomb, color: "#FFB454", img: "/slots/sym_bomb.png" },
   flame: { Icon: Flame, color: "#FF7A2E", img: "/slots/sym_flame.png" },
 
-  yeti: { Icon: PawPrint, color: "#EDEDED" },
-  wolf: { Icon: Dog, color: "#B8C4B8" },
-  snow: { Icon: Snowflake, color: "#7FE3FF" },
-  peak: { Icon: Mountains, color: "#9FD0FF" },
+  yeti: { Icon: PawPrint, color: "#EDEDED", img: "/slots/sym_yeti.png" },
+  wolf: { Icon: Dog, color: "#B8C4B8", img: "/slots/sym_wolf.png" },
+  snow: { Icon: Snowflake, color: "#7FE3FF", img: "/slots/sym_snow.png" },
+  peak: { Icon: Mountains, color: "#9FD0FF", img: "/slots/sym_peak.png" },
 
   emperor: { Icon: Crown, color: "#FF5A5A", img: "/slots/sym_emperor.png" },
   lantern: { Icon: Fire, color: "#FF7A2E", img: "/slots/sym_lantern.png" },
@@ -146,6 +146,27 @@ export const FLAGSHIP_ART = {
     frame: "#8a6a1e",
     panel: "#181206",
   },
+  wild_west_recon: {
+    thumb: "/slots/thumb_west.jpg",
+    bg: "/slots/bg_west.jpg",
+    accent: "#E0A24A",
+    frame: "#8a5a1e",
+    panel: "#201206",
+  },
+  kraken_depths: {
+    thumb: "/slots/thumb_kraken.jpg",
+    bg: "/slots/bg_kraken.jpg",
+    accent: "#57E6C6",
+    frame: "#1E7D6E",
+    panel: "#07201d",
+  },
+  frozen_front: {
+    thumb: "/slots/thumb_frozen.jpg",
+    bg: "/slots/bg_frozen.jpg",
+    accent: "#9FD0FF",
+    frame: "#2E6DA0",
+    panel: "#0a1826",
+  },
 };
 
 // Lobby card theming per machine
@@ -170,7 +191,7 @@ export const MACHINE_ART = {
 export const fmt = (n) =>
   Number(n || 0).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 
-export const FLAGSHIP_IDS = ["pharaohs_arsenal", "inferno_airstrike", "golden_dynasty", "book_of_ops", "big_bass_bombardment", "money_train_convoy"];
+export const FLAGSHIP_IDS = ["pharaohs_arsenal", "inferno_airstrike", "golden_dynasty", "book_of_ops", "big_bass_bombardment", "money_train_convoy", "wild_west_recon", "kraken_depths", "frozen_front"];
 
 export const BRAND = {
   hero: "/brand/hero.jpeg",
