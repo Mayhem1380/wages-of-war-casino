@@ -461,7 +461,8 @@ def spin_slot(machine_id, total_bet, free=False):
 # ---------------------------------------------------------------------------
 # FLAGSHIP HOLD & WIN ENGINE  (AAA machines: jackpot ladder + fire-coin bonus)
 # ---------------------------------------------------------------------------
-FLAGSHIP_IDS = {"pharaohs_arsenal", "inferno_airstrike", "golden_dynasty"}
+FLAGSHIP_IDS = {"pharaohs_arsenal", "inferno_airstrike", "golden_dynasty",
+                "book_of_ops", "big_bass_bombardment", "money_train_convoy"}
 
 # jackpot name -> multiplier of the total bet
 JACKPOT_LADDER = {
@@ -565,12 +566,40 @@ def play_holdwin(total_bet, initial_coins, respin_prob=95):
         total += grand
         jackpots_won.append("grand")
 
+    # POWER WHEEL — a strong bonus (10+ locked coins) earns a spin of the
+    # power wheel: either a multiplier on the running total or a bonus jackpot.
+    wheel = None
+    if len(locked) >= 10:
+        segments = ["2x", "MINI", "3x", "MINOR", "5x", "MIDI", "2x", "MAJOR"]
+        weights = [24, 11, 18, 8, 10, 5, 19, 5]
+        wtotal = sum(weights)
+        r = secrets.randbelow(wtotal) + 1
+        upto = 0
+        idx = 0
+        for i, w in enumerate(weights):
+            upto += w
+            if r <= upto:
+                idx = i
+                break
+        seg = segments[idx]
+        if seg.endswith("x"):
+            mult = int(seg[:-1])
+            award = round(total * (mult - 1), 2)
+            total = round(total * mult, 2)
+        else:
+            jp = seg.lower()
+            award = round(JACKPOT_LADDER[jp] * total_bet, 2)
+            total += award
+            jackpots_won.append(jp)
+        wheel = {"segments": segments, "index": idx, "result": seg, "award": round(award, 2)}
+
     return {
         "sequence": sequence,
         "coins": coins,
         "total_win": round(total, 2),
         "jackpots_won": jackpots_won,
         "full_grid": full_grid,
+        "wheel": wheel,
         "total_bet": round(total_bet, 2),
     }
 

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
+import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
@@ -71,6 +72,7 @@ export default function FlagshipSlot() {
   const [bigWin, setBigWin] = useState(null);
   const [intro, setIntro] = useState(true);
   const [hold, setHold] = useState(null);          // {coins:{}, respins, total, jackpots, done, filled}
+  const [wheel, setWheel] = useState(null);        // {segments, index, result, award, angle, revealed}
   const spinRef = useRef();
   const machineRef = useRef(null);
 
@@ -164,6 +166,7 @@ export default function FlagshipSlot() {
   // ---- HOLD & WIN BONUS ----
   const startHoldWin = async (session, initialCoinMap) => {
     const locked = { ...initialCoinMap };
+    sfx.holdStart();
     setHold({ active: true, coins: locked, respins: 3, total: 0, jackpots: [], done: false, filled: Object.keys(locked).length });
     await sleep(1300);
     try {
@@ -175,21 +178,35 @@ export default function FlagshipSlot() {
     }
   };
 
+  const runWheel = async (w) => {
+    const seg = 360 / w.segments.length;
+    setWheel({ ...w, angle: 0, revealed: false });
+    await sleep(120);
+    sfx.wheelSpin();
+    const target = 360 * 5 + (360 - w.index * seg - seg / 2);
+    setWheel((p) => ({ ...p, angle: target }));
+    await sleep(1750);
+    sfx.wheelStop();
+    setWheel((p) => ({ ...p, revealed: true }));
+    await sleep(1600);
+    setWheel(null);
+  };
+
   const playSequence = async (locked, data) => {
     let live = { ...locked };
     for (const step of data.sequence) {
       sfx.spin();
       await sleep(650);
-      step.new_coins.forEach((c) => { live[key(c.pos[0], c.pos[1])] = c; });
-      if (step.new_coins.length) sfx.reelStop();
+      step.new_coins.forEach((c, i) => { live[key(c.pos[0], c.pos[1])] = c; sfx.coinLock(i); });
       const runningTotal = Object.values(live).reduce((s, c) => s + c.value, 0);
       setHold((h) => ({ ...h, coins: { ...live }, respins: step.respins_left, filled: step.filled, total: runningTotal }));
       await sleep(300);
     }
-    await sleep(500);
-    if (data.full_grid) sfx.bigWin();
+    await sleep(400);
+    if (data.wheel) await runWheel(data.wheel);
+    if (data.full_grid || (data.jackpots_won || []).length) sfx.jackpot();
+    else sfx.bigWin();
     if (data.total_win >= bet * 40) setBigWin({ win: data.total_win, multiplier: 1 });
-    sfx.win();
     refreshUser();
     setHold((h) => ({ ...h, total: data.total_win, jackpots: data.jackpots_won, done: true, fullGrid: data.full_grid }));
   };
@@ -253,6 +270,48 @@ export default function FlagshipSlot() {
       }}
     >
       {bigWin && <BigWinOverlay win={bigWin.win} multiplier={bigWin.multiplier} onDone={() => setBigWin(null)} />}
+
+      {/* BONUS POWER WHEEL */}
+      {wheel && (
+        <div data-testid="flagship-wheel" className="fixed inset-0 z-[60] flex flex-col items-center justify-center bg-black/85 backdrop-blur-sm">
+          <p className="font-mono text-xs tracking-[0.5em] mb-2" style={{ color: art.accent }}>★ POWER WHEEL</p>
+          <h2 className="font-display text-4xl sm:text-5xl gold-gradient tracking-widest mb-6">SPIN THE POWER FEATURE</h2>
+          <div className="relative w-[300px] h-[300px] sm:w-[380px] sm:h-[380px]">
+            {/* pointer */}
+            <div className="absolute left-1/2 -top-2 -translate-x-1/2 z-20" style={{ width: 0, height: 0, borderLeft: "16px solid transparent", borderRight: "16px solid transparent", borderTop: `26px solid ${art.accent}` }} />
+            <motion.div
+              className="w-full h-full rounded-full border-4"
+              style={{
+                borderColor: art.accent,
+                boxShadow: `0 0 50px ${art.accent}77, inset 0 0 40px rgba(0,0,0,0.6)`,
+                background: `conic-gradient(#F6C64A 0deg 45deg, #57E6C6 45deg 90deg, #FF5A5A 90deg 135deg, #4EE44E 135deg 180deg, #FF8A2E 180deg 225deg, #5AA6FF 225deg 270deg, #F6C64A 270deg 315deg, #C07BFF 315deg 360deg)`,
+              }}
+              animate={{ rotate: wheel.angle }}
+              transition={{ duration: 1.7, ease: [0.15, 0.85, 0.2, 1] }}
+            >
+              {wheel.segments.map((s, i) => {
+                const seg = 360 / wheel.segments.length;
+                return (
+                  <div key={i} className="absolute inset-0 flex justify-center" style={{ transform: `rotate(${i * seg + seg / 2}deg)` }}>
+                    <span className="mt-4 font-display text-lg sm:text-xl text-black/85 tracking-wide" style={{ transformOrigin: "center" }}>{s}</span>
+                  </div>
+                );
+              })}
+            </motion.div>
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="w-16 h-16 rounded-full bg-black/80 border-2 flex items-center justify-center" style={{ borderColor: art.accent }}>
+                <img src="/slots/sym_firecoin.png" alt="" className="w-12 h-12 object-contain" />
+              </div>
+            </div>
+          </div>
+          {wheel.revealed && (
+            <motion.div initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} className="mt-8 text-center">
+              <div className="font-display text-6xl gold-gradient tracking-widest animate-pop">{wheel.result}</div>
+              <div className="font-mono text-sm text-nvg mt-1 tracking-widest">POWER AWARD +{fmt(wheel.award)}</div>
+            </motion.div>
+          )}
+        </div>
+      )}
 
       {/* INTRO */}
       {intro && (
