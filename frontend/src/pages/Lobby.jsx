@@ -4,7 +4,7 @@ import api from "@/lib/api";
 import { MACHINE_ART, FLAGSHIP_ART } from "@/data/gameMeta";
 import { LOBBY } from "@/constants/testIds";
 import { SymbolTile } from "@/components/SymbolTile";
-import { VideoPlaceholder } from "@/components/VideoPlaceholder";
+import { AnimatedShowcase } from "@/components/AnimatedShowcase";
 import { Target, CaretRight, Coins, GameController, Skull } from "@phosphor-icons/react";
 
 function CornerCard({ children, onClick, testId, accent = "#4EE44E", className = "" }) {
@@ -60,7 +60,7 @@ export default function Lobby() {
 
       {/* GAME PREVIEW VIDEO */}
       <div className="mb-10">
-        <VideoPlaceholder testId="lobby-preview-video" label="GAME PREVIEW — Coming Soon" />
+        <AnimatedShowcase testId="lobby-preview-video" variant="game-preview" />
       </div>
 
       {/* SLOTS GRID (asymmetric) */}
