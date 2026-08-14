@@ -642,13 +642,23 @@ class BalanceAdjustInput(BaseModel):
 
 @api.get("/admin/stats")
 async def admin_stats(admin: dict = Depends(require_admin)):
-    users = await db.users.find({}, {"_id": 0, "balance": 1, "total_wagered": 1, "total_won": 1, "games_played": 1}).to_list(100000)
+    agg = await db.users.aggregate([
+        {"$group": {
+            "_id": None,
+            "players": {"$sum": 1},
+            "total_balance": {"$sum": "$balance"},
+            "total_wagered": {"$sum": "$total_wagered"},
+            "total_won": {"$sum": "$total_won"},
+            "games_played": {"$sum": "$games_played"},
+        }}
+    ]).to_list(1)
+    totals = agg[0] if agg else {}
     return {
-        "players": len(users),
-        "total_balance": round(sum(u.get("balance", 0.0) for u in users), 2),
-        "total_wagered": round(sum(u.get("total_wagered", 0.0) for u in users), 2),
-        "total_won": round(sum(u.get("total_won", 0.0) for u in users), 2),
-        "games_played": sum(u.get("games_played", 0) for u in users),
+        "players": totals.get("players", 0),
+        "total_balance": round(totals.get("total_balance", 0.0) or 0.0, 2),
+        "total_wagered": round(totals.get("total_wagered", 0.0) or 0.0, 2),
+        "total_won": round(totals.get("total_won", 0.0) or 0.0, 2),
+        "games_played": totals.get("games_played", 0) or 0,
         "enquiries": await db.fleet_enquiries.count_documents({}),
         "deposits": await db.payment_transactions.count_documents({"payment_status": "paid"}),
     }
