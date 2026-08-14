@@ -3,6 +3,7 @@ import {
   Boat, Anchor, Package, Star, Crosshair, Horse, Heart, Square, Sparkle, Bank,
   Cube, Coin, Target, Lightning, Eye, Dog, Drop, Shrimp, Knife, Ghost,
   AirplaneTilt, Rocket, Bomb, Flame, Snowflake, Mountains, PawPrint, Fire, Feather,
+  Shield, Sword, Moon, Bird, Campfire, Nut, Spiral, Sailboat, Coins,
 } from "@phosphor-icons/react";
 
 // symbol id -> { Icon, color, text? }  (text overrides the icon, used for card ranks)
@@ -69,6 +70,26 @@ export const SYMBOL_META = {
   lantern: { Icon: Fire, color: "#FF7A2E" },
   fan: { Icon: Feather, color: "#F6E27A" },
 
+  shogun: { Icon: Shield, color: "#F6E27A" },
+  katana: { Icon: Sword, color: "#B8C4B8" },
+  moon_jp: { Icon: Moon, color: "#9FD0FF" },
+  crane: { Icon: Bird, color: "#EDEDED" },
+
+  witchdoctor: { Icon: Skull, color: "#C07BFF" },
+  totem: { Icon: Campfire, color: "#FF7A2E" },
+  charm: { Icon: Nut, color: "#57E6C6" },
+  spirit: { Icon: Spiral, color: "#4EE44E" },
+
+  corsair: { Icon: Sailboat, color: "#7FE3FF" },
+  saber: { Icon: Sword, color: "#C9A06A" },
+  compass_sym: { Icon: Compass, color: "#F6E27A" },
+  doubloon: { Icon: Coins, color: "#FFD84E" },
+
+  warchief: { Icon: Star, color: "#FF5A5A" },
+  tomahawk: { Icon: Knife, color: "#C9A06A" },
+  buffalo: { Icon: Horse, color: "#C9A06A" },
+  eagle: { Icon: Bird, color: "#F6E27A" },
+
   ace: { text: "A", color: "#EDEDED" },
   king: { text: "K", color: "#D8D8D8" },
   queen: { text: "Q", color: "#C6C6C6" },
@@ -93,6 +114,10 @@ export const MACHINE_ART = {
   inferno_airstrike: { accent: "#FF7A2E", from: "#26100a", to: "#0a0d0a", tag: "JACKPOT" },
   frozen_front: { accent: "#9FD0FF", from: "#0a1826", to: "#0a0d0a", tag: "STICKY WILDS" },
   golden_dynasty: { accent: "#FF5A5A", from: "#26080a", to: "#0a0d0a", tag: "MAX 88,000x" },
+  samurai_strike: { accent: "#F6E27A", from: "#1f1a0a", to: "#0a0d0a", tag: "FREE SPINS" },
+  voodoo_vengeance: { accent: "#C07BFF", from: "#1c0a26", to: "#0a0d0a", tag: "JACKPOT" },
+  corsair_cannons: { accent: "#7FE3FF", from: "#08202a", to: "#0a0d0a", tag: "FREE SPINS" },
+  warpath_legends: { accent: "#FF5A5A", from: "#241206", to: "#0a0d0a", tag: "STAMPEDE" },
 };
 
 export const fmt = (n) =>
