@@ -96,6 +96,19 @@ export const SYMBOL_META = {
   jack: { text: "J", color: "#B4B4B4" },
   ten: { text: "10", color: "#A2A2A2" },
 
+  caishen: { color: "#FFB454", img: "/slots/sym_caishen.png" },
+  ingot: { color: "#FFD84E", img: "/slots/sym_ingot.png" },
+  envelope: { color: "#FF5A5A", img: "/slots/sym_envelope.png" },
+  firecracker: { color: "#FF7A2E", img: "/slots/sym_firecracker.png" },
+  panda: { color: "#EDEDED", img: "/slots/sym_panda.png" },
+  bamboo: { color: "#4EE44E", img: "/slots/sym_bamboo.png" },
+  koi: { color: "#F6C64A", img: "/slots/sym_koi.png" },
+  lotus: { color: "#FF9EC4", img: "/slots/sym_lotus.png" },
+  prospector: { color: "#C9A06A", img: "/slots/sym_prospector.png" },
+  goldbar: { color: "#FFD84E", img: "/slots/sym_goldbar.png" },
+  nugget: { color: "#F6C64A", img: "/slots/sym_nugget.png" },
+  pickaxe: { color: "#B8C4B8", img: "/slots/sym_pickaxe.png" },
+
   wild: { Icon: Lightning, color: "#D4AF37", label: "WILD" },
   book: { Icon: Sparkle, color: "#D4AF37", label: "RELIC", img: "/slots/sym_book.png" },
   scatter: { Icon: Target, color: "#4EE44E", label: "SCATTER" },
@@ -167,6 +180,27 @@ export const FLAGSHIP_ART = {
     frame: "#2E6DA0",
     panel: "#0a1826",
   },
+  happy_prosperity: {
+    thumb: "/slots/thumb_prosperity.jpg",
+    bg: "/slots/bg_prosperity.jpg",
+    accent: "#F6C64A",
+    frame: "#C23A2E",
+    panel: "#2a0a0a",
+  },
+  panda_magic: {
+    thumb: "/slots/thumb_panda.jpg",
+    bg: "/slots/bg_panda.jpg",
+    accent: "#5EE07A",
+    frame: "#2E7D46",
+    panel: "#0d1c12",
+  },
+  gold_bonanza: {
+    thumb: "/slots/thumb_gold.jpg",
+    bg: "/slots/bg_gold.jpg",
+    accent: "#FFC04A",
+    frame: "#8a6a1e",
+    panel: "#1a1206",
+  },
 };
 
 // Lobby card theming per machine
@@ -191,7 +225,7 @@ export const MACHINE_ART = {
 export const fmt = (n) =>
   Number(n || 0).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 
-export const FLAGSHIP_IDS = ["pharaohs_arsenal", "inferno_airstrike", "golden_dynasty", "book_of_ops", "big_bass_bombardment", "money_train_convoy", "wild_west_recon", "kraken_depths", "frozen_front"];
+export const FLAGSHIP_IDS = ["pharaohs_arsenal", "inferno_airstrike", "golden_dynasty", "book_of_ops", "big_bass_bombardment", "money_train_convoy", "wild_west_recon", "kraken_depths", "frozen_front", "happy_prosperity", "panda_magic", "gold_bonanza"];
 
 export const BRAND = {
   hero: "/brand/hero.jpeg",
