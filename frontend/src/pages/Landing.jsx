@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { BRAND, fmt } from "@/data/gameMeta";
 import { LANDING } from "@/constants/testIds";
 import api from "@/lib/api";
-import { VideoPlaceholder } from "@/components/VideoPlaceholder";
+import { AnimatedShowcase } from "@/components/AnimatedShowcase";
 import {
   Coins, GameController, Medal, Trophy, ShieldCheck, Lightning, CaretRight, Target, Gift, Clock, ArrowUpRight,
 } from "@phosphor-icons/react";
@@ -128,7 +128,7 @@ export default function Landing() {
       <section className="border-y border-gold/20 bg-black/50">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-8 grid grid-cols-2 md:grid-cols-4">
           {[
-            { Icon: GameController, label: "SLOT MACHINES", value: "6 Elite" },
+            { Icon: GameController, label: "SLOT MACHINES", value: "15 Elite" },
             { Icon: Target, label: "WARHEAD KENO", value: "5000x Max" },
             { Icon: Medal, label: "VIP RANKS", value: "8 Tiers" },
             { Icon: Gift, label: "DAILY SUPPLY DROP", value: "Every 24h" },
@@ -150,7 +150,7 @@ export default function Landing() {
           <p className="font-mono text-xs tracking-[0.4em] text-nvg/70">// BRIEFING REEL</p>
           <h2 className="font-display text-4xl sm:text-5xl tracking-wide text-foreground">MISSION BRIEFING</h2>
         </div>
-        <VideoPlaceholder testId="home-intro-video" label="PROMOTIONAL VIDEO — Coming Soon" />
+        <AnimatedShowcase testId="home-intro-video" variant="promo" />
       </section>
 
       {/* FEATURED */}
@@ -219,7 +219,7 @@ export default function Landing() {
           <div className="relative">
             <img src={BRAND.giveaway} alt="Wages of War Casino giveaway" className="w-full max-w-sm mx-auto ring-1 ring-gold/30" />
             <div className="mt-6">
-              <VideoPlaceholder testId="giveaway-video" label="GIVEAWAY ANNOUNCEMENT VIDEO — Coming Soon" />
+              <AnimatedShowcase testId="giveaway-video" variant="giveaway" />
             </div>
           </div>
         </div>
