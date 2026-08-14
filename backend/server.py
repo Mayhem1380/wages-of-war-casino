@@ -24,6 +24,7 @@ import stripe
 from games import (
     SLOT_MACHINES, spin_slot, play_keno, KENO_PAYTABLE, PAYLINES,
     VIP_TIERS, tier_for_wagered, CREDIT_PACKAGES,
+    FLAGSHIP_IDS, JACKPOT_LADDER, spin_flagship, play_holdwin,
 )
 
 # ---------------------------------------------------------------------------
@@ -404,6 +405,7 @@ async def list_slots():
     return [{
         "id": m["id"], "name": m["name"], "tagline": m["tagline"], "theme": m["theme"],
         "volatility": m["volatility"], "paylines": m["paylines"], "popularity": m["popularity"],
+        "is_flagship": m["id"] in FLAGSHIP_IDS,
     } for m in machines]
 
 
@@ -417,6 +419,8 @@ async def slot_detail(machine_id: str):
         "volatility": m["volatility"], "paylines": m["paylines"], "reels": m["reels"], "rows": m["rows"],
         "symbols": list(m["symbols"].keys()), "wild": m["wild"], "scatter": m["scatter"],
         "paytable": m["paytable"], "scatter_pay": m["scatter_pay"], "free_spins": m["free_spins"],
+        "is_flagship": m["id"] in FLAGSHIP_IDS,
+        "jackpots": JACKPOT_LADDER if m["id"] in FLAGSHIP_IDS else None,
     }
 
 
@@ -432,7 +436,7 @@ async def slots_spin(payload: SpinInput, user: dict = Depends(require_user)):
     if user.get("balance", 0) < payload.bet:
         raise HTTPException(status_code=400, detail="Insufficient credits")
 
-    result = spin_slot(payload.machine_id, payload.bet)
+    result = spin_flagship(payload.machine_id, payload.bet) if payload.machine_id in FLAGSHIP_IDS else spin_slot(payload.machine_id, payload.bet)
     net = result["total_win"] - payload.bet
     updated = await adjust_balance(
         user["user_id"], delta_balance=net, wagered=payload.bet,
@@ -441,9 +445,25 @@ async def slots_spin(payload: SpinInput, user: dict = Depends(require_user)):
     await record_transaction(user["user_id"], "slots", net,
                              {"machine": payload.machine_id, "bet": payload.bet, "win": result["total_win"]})
 
+    # Hold & Win trigger (flagship machines) -> open a bonus session
+    holdwin_session = None
+    if result.get("holdwin_triggered"):
+        hw_id = str(uuid.uuid4())
+        await db.holdwin.insert_one({
+            "session_id": hw_id,
+            "user_id": user["user_id"],
+            "machine_id": payload.machine_id,
+            "bet": payload.bet,
+            "initial_coins": result["firecoins"],
+            "resolved": False,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        })
+        holdwin_session = {"session_id": hw_id, "coins": result["firecoins"]}
+    result["holdwin_session"] = holdwin_session
+
     # Free-spins trigger -> open an interactive session (winnings only, rising multiplier)
     free_session = None
-    if result["free_spins_awarded"] > 0:
+    if not result.get("holdwin_triggered") and result["free_spins_awarded"] > 0:
         session_id = str(uuid.uuid4())
         await db.free_spins.insert_one({
             "session_id": session_id,
@@ -503,6 +523,31 @@ async def slots_freespin(payload: FreeSpinInput, user: dict = Depends(require_us
     result["total_session_win"] = total_session_win
     result["active"] = active
     result["retrigger"] = retrigger
+    result["balance"] = round(updated["balance"], 2)
+    return result
+
+
+class HoldWinInput(BaseModel):
+    session_id: str
+
+
+@api.post("/games/slots/holdwin")
+async def slots_holdwin(payload: HoldWinInput, user: dict = Depends(require_user)):
+    sess = await db.holdwin.find_one({"session_id": payload.session_id})
+    if not sess or sess["user_id"] != user["user_id"] or sess.get("resolved"):
+        raise HTTPException(status_code=400, detail="No active Hold & Win session")
+
+    result = play_holdwin(sess["bet"], sess["initial_coins"])
+    await db.holdwin.update_one({"session_id": payload.session_id}, {"$set": {"resolved": True}})
+
+    updated = await adjust_balance(
+        user["user_id"], delta_balance=result["total_win"],
+        won=result["total_win"], biggest=result["total_win"],
+    )
+    await record_transaction(user["user_id"], "hold_and_win", result["total_win"],
+                             {"machine": sess["machine_id"], "bet": sess["bet"],
+                              "jackpots": result["jackpots_won"], "full_grid": result["full_grid"]})
+
     result["balance"] = round(updated["balance"], 2)
     return result
 
