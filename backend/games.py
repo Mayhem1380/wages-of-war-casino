@@ -470,6 +470,59 @@ SLOT_MACHINES = {
         },
         {"3": 2, "4": 10, "5": 96}, 12, 90,
     ),
+    "gates_of_olympus": _machine(
+        "gates_of_olympus", "Gates of Olympus", "Zeus rains divine multipliers", "olympus",
+        "Extreme",
+        {"zeus": 5, "helm": 7, "ringz": 8, "goblet": 9, "ace": 12, "king": 13, "queen": 14, "jack": 15, "wild": 4, "scatter": 4},
+        "wild", "scatter",
+        {
+            "zeus": {"3": 12, "4": 30, "5": 80},
+            "helm": {"3": 6, "4": 18, "5": 40},
+            "ringz": {"3": 4, "4": 12, "5": 25},
+            "goblet": {"3": 2, "4": 6, "5": 15},
+            "ace": {"3": 1, "4": 4, "5": 10},
+            "king": {"3": 0.8, "4": 3, "5": 8},
+            "queen": {"3": 0.6, "4": 2, "5": 6},
+            "jack": {"3": 0.5, "4": 1.5, "5": 5},
+        },
+        {"3": 2, "4": 10, "5": 100}, 12, 98,
+    ),
+    "fortune_coins": _machine(
+        "fortune_coins", "Fortune Coins", "Lucky cat coin cascade", "fortune",
+        "High",
+        {"fortunecat": 5, "chincoin": 7, "goldtoad": 8, "scroll": 9, "ace": 11, "king": 12, "queen": 13, "jack": 14, "ten": 15, "wild": 4, "scatter": 4},
+        "wild", "scatter",
+        {
+            "fortunecat": {"3": 10, "4": 25, "5": 60},
+            "chincoin": {"3": 5, "4": 15, "5": 35},
+            "goldtoad": {"3": 3, "4": 8, "5": 20},
+            "scroll": {"3": 2, "4": 6, "5": 15},
+            "ace": {"3": 1, "4": 4, "5": 10},
+            "king": {"3": 0.8, "4": 3, "5": 8},
+            "queen": {"3": 0.6, "4": 2, "5": 6},
+            "jack": {"3": 0.5, "4": 1.5, "5": 5},
+            "ten": {"3": 0.4, "4": 1, "5": 4},
+        },
+        {"3": 3, "4": 10, "5": 66}, 10, 89,
+    ),
+    "year_of_ox": _machine(
+        "year_of_ox", "Year of the Ox", "Golden ox new-year fortune", "zodiac",
+        "High",
+        {"ox": 5, "oxlantern": 7, "blossom": 8, "drum": 9, "ace": 11, "king": 12, "queen": 13, "jack": 14, "ten": 15, "wild": 4, "scatter": 4},
+        "wild", "scatter",
+        {
+            "ox": {"3": 10, "4": 25, "5": 60},
+            "oxlantern": {"3": 5, "4": 15, "5": 35},
+            "blossom": {"3": 3, "4": 8, "5": 20},
+            "drum": {"3": 2, "4": 6, "5": 15},
+            "ace": {"3": 1, "4": 4, "5": 10},
+            "king": {"3": 0.8, "4": 3, "5": 8},
+            "queen": {"3": 0.6, "4": 2, "5": 6},
+            "jack": {"3": 0.5, "4": 1.5, "5": 5},
+            "ten": {"3": 0.4, "4": 1, "5": 4},
+        },
+        {"3": 3, "4": 10, "5": 66}, 10, 88,
+    ),
 }
 
 
@@ -570,7 +623,8 @@ FLAGSHIP_IDS = {"pharaohs_arsenal", "inferno_airstrike", "golden_dynasty",
                 "book_of_ops", "big_bass_bombardment", "money_train_convoy",
                 "wild_west_recon", "kraken_depths", "frozen_front",
                 "happy_prosperity", "panda_magic", "gold_bonanza",
-                "dragons_riches", "five_dragons", "god_of_sun"}
+                "dragons_riches", "five_dragons", "god_of_sun",
+                "gates_of_olympus", "fortune_coins", "year_of_ox"}
 
 # jackpot name -> multiplier of the total bet
 JACKPOT_LADDER = {
