@@ -8,6 +8,7 @@ import { Layout } from "@/components/Layout";
 import Landing from "@/pages/Landing";
 import Lobby from "@/pages/Lobby";
 import SlotGame from "@/pages/SlotGame";
+import FlagshipSlot from "@/pages/FlagshipSlot";
 import KenoGame from "@/pages/KenoGame";
 import CoinFlipGame from "@/pages/CoinFlipGame";
 import Wallet from "@/pages/Wallet";
@@ -20,6 +21,13 @@ import LegalPage from "@/pages/LegalPage";
 import AdminDashboard from "@/pages/AdminDashboard";
 import PaymentSuccess from "@/pages/PaymentSuccess";
 import AuthCallback from "@/pages/AuthCallback";
+import { useParams } from "react-router-dom";
+import { FLAGSHIP_IDS } from "@/data/gameMeta";
+
+function SlotRoute() {
+  const { id } = useParams();
+  return FLAGSHIP_IDS.includes(id) ? <FlagshipSlot /> : <SlotGame />;
+}
 
 function Protected({ children }) {
   const { user, openAuth } = useAuth();
@@ -46,7 +54,7 @@ function AppRouter() {
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/lobby" element={<Lobby />} />
-        <Route path="/slots/:id" element={<SlotGame />} />
+        <Route path="/slots/:id" element={<SlotRoute />} />
         <Route path="/keno" element={<KenoGame />} />
         <Route path="/coinflip" element={<CoinFlipGame />} />
         <Route path="/leaderboard" element={<Leaderboard />} />

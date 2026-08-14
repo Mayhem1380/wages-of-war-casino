@@ -459,6 +459,124 @@ def spin_slot(machine_id, total_bet, free=False):
 
 
 # ---------------------------------------------------------------------------
+# FLAGSHIP HOLD & WIN ENGINE  (AAA machines: jackpot ladder + fire-coin bonus)
+# ---------------------------------------------------------------------------
+FLAGSHIP_IDS = {"pharaohs_arsenal", "inferno_airstrike", "golden_dynasty"}
+
+# jackpot name -> multiplier of the total bet
+JACKPOT_LADDER = {
+    "mini": 10,
+    "minor": 20,
+    "midi": 40,
+    "major": 80,
+    "grand": 1000,
+    "royal": 10000,
+}
+
+# fire-coin outcomes (value, weight). value is a credit-multiplier of total bet,
+# or a jackpot key string.
+_FIRECOIN_TABLE = [
+    (1, 44), (2, 34), (3, 24), (5, 16), (8, 10), (10, 7),
+    (15, 5), (20, 3), (25, 2), (50, 1),
+    ("mini", 7), ("minor", 4), ("midi", 2), ("major", 1),
+]
+FIRECOIN_TRIGGER = 6  # coins needed on a base spin to launch Hold & Win
+
+
+def _pick_firecoin(total_bet):
+    total = sum(w for _, w in _FIRECOIN_TABLE)
+    r = secrets.randbelow(total) + 1
+    upto = 0
+    for val, w in _FIRECOIN_TABLE:
+        upto += w
+        if r <= upto:
+            break
+    if isinstance(val, str):  # jackpot coin
+        return {"jackpot": val, "value": round(JACKPOT_LADDER[val] * total_bet, 2)}
+    return {"jackpot": None, "value": round(val * total_bet, 2)}
+
+
+def spin_flagship(machine_id, total_bet, coin_prob=125):
+    """Base spin for a flagship machine: normal paylines + fire-coin overlay.
+    coin_prob is per-cell chance in 1000. 6+ coins -> Hold & Win bonus."""
+    base = spin_slot(machine_id, total_bet)
+    grid = base["grid"]
+
+    # cells already committed to a line/scatter win must stay as their symbol
+    reserved = set()
+    for lw in base["line_wins"]:
+        for r, c in lw["positions"]:
+            reserved.add((r, c))
+    for r, c in base["scatter_positions"]:
+        reserved.add((r, c))
+
+    coins = []
+    for reel in range(5):
+        for row in range(3):
+            if (reel, row) in reserved:
+                continue
+            if secrets.randbelow(1000) < coin_prob:
+                coin = _pick_firecoin(total_bet)
+                coin["pos"] = [reel, row]
+                coins.append(coin)
+                grid[reel][row] = "firecoin"
+
+    base["firecoins"] = coins
+    base["holdwin_triggered"] = len(coins) >= FIRECOIN_TRIGGER
+    return base
+
+
+def play_holdwin(total_bet, initial_coins, respin_prob=95):
+    """Full server-authoritative Hold & Win bonus. Returns the animation
+    sequence plus the final tally. 15-cell (5x3) grid; fill all -> GRAND."""
+    locked = {}
+    for c in initial_coins:
+        locked[tuple(c["pos"])] = {"pos": c["pos"], "value": c["value"], "jackpot": c.get("jackpot")}
+
+    respins = 3
+    sequence = []
+    while respins > 0 and len(locked) < 15:
+        respins -= 1
+        new_coins = []
+        for reel in range(5):
+            for row in range(3):
+                if (reel, row) in locked:
+                    continue
+                if secrets.randbelow(1000) < respin_prob:
+                    coin = _pick_firecoin(total_bet)
+                    coin["pos"] = [reel, row]
+                    locked[(reel, row)] = coin
+                    new_coins.append(coin)
+        if new_coins:
+            respins = 3  # any new coin resets respins
+        sequence.append({
+            "new_coins": new_coins,
+            "respins_left": respins,
+            "filled": len(locked),
+        })
+
+    coins = list(locked.values())
+    total = sum(c["value"] for c in coins)
+    jackpots_won = [c["jackpot"] for c in coins if c.get("jackpot")]
+
+    full_grid = len(locked) >= 15
+    if full_grid:
+        grand = round(JACKPOT_LADDER["grand"] * total_bet, 2)
+        total += grand
+        jackpots_won.append("grand")
+
+    return {
+        "sequence": sequence,
+        "coins": coins,
+        "total_win": round(total, 2),
+        "jackpots_won": jackpots_won,
+        "full_grid": full_grid,
+        "total_bet": round(total_bet, 2),
+    }
+
+
+
+# ---------------------------------------------------------------------------
 # KENO ENGINE  ("Warhead Keno")
 # Pick 1-10 numbers from 1-80. Draw 20. Payout by (picks, hits).
 # ---------------------------------------------------------------------------

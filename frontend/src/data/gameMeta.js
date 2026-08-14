@@ -46,29 +46,29 @@ export const SYMBOL_META = {
   gunner: { Icon: Crosshair, color: "#4EE44E" },
   coin: { Icon: Coin, color: "#FFD84E" },
 
-  pharaoh: { Icon: Crown, color: "#F6E27A" },
-  anubis: { Icon: Dog, color: "#57E6C6" },
-  eye_ra: { Icon: Eye, color: "#7FE3FF" },
-  ankh: { Icon: Sparkle, color: "#D4AF37", label: "ANKH" },
+  pharaoh: { Icon: Crown, color: "#F6E27A", img: "/slots/sym_pharaoh.png" },
+  anubis: { Icon: Dog, color: "#57E6C6", img: "/slots/sym_anubis.png" },
+  eye_ra: { Icon: Eye, color: "#7FE3FF", img: "/slots/sym_eye_ra.png" },
+  ankh: { Icon: Sparkle, color: "#D4AF37", label: "ANKH", img: "/slots/sym_ankh.png" },
 
   kraken: { Icon: Ghost, color: "#57E6C6" },
   harpoon: { Icon: Knife, color: "#B8C4B8" },
   pearl: { Icon: Drop, color: "#7FE3FF" },
   shell: { Icon: Shrimp, color: "#FF9EC4" },
 
-  jet: { Icon: AirplaneTilt, color: "#B8C4B8" },
-  missile: { Icon: Rocket, color: "#FF5A5A" },
-  bomb_sym: { Icon: Bomb, color: "#FFB454" },
-  flame: { Icon: Flame, color: "#FF7A2E" },
+  jet: { Icon: AirplaneTilt, color: "#B8C4B8", img: "/slots/sym_jet.png" },
+  missile: { Icon: Rocket, color: "#FF5A5A", img: "/slots/sym_missile.png" },
+  bomb_sym: { Icon: Bomb, color: "#FFB454", img: "/slots/sym_bomb.png" },
+  flame: { Icon: Flame, color: "#FF7A2E", img: "/slots/sym_flame.png" },
 
   yeti: { Icon: PawPrint, color: "#EDEDED" },
   wolf: { Icon: Dog, color: "#B8C4B8" },
   snow: { Icon: Snowflake, color: "#7FE3FF" },
   peak: { Icon: Mountains, color: "#9FD0FF" },
 
-  emperor: { Icon: Crown, color: "#FF5A5A" },
-  lantern: { Icon: Fire, color: "#FF7A2E" },
-  fan: { Icon: Feather, color: "#F6E27A" },
+  emperor: { Icon: Crown, color: "#FF5A5A", img: "/slots/sym_emperor.png" },
+  lantern: { Icon: Fire, color: "#FF7A2E", img: "/slots/sym_lantern.png" },
+  fan: { Icon: Feather, color: "#F6E27A", img: "/slots/sym_fan.png" },
 
   shogun: { Icon: Shield, color: "#F6E27A" },
   katana: { Icon: Sword, color: "#B8C4B8" },
@@ -99,6 +99,32 @@ export const SYMBOL_META = {
   wild: { Icon: Lightning, color: "#D4AF37", label: "WILD" },
   book: { Icon: Sparkle, color: "#D4AF37", label: "RELIC" },
   scatter: { Icon: Target, color: "#4EE44E", label: "SCATTER" },
+  firecoin: { Icon: Fire, color: "#FF7A2E", img: "/slots/sym_firecoin.png" },
+};
+
+// Flagship (AAA) machines: painted thumbnail + reel background + jackpot accent
+export const FLAGSHIP_ART = {
+  pharaohs_arsenal: {
+    thumb: "/slots/thumb_pharaoh.jpg",
+    bg: "/slots/bg_pharaoh.jpg",
+    accent: "#F6C64A",
+    frame: "#C99A2E",
+    panel: "#3a0e0e",
+  },
+  inferno_airstrike: {
+    thumb: "/slots/thumb_inferno.jpg",
+    bg: "/slots/bg_inferno.jpg",
+    accent: "#FF8A2E",
+    frame: "#B8531E",
+    panel: "#2a1408",
+  },
+  golden_dynasty: {
+    thumb: "/slots/thumb_dynasty.jpg",
+    bg: "/slots/bg_dynasty.jpg",
+    accent: "#FFC04A",
+    frame: "#C23A2E",
+    panel: "#2a0a0c",
+  },
 };
 
 // Lobby card theming per machine
@@ -122,6 +148,8 @@ export const MACHINE_ART = {
 
 export const fmt = (n) =>
   Number(n || 0).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+
+export const FLAGSHIP_IDS = ["pharaohs_arsenal", "inferno_airstrike", "golden_dynasty"];
 
 export const BRAND = {
   hero: "/brand/hero.jpeg",

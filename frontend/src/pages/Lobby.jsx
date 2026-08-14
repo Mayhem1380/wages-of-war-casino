@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "@/lib/api";
-import { MACHINE_ART } from "@/data/gameMeta";
+import { MACHINE_ART, FLAGSHIP_ART } from "@/data/gameMeta";
 import { LOBBY } from "@/constants/testIds";
 import { SymbolTile } from "@/components/SymbolTile";
 import { VideoPlaceholder } from "@/components/VideoPlaceholder";
@@ -67,7 +67,51 @@ export default function Lobby() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 auto-rows-fr">
         {slots.map((s, i) => {
           const art = MACHINE_ART[s.id] || { accent: "#4EE44E", from: "#0a1f0a", to: "#0a0d0a", tag: "" };
+          const flag = s.is_flagship ? FLAGSHIP_ART[s.id] : null;
           const feature = i === 0; // first (most popular) spans wider on large screens
+
+          if (flag) {
+            return (
+              <CornerCard
+                key={s.id}
+                testId={LOBBY.slotCard(s.id)}
+                accent={flag.accent}
+                onClick={() => navigate(`/slots/${s.id}`)}
+                className={feature ? "lg:col-span-2" : ""}
+              >
+                <div className="relative h-full min-h-[220px] overflow-hidden">
+                  <img
+                    src={flag.thumb}
+                    alt={s.name}
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.35) 45%, rgba(0,0,0,0.92) 100%)" }} />
+                  <div className="absolute top-3 left-3 flex items-center gap-2">
+                    <span className="font-mono text-[10px] tracking-widest px-2 py-0.5 bg-black/60 border" style={{ borderColor: `${flag.accent}88`, color: flag.accent }}>
+                      #{i + 1} MOST WANTED
+                    </span>
+                  </div>
+                  <div className="absolute top-3 right-3 flex items-center gap-1">
+                    <span className="font-mono text-[9px] px-2 py-0.5 bg-black/70 border border-gold/50 text-gold tracking-widest">JACKPOT</span>
+                    <span className="font-mono text-[9px] px-2 py-0.5 bg-black/70 border border-alert/50 text-alert tracking-widest">{s.volatility.toUpperCase()}</span>
+                  </div>
+                  <div className="absolute inset-x-0 bottom-0 p-5">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-mono text-[10px] tracking-[0.3em]" style={{ color: flag.accent }}>★ AAA FLAGSHIP</span>
+                    </div>
+                    <h3 className="font-display text-4xl sm:text-5xl tracking-wide text-white leading-none drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">{s.name}</h3>
+                    <p className="text-sm text-white/70 mt-1">{s.tagline}</p>
+                    <div className="mt-3 flex items-center justify-between">
+                      <span className="font-mono text-[11px] text-gold">HOLD &amp; WIN · ROYAL 10,000×</span>
+                      <span className="flex items-center gap-1 font-stencil tracking-widest uppercase text-sm px-3 py-1 rounded-sm" style={{ background: flag.accent, color: "#150c02" }}>
+                        Deploy <CaretRight size={14} weight="bold" />
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </CornerCard>
+            );
+          }
           return (
             <CornerCard
               key={s.id}
