@@ -25,6 +25,8 @@ Note: The starting repo was actually an empty CRA/FastAPI template; the full cas
 ## Implemented (2026-06-XX)
 - Auth: register (10,000 starting credits), login, logout, /me, Google session exchange, seeded admin.
 - Slots: 6 machines (Gates of Glory, Book of Ops, Big Bass Bombardment, Sweet Ammo, Wild West Recon, Money Train Convoy) with paytables, wilds, scatters, free-spin payouts, animated reels, win highlighting.
+- Slots expansion (2026-06-14): +5 machines = 11 total. Added Pharaoh's Arsenal (Egyptian ankh wild+scatter, expanding relic style, high vol), Kraken Depths (naval free-spins, medium), Inferno Airstrike (fire/airstrike jackpot, extreme, 100x), Frozen Front (arctic sticky-wilds, high), Golden Dynasty (imperial, extreme, 88x). Backend configs in games.py SLOT_MACHINES; frontend icons in src/data/gameMeta.js (SYMBOL_META + MACHINE_ART). Reused existing Phosphor icon style — no image-gen credits. All verified spinning + rendering.
+- Deployment: fixed admin /api/admin/stats unbounded query -> MongoDB aggregation pipeline (deployment_agent WARN cleared). Deployment agent status: no hard blockers. /health intact.
 - Warhead Keno (1-10 picks, up to 5000x) and Dog-Tag Flip coinflip (1.96x).
 - Wallet: balance HUD, 5 credit packages, Stripe checkout, transaction history, payment success polling.
 - Daily supply drop (VIP-scaled, 24h cooldown), 8 VIP tiers with cashback, leaderboard, profile dossier with VIP progress, responsible-gaming page, MGA-compliant footer.
