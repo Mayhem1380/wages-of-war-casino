@@ -11,7 +11,7 @@ function Block({ item }) {
     return (
       <ul className="mb-3 space-y-1.5">
         {item.list.map((li, i) => (
-          <li key={i} className="flex gap-2 text-sm text-foreground/80 leading-relaxed">
+          <li key={li} className="flex gap-2 text-sm text-foreground/80 leading-relaxed">
             <span className="text-nvg mt-0.5 shrink-0">▸</span>
             <span>{li}</span>
           </li>

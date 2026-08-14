@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo } from "react";
 import api, { apiError } from "@/lib/api";
 import { toast } from "sonner";
 import { fmt } from "@/data/gameMeta";
@@ -44,7 +44,7 @@ export function AuthProvider({ children }) {
     refreshUser();
   }, [refreshUser]);
 
-  const login = async (email, password) => {
+  const login = useCallback(async (email, password) => {
     try {
       const { data } = await api.post("/auth/login", { email, password });
       applyUser(data.user, { announce: false });
@@ -52,9 +52,9 @@ export function AuthProvider({ children }) {
     } catch (e) {
       return { ok: false, error: apiError(e.response?.data?.detail) };
     }
-  };
+  }, [applyUser]);
 
-  const register = async (name, email, password) => {
+  const register = useCallback(async (name, email, password) => {
     try {
       const { data } = await api.post("/auth/register", { name, email, password });
       applyUser(data.user, { announce: false });
@@ -62,18 +62,24 @@ export function AuthProvider({ children }) {
     } catch (e) {
       return { ok: false, error: apiError(e.response?.data?.detail) };
     }
-  };
+  }, [applyUser]);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try { await api.post("/auth/logout"); } catch (e) { console.warn("logout request failed", e); }
     setUser(false);
     lastRankRef.current = null;
-  };
+  }, []);
 
-  const openAuth = (mode = "login") => { setAuthMode(mode); setAuthOpen(true); };
+  const openAuth = useCallback((mode = "login") => { setAuthMode(mode); setAuthOpen(true); }, []);
+  const clearRankUp = useCallback(() => setRankUp(null), []);
+
+  const value = useMemo(() => ({
+    user, setUser: applyUser, login, register, logout, refreshUser,
+    authOpen, setAuthOpen, authMode, setAuthMode, openAuth, rankUp, clearRankUp,
+  }), [user, applyUser, login, register, logout, refreshUser, authOpen, authMode, openAuth, rankUp, clearRankUp]);
 
   return (
-    <AuthContext.Provider value={{ user, setUser: applyUser, login, register, logout, refreshUser, authOpen, setAuthOpen, authMode, setAuthMode, openAuth, rankUp, clearRankUp: () => setRankUp(null) }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
