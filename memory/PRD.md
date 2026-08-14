@@ -60,5 +60,20 @@ Note: The starting repo was actually an empty CRA/FastAPI template; the full cas
 - P2: Tournaments/seasonal missions; sound effects; achievements; email receipts (Resend).
 - P2: Split server.py into auth/payments modules; cache Stripe price lookups in DB.
 
+## Real-Money Cashier Framework (2026-06 / Option B — SANDBOX, test keys)
+Structural real-money payment system wired with TEST/PLACEHOLDER keys, ready to switch to live keys.
+- **Backend** `cashier.py`: CURRENCIES table (USD/EUR/GBP/AUD fiat + BTC/ETH/USDT/SOL/XRP crypto), USD-cents accounting, min deposit 10 AUD / min withdraw 20 AUD, NOWPayments client (sandbox-mock fallback on placeholder key + real IPN HMAC-SHA512 verify), approval-vault client (Bearer VAULT_API_KEY + X-Platform).
+- **New user field** `real_balance_cents` (separate from play-money `balance`). Exposed in `public_user` as real_balance_usd.
+- **Endpoints** (server.py): GET /cashier/currencies, GET /cashier/summary, POST /cashier/deposit/stripe (multi-currency Stripe Checkout via price_data), POST /cashier/deposit/crypto (NOWPayments), GET /cashier/deposit/crypto/status/{id}, POST /webhooks/nowpayments (IPN), POST /cashier/withdraw (holds funds, submits to vault), GET /cashier/transactions. Admin: GET /admin/cashier/summary, GET /admin/cashier/transactions (filters: search/method/status/direction), POST /admin/cashier/withdrawals/{id}/{approve|reject} (approve releases, reject refunds).
+- Stripe cashier deposits reuse existing /payments/status + /api/stripe/webhook; `_credit_if_paid` branches on `kind=cashier_deposit` to credit real_balance_cents.
+- **Frontend** `pages/Cashier.jsx` (route `/cashier`, protected): Card/Crypto/Withdraw tabs, balance card, QR (qrcode.react) + copyable address, sandbox banner, MGA licence, transaction ledger. Nav dropdown link + Wallet CTA added. Admin `Payments` tab in AdminDashboard with summary cards, filters, approve/reject.
+- **env** (backend/.env): NOWPAYMENTS_API_KEY, NOWPAYMENTS_IPN_SECRET, NOWPAYMENTS_BASE_URL, VAULT_API_URL, VAULT_API_KEY, VAULT_PLATFORM (all placeholders).
+- **Vault**: wages-vault.emergent.host is a live JWT cashier backend (POST /vault/withdraw, /vault/crypto/address, /payments/deposit, /admin/withdrawals/{id}/{action}). With placeholder VAULT_API_KEY the vault call returns not-connected and withdrawals stay locally pending for in-app admin approval; real key routes to the external vault.
+- Tested (curl e2e): currencies, summary, crypto deposit (sandbox addr+QR), Stripe checkout URL (real test session), min-limit + insufficient-balance validation, withdraw hold, admin reject+refund, admin summary. Frontend smoke: Card + Crypto tabs render, QR generated.
+- NOT wired into gameplay: real cash is a separate withdrawable wallet; game credits unchanged (deliberate for sandbox/legal safety).
+
+## Deferred (pivoted to real-money per user directive)
+- Slot search bar + filter tabs, animated win celebrations, daily streak wheel, live tournaments — NOT built this session.
+
 ## Next Tasks
 - Publish to production and share Stripe onboarding link if the user wants to claim the sandbox.

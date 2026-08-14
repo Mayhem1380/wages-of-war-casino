@@ -6,7 +6,8 @@ import { fmt } from "@/data/gameMeta";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Users, Coins, ChartLineUp, Envelope, ShieldCheck, MagnifyingGlass, PencilSimple } from "@phosphor-icons/react";
+import { Users, Coins, ChartLineUp, Envelope, ShieldCheck, MagnifyingGlass, PencilSimple, Vault, ArrowDown, ArrowUp, Check, X } from "@phosphor-icons/react";
+import { ADMINPAY } from "@/constants/testIds";
 
 export default function AdminDashboard() {
   const { user } = useAuth();
@@ -15,6 +16,15 @@ export default function AdminDashboard() {
   const [players, setPlayers] = useState([]);
   const [enquiries, setEnquiries] = useState([]);
   const [search, setSearch] = useState("");
+  const [payTxns, setPayTxns] = useState([]);
+  const [paySummary, setPaySummary] = useState(null);
+  const [payFilter, setPayFilter] = useState({ status: "", method: "", direction: "", search: "" });
+
+  const loadPayments = useCallback((f = {}) => {
+    const qs = new URLSearchParams(Object.entries(f).filter(([, v]) => v)).toString();
+    api.get(`/admin/cashier/transactions?${qs}`).then(({ data }) => setPayTxns(data)).catch(() => {});
+    api.get("/admin/cashier/summary").then(({ data }) => setPaySummary(data)).catch(() => {});
+  }, []);
 
   const loadPlayers = useCallback((q = "") => api.get(`/admin/players?search=${encodeURIComponent(q)}`).then(({ data }) => setPlayers(data)).catch(() => {}), []);
 
@@ -23,8 +33,9 @@ export default function AdminDashboard() {
       api.get("/admin/stats").then(({ data }) => setStats(data)).catch(() => {});
       loadPlayers();
       api.get("/admin/enquiries").then(({ data }) => setEnquiries(data)).catch(() => {});
+      loadPayments();
     }
-  }, [user, loadPlayers]);
+  }, [user, loadPlayers, loadPayments]);
 
   if (user === null) return <div className="p-16 font-mono text-nvg/70">// verifying clearance...</div>;
   if (!user || user.role !== "admin") return <Navigate to="/" replace />;
@@ -39,6 +50,15 @@ export default function AdminDashboard() {
       toast.success(`${p.name}: balance now ${fmt(data.balance)}`);
       loadPlayers(search);
     } catch (e) { toast.error(e.response?.data?.detail || "Adjust failed"); }
+  };
+
+  const decideWithdrawal = async (t, action) => {
+    if (!window.confirm(`${action === "approve" ? "Approve & release" : "Reject & refund"} withdrawal of $${t.amount_usd} for ${t.user_name || t.user_email}?`)) return;
+    try {
+      await api.post(`/admin/cashier/withdrawals/${t.id}/${action}`);
+      toast.success(action === "approve" ? "Withdrawal approved & released" : "Withdrawal rejected & refunded");
+      loadPayments(payFilter);
+    } catch (e) { toast.error(e.response?.data?.detail || "Action failed"); }
   };
 
   const stat = (Icon, label, value) => (
@@ -69,6 +89,7 @@ export default function AdminDashboard() {
       <div className="flex flex-wrap gap-2 mb-8">
         {tabBtn("overview", "Overview")}
         {tabBtn("players", "Players")}
+        {tabBtn("payments", "Payments")}
         {tabBtn("enquiries", "Fleet Enquiries")}
       </div>
 
@@ -106,6 +127,61 @@ export default function AdminDashboard() {
               </div>
             ))}
             {players.length === 0 && <div className="p-5 font-mono text-sm text-muted-foreground">No players found.</div>}
+          </div>
+        </div>
+      )}
+
+      {tab === "payments" && (
+        <div>
+          {paySummary && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              {stat(ArrowDown, "TOTAL DEPOSITS", `$${fmt(paySummary.total_deposits_usd)}`)}
+              {stat(ArrowUp, "TOTAL WITHDRAWALS", `$${fmt(paySummary.total_withdrawals_usd)}`)}
+              {stat(Vault, "PLAYER CASH BALANCES", `$${fmt(paySummary.total_player_balances_usd)}`)}
+              {stat(Coins, "PENDING WITHDRAWALS", fmt(paySummary.pending_withdrawals))}
+            </div>
+          )}
+          <div className="flex flex-wrap gap-2 mb-4">
+            <Input data-testid="admin-pay-search" value={payFilter.search} onChange={(e) => setPayFilter({ ...payFilter, search: e.target.value })} placeholder="Search player" className="bg-black/40 border-border font-mono max-w-[200px]" />
+            {["", "deposit", "withdrawal"].map((d) => (
+              <button key={d || "all-dir"} onClick={() => { const f = { ...payFilter, direction: d }; setPayFilter(f); loadPayments(f); }}
+                className={`font-mono text-xs px-3 py-2 border ${payFilter.direction === d ? "border-gold text-gold" : "border-border text-muted-foreground hover:text-nvg"}`}>
+                {d ? d.toUpperCase() : "ALL"}
+              </button>
+            ))}
+            {["", "pending", "completed", "rejected"].map((s) => (
+              <button key={s || "all-st"} onClick={() => { const f = { ...payFilter, status: s }; setPayFilter(f); loadPayments(f); }}
+                className={`font-mono text-xs px-3 py-2 border ${payFilter.status === s ? "border-nvg text-nvg" : "border-border text-muted-foreground hover:text-nvg"}`}>
+                {s ? s.toUpperCase() : "ANY STATUS"}
+              </button>
+            ))}
+            <Button onClick={() => loadPayments(payFilter)} className="bg-nvg text-black gap-1"><MagnifyingGlass size={16} weight="bold" /></Button>
+          </div>
+          <div className="hud divide-y divide-border">
+            {payTxns.map((t) => (
+              <div key={t.id} data-testid={ADMINPAY.txnRow(t.id)} className="flex items-center justify-between px-5 py-3 gap-4">
+                <div className="flex items-center gap-3 min-w-0">
+                  {t.direction === "deposit" ? <ArrowDown size={18} className="text-nvg shrink-0" /> : <ArrowUp size={18} className="text-alert shrink-0" />}
+                  <div className="min-w-0">
+                    <div className="font-stencil tracking-wide text-foreground truncate">{t.user_name} <span className="text-muted-foreground text-xs">· {t.method} · {t.currency}</span></div>
+                    <div className="font-mono text-[10px] text-muted-foreground truncate">{t.user_email} · {new Date(t.created_at).toLocaleString()}{t.destination ? ` · → ${t.destination}` : ""}</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 shrink-0">
+                  <div className="text-right">
+                    <div className={`font-mono ${t.direction === "deposit" ? "text-nvg" : "text-alert"}`}>{t.direction === "deposit" ? "+" : "−"}${fmt(t.amount_usd)}</div>
+                    <div className={`font-mono text-[10px] ${t.status === "completed" ? "text-nvg" : t.status === "rejected" ? "text-alert" : "text-gold"}`}>{t.status.toUpperCase()}</div>
+                  </div>
+                  {t.direction === "withdrawal" && t.status === "pending" && (
+                    <div className="flex items-center gap-1">
+                      <button data-testid={ADMINPAY.approve(t.id)} onClick={() => decideWithdrawal(t, "approve")} title="Approve & release" className="w-8 h-8 flex items-center justify-center border border-nvg/50 text-nvg hover:bg-nvg/10"><Check size={16} weight="bold" /></button>
+                      <button data-testid={ADMINPAY.reject(t.id)} onClick={() => decideWithdrawal(t, "reject")} title="Reject & refund" className="w-8 h-8 flex items-center justify-center border border-alert/50 text-alert hover:bg-alert/10"><X size={16} weight="bold" /></button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+            {payTxns.length === 0 && <div className="p-5 font-mono text-sm text-muted-foreground">No cashier transactions.</div>}
           </div>
         </div>
       )}
