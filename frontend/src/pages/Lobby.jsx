@@ -44,6 +44,10 @@ export default function Lobby() {
     inferno_airstrike: ["jet", "missile", "flame"],
     frozen_front: ["yeti", "snow", "wild"],
     golden_dynasty: ["emperor", "lantern", "coin"],
+    samurai_strike: ["shogun", "katana", "wild"],
+    voodoo_vengeance: ["witchdoctor", "totem", "scatter"],
+    corsair_cannons: ["corsair", "doubloon", "compass_sym"],
+    warpath_legends: ["warchief", "buffalo", "eagle"],
   };
 
   return (
