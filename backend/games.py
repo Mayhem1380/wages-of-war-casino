@@ -462,7 +462,8 @@ def spin_slot(machine_id, total_bet, free=False):
 # FLAGSHIP HOLD & WIN ENGINE  (AAA machines: jackpot ladder + fire-coin bonus)
 # ---------------------------------------------------------------------------
 FLAGSHIP_IDS = {"pharaohs_arsenal", "inferno_airstrike", "golden_dynasty",
-                "book_of_ops", "big_bass_bombardment", "money_train_convoy"}
+                "book_of_ops", "big_bass_bombardment", "money_train_convoy",
+                "wild_west_recon", "kraken_depths", "frozen_front"}
 
 # jackpot name -> multiplier of the total bet
 JACKPOT_LADDER = {
