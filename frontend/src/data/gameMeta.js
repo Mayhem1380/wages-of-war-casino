@@ -18,14 +18,14 @@ export const SYMBOL_META = {
   gem_green: { Icon: Diamond, color: "#4EE44E" },
   gem_purple: { Icon: Diamond, color: "#C07BFF" },
 
-  explorer: { Icon: Compass, color: "#4EE44E" },
-  idol: { Icon: Skull, color: "#F6E27A" },
-  scarab: { Icon: Bug, color: "#57E6C6" },
+  explorer: { Icon: Compass, color: "#4EE44E", img: "/slots/sym_explorer.png" },
+  idol: { Icon: Skull, color: "#F6E27A", img: "/slots/sym_idol.png" },
+  scarab: { Icon: Bug, color: "#57E6C6", img: "/slots/sym_scarab.png" },
 
-  fisherman: { Icon: Fish, color: "#4EE44E" },
-  boat: { Icon: Boat, color: "#7FE3FF" },
-  rod: { Icon: Anchor, color: "#B8C4B8" },
-  box: { Icon: Package, color: "#FFB454" },
+  fisherman: { Icon: Fish, color: "#4EE44E", img: "/slots/sym_fisherman.png" },
+  boat: { Icon: Boat, color: "#7FE3FF", img: "/slots/sym_boat.png" },
+  rod: { Icon: Anchor, color: "#B8C4B8", img: "/slots/sym_rod.png" },
+  box: { Icon: Package, color: "#FFB454", img: "/slots/sym_box.png" },
 
   sheriff: { Icon: Star, color: "#F6E27A" },
   revolver: { Icon: Crosshair, color: "#FF5A5A" },
@@ -41,10 +41,10 @@ export const SYMBOL_META = {
   banana: { Icon: Star, color: "#FFD84E" },
   candy: { Icon: Sparkle, color: "#7FE3FF" },
 
-  vault: { Icon: Bank, color: "#F6E27A" },
-  loco: { Icon: Cube, color: "#7FE3FF" },
-  gunner: { Icon: Crosshair, color: "#4EE44E" },
-  coin: { Icon: Coin, color: "#FFD84E" },
+  vault: { Icon: Bank, color: "#F6E27A", img: "/slots/sym_vault.png" },
+  loco: { Icon: Cube, color: "#7FE3FF", img: "/slots/sym_loco.png" },
+  gunner: { Icon: Crosshair, color: "#4EE44E", img: "/slots/sym_gunner.png" },
+  coin: { Icon: Coin, color: "#FFD84E", img: "/slots/sym_coin2.png" },
 
   pharaoh: { Icon: Crown, color: "#F6E27A", img: "/slots/sym_pharaoh.png" },
   anubis: { Icon: Dog, color: "#57E6C6", img: "/slots/sym_anubis.png" },
@@ -97,7 +97,7 @@ export const SYMBOL_META = {
   ten: { text: "10", color: "#A2A2A2" },
 
   wild: { Icon: Lightning, color: "#D4AF37", label: "WILD" },
-  book: { Icon: Sparkle, color: "#D4AF37", label: "RELIC" },
+  book: { Icon: Sparkle, color: "#D4AF37", label: "RELIC", img: "/slots/sym_book.png" },
   scatter: { Icon: Target, color: "#4EE44E", label: "SCATTER" },
   firecoin: { Icon: Fire, color: "#FF7A2E", img: "/slots/sym_firecoin.png" },
 };
@@ -125,6 +125,27 @@ export const FLAGSHIP_ART = {
     frame: "#C23A2E",
     panel: "#2a0a0c",
   },
+  book_of_ops: {
+    thumb: "/slots/thumb_book.jpg",
+    bg: "/slots/bg_book.jpg",
+    accent: "#E0B24A",
+    frame: "#2E7D46",
+    panel: "#0e2216",
+  },
+  big_bass_bombardment: {
+    thumb: "/slots/thumb_bass.jpg",
+    bg: "/slots/bg_bass.jpg",
+    accent: "#5AA6FF",
+    frame: "#2E5DA0",
+    panel: "#0a1626",
+  },
+  money_train_convoy: {
+    thumb: "/slots/thumb_train.jpg",
+    bg: "/slots/bg_train.jpg",
+    accent: "#F6C64A",
+    frame: "#8a6a1e",
+    panel: "#181206",
+  },
 };
 
 // Lobby card theming per machine
@@ -149,7 +170,7 @@ export const MACHINE_ART = {
 export const fmt = (n) =>
   Number(n || 0).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 
-export const FLAGSHIP_IDS = ["pharaohs_arsenal", "inferno_airstrike", "golden_dynasty"];
+export const FLAGSHIP_IDS = ["pharaohs_arsenal", "inferno_airstrike", "golden_dynasty", "book_of_ops", "big_bass_bombardment", "money_train_convoy"];
 
 export const BRAND = {
   hero: "/brand/hero.jpeg",
