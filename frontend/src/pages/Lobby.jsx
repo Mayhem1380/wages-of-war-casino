@@ -29,7 +29,13 @@ export default function Lobby() {
   const [slots, setSlots] = useState([]);
 
   useEffect(() => {
-    api.get("/games/slots").then(({ data }) => setSlots(data)).catch(() => {});
+    api.get("/games/slots").then(({ data }) => {
+      const sorted = [...data].sort((a, b) => {
+        if (!!b.is_flagship !== !!a.is_flagship) return (b.is_flagship ? 1 : 0) - (a.is_flagship ? 1 : 0);
+        return (b.popularity || 0) - (a.popularity || 0);
+      });
+      setSlots(sorted);
+    }).catch(() => {});
   }, []);
 
   const symbolPreview = {
@@ -64,6 +70,11 @@ export default function Lobby() {
       </div>
 
       {/* SLOTS GRID (asymmetric) */}
+      <div className="flex items-center gap-3 mb-5">
+        <span className="font-display text-2xl gold-gradient tracking-widest">★ AAA FLAGSHIPS</span>
+        <span className="font-mono text-[10px] tracking-widest text-gold/60">HOLD &amp; WIN · JACKPOTS · POWER WHEEL</span>
+        <div className="flex-1 h-px bg-gold/20" />
+      </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 auto-rows-fr">
         {slots.map((s, i) => {
           const art = MACHINE_ART[s.id] || { accent: "#4EE44E", from: "#0a1f0a", to: "#0a0d0a", tag: "" };

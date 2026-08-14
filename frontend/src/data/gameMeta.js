@@ -109,6 +109,19 @@ export const SYMBOL_META = {
   nugget: { color: "#F6C64A", img: "/slots/sym_nugget.png" },
   pickaxe: { color: "#B8C4B8", img: "/slots/sym_pickaxe.png" },
 
+  dragon: { color: "#FF5A5A", img: "/slots/sym_dragon.png" },
+  dragoncoin: { color: "#FFD84E", img: "/slots/sym_dragoncoin.png" },
+  dragonpearl: { color: "#7FE3FF", img: "/slots/sym_dragonpearl.png" },
+  dragongate: { color: "#FF7A2E", img: "/slots/sym_dragongate.png" },
+  firedragon: { color: "#FF7A2E", img: "/slots/sym_firedragon.png" },
+  golddragon: { color: "#FFD84E", img: "/slots/sym_golddragon.png" },
+  waterdragon: { color: "#57E6C6", img: "/slots/sym_waterdragon.png" },
+  earthdragon: { color: "#4EE44E", img: "/slots/sym_earthdragon.png" },
+  sungod: { color: "#FFC04A", img: "/slots/sym_sungod.png" },
+  sundisc: { color: "#F6C64A", img: "/slots/sym_sundisc.png" },
+  sunpyramid: { color: "#E0B24A", img: "/slots/sym_sunpyramid.png" },
+  suneagle: { color: "#FFD84E", img: "/slots/sym_suneagle.png" },
+
   wild: { Icon: Lightning, color: "#D4AF37", label: "WILD" },
   book: { Icon: Sparkle, color: "#D4AF37", label: "RELIC", img: "/slots/sym_book.png" },
   scatter: { Icon: Target, color: "#4EE44E", label: "SCATTER" },
@@ -201,6 +214,27 @@ export const FLAGSHIP_ART = {
     frame: "#8a6a1e",
     panel: "#1a1206",
   },
+  dragons_riches: {
+    thumb: "/slots/thumb_dragon.jpg",
+    bg: "/slots/bg_dragon.jpg",
+    accent: "#FF6A4A",
+    frame: "#C23A2E",
+    panel: "#26090a",
+  },
+  five_dragons: {
+    thumb: "/slots/thumb_fivedragon.jpg",
+    bg: "/slots/bg_fivedragon.jpg",
+    accent: "#C07BFF",
+    frame: "#5A3A8a",
+    panel: "#160a26",
+  },
+  god_of_sun: {
+    thumb: "/slots/thumb_sun.jpg",
+    bg: "/slots/bg_sun.jpg",
+    accent: "#FFC04A",
+    frame: "#B8801E",
+    panel: "#1c1406",
+  },
 };
 
 // Lobby card theming per machine
@@ -225,7 +259,7 @@ export const MACHINE_ART = {
 export const fmt = (n) =>
   Number(n || 0).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 
-export const FLAGSHIP_IDS = ["pharaohs_arsenal", "inferno_airstrike", "golden_dynasty", "book_of_ops", "big_bass_bombardment", "money_train_convoy", "wild_west_recon", "kraken_depths", "frozen_front", "happy_prosperity", "panda_magic", "gold_bonanza"];
+export const FLAGSHIP_IDS = ["pharaohs_arsenal", "inferno_airstrike", "golden_dynasty", "book_of_ops", "big_bass_bombardment", "money_train_convoy", "wild_west_recon", "kraken_depths", "frozen_front", "happy_prosperity", "panda_magic", "gold_bonanza", "dragons_riches", "five_dragons", "god_of_sun"];
 
 export const BRAND = {
   hero: "/brand/hero.jpeg",

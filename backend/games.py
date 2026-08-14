@@ -418,6 +418,58 @@ SLOT_MACHINES = {
         },
         {"3": 2, "4": 10, "5": 66}, 10, 93,
     ),
+    "dragons_riches": _machine(
+        "dragons_riches", "Dragon's Riches", "Hoard of the war-wyrm", "dragon",
+        "Extreme",
+        {"dragon": 5, "dragoncoin": 7, "dragonpearl": 8, "dragongate": 9, "ace": 12, "king": 13, "queen": 14, "jack": 15, "wild": 4, "scatter": 4},
+        "wild", "scatter",
+        {
+            "dragon": {"3": 12, "4": 30, "5": 80},
+            "dragoncoin": {"3": 6, "4": 18, "5": 40},
+            "dragonpearl": {"3": 4, "4": 12, "5": 25},
+            "dragongate": {"3": 2, "4": 6, "5": 15},
+            "ace": {"3": 1, "4": 4, "5": 10},
+            "king": {"3": 0.8, "4": 3, "5": 8},
+            "queen": {"3": 0.6, "4": 2, "5": 6},
+            "jack": {"3": 0.5, "4": 1.5, "5": 5},
+        },
+        {"3": 2, "4": 10, "5": 100}, 12, 92,
+    ),
+    "five_dragons": _machine(
+        "five_dragons", "5 Dragons", "Five elemental war-dragons", "dragon",
+        "High",
+        {"firedragon": 5, "golddragon": 7, "waterdragon": 8, "earthdragon": 9, "ace": 11, "king": 12, "queen": 13, "jack": 14, "ten": 15, "wild": 4, "scatter": 4},
+        "wild", "scatter",
+        {
+            "firedragon": {"3": 10, "4": 25, "5": 60},
+            "golddragon": {"3": 5, "4": 15, "5": 35},
+            "waterdragon": {"3": 3, "4": 8, "5": 20},
+            "earthdragon": {"3": 2, "4": 6, "5": 15},
+            "ace": {"3": 1, "4": 4, "5": 10},
+            "king": {"3": 0.8, "4": 3, "5": 8},
+            "queen": {"3": 0.6, "4": 2, "5": 6},
+            "jack": {"3": 0.5, "4": 1.5, "5": 5},
+            "ten": {"3": 0.4, "4": 1, "5": 4},
+        },
+        {"3": 3, "4": 10, "5": 88}, 10, 91,
+    ),
+    "god_of_sun": _machine(
+        "god_of_sun", "God of Sun", "Solar wrath jackpot rise", "sun",
+        "Extreme",
+        {"sungod": 5, "sundisc": 7, "sunpyramid": 8, "suneagle": 9, "ace": 12, "king": 13, "queen": 14, "jack": 15, "wild": 4, "scatter": 4},
+        "wild", "scatter",
+        {
+            "sungod": {"3": 12, "4": 30, "5": 80},
+            "sundisc": {"3": 6, "4": 18, "5": 40},
+            "sunpyramid": {"3": 4, "4": 12, "5": 25},
+            "suneagle": {"3": 2, "4": 6, "5": 15},
+            "ace": {"3": 1, "4": 4, "5": 10},
+            "king": {"3": 0.8, "4": 3, "5": 8},
+            "queen": {"3": 0.6, "4": 2, "5": 6},
+            "jack": {"3": 0.5, "4": 1.5, "5": 5},
+        },
+        {"3": 2, "4": 10, "5": 96}, 12, 90,
+    ),
 }
 
 
@@ -517,7 +569,8 @@ def spin_slot(machine_id, total_bet, free=False):
 FLAGSHIP_IDS = {"pharaohs_arsenal", "inferno_airstrike", "golden_dynasty",
                 "book_of_ops", "big_bass_bombardment", "money_train_convoy",
                 "wild_west_recon", "kraken_depths", "frozen_front",
-                "happy_prosperity", "panda_magic", "gold_bonanza"}
+                "happy_prosperity", "panda_magic", "gold_bonanza",
+                "dragons_riches", "five_dragons", "god_of_sun"}
 
 # jackpot name -> multiplier of the total bet
 JACKPOT_LADDER = {
