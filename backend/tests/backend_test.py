@@ -25,6 +25,21 @@ def auth_headers(new_user):
     return {"Authorization": f"Bearer {new_user['token']}"}
 
 
+# ---------------- HEALTH (deployment probe) ----------------
+class TestHealth:
+    def test_health_root_no_api_prefix(self):
+        """K8s liveness probe hits /health (no /api) on the backend pod directly (port 8001).
+        The ingress routes non-/api paths to the frontend, so we probe the backend container directly."""
+        r = requests.get("http://localhost:8001/health", timeout=5)
+        assert r.status_code == 200, f"/health returned {r.status_code}: {r.text[:200]}"
+        d = r.json()
+        assert d.get("status") == "healthy", d
+
+    def test_api_root_still_works(self):
+        r = requests.get(f"{API}/")
+        assert r.status_code == 200
+
+
 # ---------------- AUTH ----------------
 class TestAuth:
     def test_register_returns_10000_and_cookie(self):

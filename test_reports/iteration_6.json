@@ -1,0 +1,31 @@
+{
+  "summary": "Iteration 6: Verified two fixes — (1) top-level GET /health added to FastAPI, (2) AuthDialog Google redirectUrl = window.location.origin. Backend: 44/44 pytest passing (added TestHealth::test_health_root_no_api_prefix + test_api_root_still_works). /health returns 200 {status:healthy} on backend pod directly at http://localhost:8001/health — which is what the K8s liveness probe actually hits. Note: via public ingress (preview URL), /health without /api routes to the frontend and returns index.html; that is EXPECTED because the ingress only forwards /api/* to backend 8001. K8s probes bypass the ingress. All /api routes still functional: /api/ root=200, /api/games/slots returns exactly 6 machines with expected IDs. Auth JWT flows (register 10k balance + cookie, login, /auth/me bearer, admin login, duplicate/invalid guards) all pass. Gameplay regression: slots spin decrements balance & returns net (verified in UI 10000->9900 on gates_of_glory), keno play returns hits/multiplier/win, coinflip heads/tails, bonus status+claim+cooldown, cashback status + Private-tier auto-grant + history, leaderboard, 8 VIP tiers, 5 payments packages, checkout session created. Frontend smoke: Landing, /lobby (6 slot cards), slot SPIN on gates_of_glory, /wallet, /legal/terms, /legal/privacy all load. Zero non-401 console errors. 'War of Wages' typo not present anywhere.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "server.py still 800+ lines (>700); consider splitting into routers (fleet/cashback/payments) — carryover from prior iterations.",
+    "/api/fleet/enquiry still has no auth and no rate limit — carryover, spammable.",
+    "/health lives on the top-level app (outside the /api router) which is correct for the k8s probe. If a future preview-ingress test is desired, expose /api/health as well so it can be verified through the public URL — currently only reachable on the pod directly."
+  ],
+  "updated_files": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/iteration_6.json",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "success_rate": { "backend": "100% (44/44)", "frontend": "100% of smoke flows" },
+  "test_credentials": "Admin admin@wagesofwarcasino.com / WagesOfWar2025! and ephemeral test_<hex>@wowtest.com / secret123 via /api/auth/register.",
+  "seed_data_creation": "Only ephemeral tester_<ts>@wowtest.com accounts created via register endpoint.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "GET /health is on app (not the /api router) at server.py:783. K8s pod probe hits it directly on port 8001 — do NOT expect it to return JSON through the public preview URL (ingress routes non-/api to frontend). backend_test.py TestHealth pins the probe to http://localhost:8001/health accordingly. AuthDialog.jsx:39 redirectUrl now uses window.location.origin (no /lobby). backend_test.py now has 44 tests.",
+  "rca of the issue": "N/A — both requested fixes verified and no regressions found."
+}
