@@ -200,12 +200,13 @@ export function Layout({ children }) {
                 Wages of War Casino — elite night-vision ops gaming. Play-money virtual credits
                 for entertainment only. No real-money wagering or payouts.
               </p>
-              <div className="mt-5 flex items-center gap-3">
+              <div className="mt-5 flex items-center gap-4">
                 <img src={BRAND.coin} alt="Nexus Studio Master" className="w-11 h-11 rounded-full ring-1 ring-gold/40 object-cover" />
                 <div className="font-mono text-[11px] text-muted-foreground leading-tight">
                   <div className="tracking-widest text-nvg/70">POWERED BY</div>
                   <div className="text-foreground">NEXUS STUDIO MASTER</div>
                 </div>
+                <img src="/brand/award_emblem.png" alt="Award-Winning Platform 2026 · Established 2025" data-testid="award-emblem" className="w-20 h-20 object-contain drop-shadow-[0_0_16px_rgba(212,175,55,0.5)] ml-auto md:ml-4" />
               </div>
             </div>
 
