@@ -1,0 +1,34 @@
+{
+  "summary": "Round 4 verification of 7 legal pages, footer licence block, video placeholders, wallet real-money notice, and all 6 slot machines playability + regression. Backend: 42/42 pytest passing (added TestSlots.test_list_slots_expected_ids to lock the 6 machine IDs). Frontend: all 7 legal routes render with data-testid legal-<slug>; footer-licence contains all 5 required strings (© 2025 Wages of War Operations Ltd., MGA/B2C/912/2025, 'Gaming Service Licence (Type 1', 'Registered Address: [Registered Address]', 18+); all 7 footer-legal-<slug> links present; [Registered Address] placeholder preserved on /terms and /privacy; /privacy shows DPO Kevin J. Smith; /aml-policy shows MLRO Kevin J. Smith; /terms sections 1-13 all present. Videos: home-intro-video, giveaway-video, lobby-preview-video all render with Coming Soon label + 'VIDEO CONTENT PENDING UPLOAD' text + play button. Lobby renders all 6 slot cards (lobby-slot-<id>) for gates_of_glory, book_of_ops, big_bass_bombardment, sweet_ammo, wild_west_recon, money_train_convoy. Registered fresh user; /wallet renders wallet-realmoney-notice with all required copy (REAL MONEY INTEGRATION PENDING, Stripe, cryptocurrency, wages-vault.emergent.host, demo / play-money mode). SPIN on /slots/gates_of_glory decremented balance 10000 -> 9900 (net -100, integration OK). /slots/book_of_ops and /slots/money_train_convoy also load correctly. No 'War of Wages' typo detected on landing, lobby, or wallet.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Legal pages (short ones)", "issues": ["[Registered Address] placeholder is only present on /terms and /privacy (where meta blocks include it). Spec says 'placeholder preserved' — this is fine since shorter pages (/responsible-gambling, /age-verification, /cookie-policy, /aml-policy, /bonus-terms) do not include a registered address field by design. Footer still shows 'Registered Address: [Registered Address]' on every page, so overall the placeholder is preserved globally."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Console warning: 'Cannot update a component (AuthProvider) while rendering a different component (Protected)' fires when navigating to /wallet unauthenticated — Protected calls openAuth() during render. Wrap the openAuth('login') call in a useEffect to remove the React warning (functional behaviour is fine; user gets redirected to '/').",
+    "server.py still 824 lines (past 700 threshold) — split fleet/cashback/payments into routers (carried over from iter 3).",
+    "VideoPlaceholder is a decorative element with cursor:pointer but no onClick / role='button' / keyboard support. Consider role='button' aria-disabled='true' or plain non-interactive treatment until video is wired up.",
+    "Fleet enquiry endpoint still has no auth and no rate limit — spammable (carried over from iter 3)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/iteration_4.json",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "success_rate": { "backend": "100% (42/42)", "frontend": "100% of tested flows (legal pages, footer, videos, wallet notice, all 6 slots playable)" },
+  "test_credentials": "Admin admin@wagesofwarcasino.com / WagesOfWar2025! (unused this round). Registered ephemeral tester_<ts>@test.com / secret123 for wallet + spin flow.",
+  "seed_data_creation": "None. Ephemeral user only.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "backend_test.py now has 42 tests. TestSlots.test_list_slots_expected_ids locks the 6 slot IDs. Slot cards on /lobby use data-testid lobby-slot-<machine_id>. Legal pages use data-testid legal-<slug>. Footer licence data-testid footer-licence renders on every page (both public and protected). Footer legal links use data-testid footer-legal-<slug> where slug is the URL segment (terms, privacy, responsible-gambling, age-verification, cookie-policy, aml-policy, bonus-terms). Wallet notice testid: wallet-realmoney-notice. Videos: home-intro-video, giveaway-video (Landing), lobby-preview-video (Lobby). SPIN button on /slots/<id> is a plain button:has-text('SPIN') — consider adding data-testid slot-spin-btn for future testing.",
+  "rca of the issue": "N/A — no defects found this round."
+}

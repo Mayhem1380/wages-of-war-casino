@@ -5,6 +5,7 @@ import { useSound } from "@/context/SoundContext";
 import { BrandLogo } from "@/components/BrandLogo";
 import { AuthDialog } from "@/components/AuthDialog";
 import { RankUpBanner } from "@/components/RankUpBanner";
+import { LEGAL_LINKS } from "@/data/legal";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
@@ -203,29 +204,35 @@ export function Layout({ children }) {
                 <li><Link to="/lobby" className="hover:text-nvg transition-colors">Ops Lobby</Link></li>
                 <li><Link to="/vip" className="hover:text-nvg transition-colors">VIP Ranks</Link></li>
                 <li><Link to="/leaderboard" className="hover:text-nvg transition-colors">Leaderboard</Link></li>
-                <li><Link to="/responsible-gaming" className="hover:text-nvg transition-colors">Responsible Gaming</Link></li>
+                <li><Link to="/responsible-gambling" className="hover:text-nvg transition-colors">Responsible Gaming</Link></li>
               </ul>
             </div>
 
             <div>
-              <h4 className="font-stencil tracking-[0.3em] text-nvg text-sm uppercase mb-4">Compliance</h4>
-              <div className="flex items-center gap-2 text-gold mb-2">
+              <h4 className="font-stencil tracking-[0.3em] text-nvg text-sm uppercase mb-4">Legal & Compliance</h4>
+              <div className="flex items-center gap-2 text-gold mb-3">
                 <ShieldCheck size={18} weight="fill" />
-                <span className="font-mono text-xs">MGA LICENSED</span>
+                <span className="font-mono text-xs">MGA LICENSED · TYPE 1</span>
               </div>
-              <p className="font-mono text-[11px] text-muted-foreground leading-relaxed">
-                Licence Class: Gaming Service Licence (Type 1)<br />
-                Effective: January 2, 2025
-              </p>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                {LEGAL_LINKS.map(([label, href]) => (
+                  <li key={href}>
+                    <Link to={href} data-testid={`footer-legal-${href.slice(1)}`} className="hover:text-nvg transition-colors">{label}</Link>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
 
-          <div className="mt-14 pt-8 border-t border-border flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div className="font-mono text-[11px] text-muted-foreground leading-relaxed">
-              <span className="text-foreground font-semibold">Wages of War Operations Ltd.</span> &nbsp;•&nbsp;
-              Licence Ref: <span className="text-gold">MGA/B2C/912/2025</span> &nbsp;•&nbsp; wagesofwarcasino.com
+          <div className="mt-14 pt-8 border-t border-border flex flex-col md:flex-row items-start justify-between gap-6">
+            <div data-testid="footer-licence" className="font-mono text-[11px] text-muted-foreground leading-relaxed max-w-3xl space-y-0.5">
+              <p><span className="text-foreground font-semibold">© 2025 Wages of War Operations Ltd.</span> All rights reserved.</p>
+              <p>Licensed and regulated by the Malta Gaming Authority under licence number <span className="text-gold">MGA/B2C/912/2025</span>.</p>
+              <p>Gaming Service Licence (Type 1 – Online Casino &amp; Virtual Slot Content).</p>
+              <p>Registered Address: [Registered Address]</p>
+              <p>Players must be 18+ to gamble. Please gamble responsibly.</p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 shrink-0">
               <span className="border border-alert/60 text-alert font-mono text-xs px-2 py-0.5">18+</span>
               <span className="font-mono text-[11px] text-muted-foreground">Play responsibly.</span>
             </div>
@@ -235,6 +242,7 @@ export function Layout({ children }) {
 
       <AuthDialog />
       <RankUpBanner />
+      <div className="fx-overlay" aria-hidden="true" />
     </div>
   );
 }

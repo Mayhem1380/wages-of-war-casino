@@ -177,7 +177,7 @@ export default function SlotGame() {
 
       <div className="grid lg:grid-cols-[1fr_280px] gap-6">
         {/* REELS */}
-        <div className={`hud p-4 sm:p-6 relative overflow-hidden ${shake ? "animate-shake" : ""}`} style={{ background: "#060906" }}>
+        <div className={`hud p-4 sm:p-6 relative overflow-hidden reel-scan ${shake ? "animate-shake" : ""}`} style={{ background: "#060906", boxShadow: "inset 0 0 70px rgba(0,0,0,0.7), inset 0 0 30px rgba(78,228,78,0.06)" }}>
           {/* FREE SPINS BANNER */}
           {free && (
             <div data-testid={SLOT.freeOverlay} className="absolute inset-x-0 top-0 z-20 bg-black/85 border-b-2 border-gold px-5 py-3 flex items-center justify-between animate-pop">
@@ -283,7 +283,7 @@ export default function SlotGame() {
               data-testid={SLOT.spin}
               onClick={doSpin}
               disabled={spinning || inFree}
-              className="w-full h-16 bg-gold hover:bg-gold/90 text-black font-display text-2xl tracking-widest glow-gold gap-2 disabled:opacity-60"
+              className="w-full h-16 bg-gold hover:bg-gold/90 text-black font-display text-2xl tracking-widest glow-gold gap-2 disabled:opacity-60 animate-pulse-gold"
             >
               {inFree ? <Sparkle size={26} weight="fill" /> : <Lightning size={26} weight="fill" />}
               {inFree ? "FREE FIRE..." : spinning ? "SPINNING..." : "SPIN"}

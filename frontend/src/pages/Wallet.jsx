@@ -5,7 +5,7 @@ import { fmt, BRAND } from "@/data/gameMeta";
 import { WALLET } from "@/constants/testIds";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Coins, Package, Lightning, ArrowUp, ArrowDown, Gift, ShieldCheck, Percent } from "@phosphor-icons/react";
+import { Coins, Package, Lightning, ArrowUp, ArrowDown, Gift, ShieldCheck, Percent, Warning } from "@phosphor-icons/react";
 
 const TXN_LABEL = {
   slots: "Slots", keno: "Warhead Keno", coinflip: "Dog-Tag Flip",
@@ -60,6 +60,17 @@ export default function Wallet() {
 
   return (
     <div data-testid={WALLET.root} className="max-w-[1100px] mx-auto px-4 sm:px-8 py-10">
+      <div data-testid="wallet-realmoney-notice" className="hud border-alert/50 bg-alert/5 p-5 mb-8 flex items-start gap-4">
+        <Warning size={28} weight="fill" className="text-alert shrink-0 mt-0.5 animate-flicker" />
+        <div>
+          <h3 className="font-display text-2xl tracking-wide text-alert leading-none">REAL MONEY INTEGRATION PENDING</h3>
+          <p className="text-sm text-foreground/80 mt-2 leading-relaxed">
+            Stripe payments and cryptocurrency deposits/withdrawals (via <span className="text-gold">wages-vault.emergent.host</span>) are
+            being connected. Full real-money functionality will be available shortly. Currently operating in <span className="text-nvg">demo / play-money mode</span>.
+          </p>
+        </div>
+      </div>
+
       <div className="hud hud-gold p-6 flex flex-wrap items-center justify-between gap-4 mb-10">
         <div>
           <p className="font-mono text-xs tracking-widest text-nvg/70">OPERATIVE BALANCE</p>
