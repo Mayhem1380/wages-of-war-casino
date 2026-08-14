@@ -297,10 +297,11 @@ export const FLAGSHIP_IDS = ["pharaohs_arsenal", "inferno_airstrike", "golden_dy
 
 export const BRAND = {
   hero: "/brand/hero.jpeg",
-  emblem: "/brand/emblem.jpeg",
+  emblem: "/brand/winged_emblem.png",
   promo: "/brand/promo-platforms.jpeg",
   coin: "/brand/coin.jpeg",
   coinNightOps: "/brand/coin-nightops.png",
   nexusBanner: "/brand/nexus-banner.jpg",
   giveaway: "/brand/giveaway.webp",
+  footerUnderwater: "/brand/footer_underwater.jpg",
 };
