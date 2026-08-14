@@ -454,3 +454,113 @@ class TestCashbackHistory:
             assert rows[0]["created_at"] >= rows[1]["created_at"]
         # no mongo _id leaked
         assert "_id" not in row
+
+
+
+# ---------------- ADMIN DASHBOARD ----------------
+ADMIN_EMAIL = "admin@wagesofwarcasino.com"
+ADMIN_PASSWORD = "WagesOfWar2025!"
+
+
+@pytest.fixture(scope="session")
+def admin_headers():
+    r = requests.post(f"{API}/auth/login", json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD})
+    assert r.status_code == 200, r.text
+    return {"Authorization": f"Bearer {r.json()['token']}"}
+
+
+class TestAdmin:
+    def test_stats_unauth_401(self):
+        r = requests.get(f"{API}/admin/stats")
+        assert r.status_code == 401, r.text
+
+    def test_players_unauth_401(self):
+        r = requests.get(f"{API}/admin/players")
+        assert r.status_code == 401
+
+    def test_enquiries_unauth_401(self):
+        r = requests.get(f"{API}/admin/enquiries")
+        assert r.status_code == 401
+
+    def test_stats_normal_user_403(self, auth_headers):
+        r = requests.get(f"{API}/admin/stats", headers=auth_headers)
+        assert r.status_code == 403, r.text
+
+    def test_players_normal_user_403(self, auth_headers):
+        r = requests.get(f"{API}/admin/players", headers=auth_headers)
+        assert r.status_code == 403
+
+    def test_enquiries_normal_user_403(self, auth_headers):
+        r = requests.get(f"{API}/admin/enquiries", headers=auth_headers)
+        assert r.status_code == 403
+
+    def test_stats_admin_200(self, admin_headers):
+        r = requests.get(f"{API}/admin/stats", headers=admin_headers)
+        assert r.status_code == 200, r.text
+        d = r.json()
+        for k in ("players", "total_balance", "total_wagered", "total_won", "games_played", "enquiries", "deposits"):
+            assert k in d, f"missing {k} in stats: {d}"
+        assert isinstance(d["players"], int) and d["players"] >= 1
+
+    def test_players_admin_200_and_search(self, admin_headers, new_user):
+        r = requests.get(f"{API}/admin/players", headers=admin_headers)
+        assert r.status_code == 200
+        rows = r.json()
+        assert isinstance(rows, list) and len(rows) >= 1
+        assert "_id" not in rows[0]
+        assert "password_hash" not in rows[0]
+        # search filter
+        r2 = requests.get(f"{API}/admin/players", headers=admin_headers, params={"search": new_user["email"]})
+        assert r2.status_code == 200
+        found = r2.json()
+        emails = [p.get("email") for p in found]
+        assert new_user["email"] in emails, emails
+
+    def test_enquiries_admin_200(self, admin_headers):
+        r = requests.get(f"{API}/admin/enquiries", headers=admin_headers)
+        assert r.status_code == 200
+        rows = r.json()
+        assert isinstance(rows, list)
+        if rows:
+            assert "_id" not in rows[0]
+
+    def test_balance_adjust_delta(self, admin_headers, new_user):
+        uid = new_user["user_id"] if "user_id" in new_user else new_user["user"].get("user_id") or new_user["user"].get("id")
+        # get current balance
+        me = requests.get(f"{API}/admin/players", headers=admin_headers, params={"search": new_user["email"]}).json()
+        assert me, "player not found for adjust test"
+        target = me[0]
+        uid = target.get("user_id") or target.get("id")
+        assert uid, f"no user_id in player row: {target}"
+        before = target.get("balance", 0)
+        r = requests.post(f"{API}/admin/players/{uid}/balance",
+                          headers=admin_headers, json={"amount": 500, "mode": "delta"})
+        assert r.status_code == 200, r.text
+        new_bal = r.json()["balance"]
+        assert round(new_bal - before, 2) == 500.0, (before, new_bal)
+
+    def test_balance_adjust_set(self, admin_headers, new_user):
+        me = requests.get(f"{API}/admin/players", headers=admin_headers, params={"search": new_user["email"]}).json()
+        uid = me[0].get("user_id") or me[0].get("id")
+        r = requests.post(f"{API}/admin/players/{uid}/balance",
+                          headers=admin_headers, json={"amount": 12345.67, "mode": "set"})
+        assert r.status_code == 200, r.text
+        assert r.json()["balance"] == 12345.67
+
+    def test_balance_adjust_records_transaction(self, admin_headers, new_user, auth_headers):
+        # After the adjusts above, the user's transactions should include 'admin_adjust'
+        r = requests.get(f"{API}/wallet/transactions", headers=auth_headers)
+        assert r.status_code == 200
+        types = [t.get("type") for t in r.json()]
+        assert "admin_adjust" in types, types
+
+    def test_balance_adjust_404_for_unknown_user(self, admin_headers):
+        r = requests.post(f"{API}/admin/players/nonexistent-uid/balance",
+                          headers=admin_headers, json={"amount": 10, "mode": "delta"})
+        assert r.status_code == 404, r.text
+
+    def test_balance_adjust_forbidden_for_normal_user(self, auth_headers, new_user):
+        uid = new_user["user"].get("user_id") or new_user["user"].get("id")
+        r = requests.post(f"{API}/admin/players/{uid}/balance",
+                          headers=auth_headers, json={"amount": 10, "mode": "delta"})
+        assert r.status_code == 403

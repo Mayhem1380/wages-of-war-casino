@@ -149,6 +149,11 @@ export function Layout({ children }) {
                       <WalletIcon size={16} /> Wallet & Deposit
                     </DropdownMenuItem>
                     <DropdownMenuSeparator className="bg-border" />
+                    {user.role === "admin" && (
+                      <DropdownMenuItem data-testid="nav-admin-btn" onClick={() => navigate("/admin")} className="font-mono text-sm gap-2 cursor-pointer text-gold">
+                        <ShieldCheck size={16} /> Admin Ops
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem data-testid={NAV.logoutBtn} onClick={logout} className="font-mono text-sm gap-2 cursor-pointer text-alert">
                       <SignOut size={16} /> Sign Out
                     </DropdownMenuItem>

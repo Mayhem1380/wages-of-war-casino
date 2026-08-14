@@ -1,0 +1,33 @@
+{
+  "summary": "Iteration 8: Admin Dashboard testing (backend + frontend) plus full regression sweep. Added 14 new TestAdmin backend tests covering auth gating (401/403/200), balance adjust delta/set/404/forbidden, transaction recording, players search, enquiries listing, and stats shape. Backend pytest: 58/58 PASSED in 8.35s (44 prior regression + 14 new admin). Frontend Playwright via public REACT_APP_BACKEND_URL: (1) Admin login -> user menu shows nav-admin-btn -> /admin renders admin-root; Players tab reveals admin-player-search and 68 admin-adjust-<uid> buttons; Fleet Enquiries tab renders. (2) Fresh non-admin registered user: nav-admin-btn NOT rendered in user menu; direct GET /admin redirects to '/' (admin-root not present). No 'War of Wages' typo observed. No non-401 console errors.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Admin endpoints properly gated with require_admin (401 vs 403 correctly distinguished by get_current_user vs role check).",
+    "BalanceAdjustInput accepts mode default 'delta' — no explicit validation that mode is one of ('delta','set'). Any unexpected value falls through to delta branch. Consider Literal['delta','set'] for stricter validation. Non-blocking.",
+    "Admin adjust logs actor via record_transaction meta.by=admin.email — good audit trail.",
+    "admin-adjust uses window.prompt in UI (per spec); testable via API only, as noted in request. Fine for MVP.",
+    "Carryover: server.py still >700 lines; /api/fleet/enquiry still lacks auth/rate-limit."
+  ],
+  "updated_files": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/iteration_8.json",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "success_rate": { "backend": "100% (58/58)", "frontend": "100% of admin + regression flows" },
+  "test_credentials": "Admin admin@wagesofwarcasino.com / WagesOfWar2025!; ephemeral test users via /api/auth/register.",
+  "seed_data_creation": "Only ephemeral test users. Balance adjusts applied to ephemeral test user only.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Admin testids: admin-root, admin-tab-overview/players/enquiries, admin-player-search, admin-player-<uid>, admin-adjust-<uid>, nav-admin-btn (only rendered for role==='admin'). Non-admin visiting /admin is redirected to '/'. Admin endpoints: /api/admin/stats, /api/admin/players (search), /api/admin/players/{uid}/balance (BalanceAdjustInput amount+mode), /api/admin/enquiries. 401 when unauthenticated, 403 for role != admin. backend_test.py has 58 tests.",
+  "rca of the issue": "N/A — feature works end-to-end."
+}
