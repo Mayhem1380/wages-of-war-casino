@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { fmt, BRAND } from "@/data/gameMeta";
@@ -60,14 +61,17 @@ export default function Wallet() {
 
   return (
     <div data-testid={WALLET.root} className="max-w-[1100px] mx-auto px-4 sm:px-8 py-10">
-      <div data-testid="wallet-realmoney-notice" className="hud border-alert/50 bg-alert/5 p-5 mb-8 flex items-start gap-4">
-        <Warning size={28} weight="fill" className="text-alert shrink-0 mt-0.5 animate-flicker" />
-        <div>
-          <h3 className="font-display text-2xl tracking-wide text-alert leading-none">REAL MONEY INTEGRATION PENDING</h3>
+      <div data-testid="wallet-realmoney-notice" className="hud hud-gold p-5 mb-8 flex items-start gap-4">
+        <ShieldCheck size={28} weight="fill" className="text-gold shrink-0 mt-0.5" />
+        <div className="flex-1">
+          <h3 className="font-display text-2xl tracking-wide gold-gradient leading-none">REAL-MONEY CASHIER IS LIVE</h3>
           <p className="text-sm text-foreground/80 mt-2 leading-relaxed">
-            Stripe payments and cryptocurrency deposits/withdrawals (via <span className="text-gold">wages-vault.emergent.host</span>) are
-            being connected. Full real-money functionality will be available shortly. Currently operating in <span className="text-nvg">demo / play-money mode</span>.
+            Deposit &amp; withdraw real funds via card (Stripe), crypto (NOWPayments) and the approval vault at{" "}
+            <span className="text-gold">wages-vault.emergent.host</span>. Credit packages below remain play-money for gameplay.
           </p>
+          <Link to="/cashier" data-testid="wallet-goto-cashier" className="inline-flex items-center gap-2 mt-3 font-stencil tracking-widest uppercase text-sm text-black bg-gold px-4 py-2 hover:bg-gold/90">
+            Open Cashier Vault
+          </Link>
         </div>
       </div>
 

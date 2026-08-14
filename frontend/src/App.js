@@ -12,6 +12,7 @@ import FlagshipSlot from "@/pages/FlagshipSlot";
 import KenoGame from "@/pages/KenoGame";
 import CoinFlipGame from "@/pages/CoinFlipGame";
 import Wallet from "@/pages/Wallet";
+import Cashier from "@/pages/Cashier";
 import Profile from "@/pages/Profile";
 import Leaderboard from "@/pages/Leaderboard";
 import Vip from "@/pages/Vip";
@@ -69,6 +70,7 @@ function AppRouter() {
         <Route path="/aml-policy" element={<LegalPage slug="aml-policy" />} />
         <Route path="/bonus-terms" element={<LegalPage slug="bonus-terms" />} />
         <Route path="/wallet" element={<Protected><Wallet /></Protected>} />
+        <Route path="/cashier" element={<Protected><Cashier /></Protected>} />
         <Route path="/profile" element={<Protected><Profile /></Protected>} />
         <Route path="/payment/success" element={<PaymentSuccess />} />
         <Route path="/admin" element={<AdminDashboard />} />

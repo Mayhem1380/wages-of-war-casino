@@ -26,6 +26,7 @@ from games import (
     VIP_TIERS, tier_for_wagered, CREDIT_PACKAGES,
     FLAGSHIP_IDS, JACKPOT_LADDER, spin_flagship, play_holdwin,
 )
+import cashier
 
 # ---------------------------------------------------------------------------
 # Setup
@@ -100,6 +101,8 @@ def public_user(u: dict) -> dict:
         "last_bonus_claim": u.get("last_bonus_claim"),
         "provider": u.get("provider", "email"),
         "created_at": u.get("created_at"),
+        "real_balance_cents": int(u.get("real_balance_cents", 0)),
+        "real_balance_usd": round(int(u.get("real_balance_cents", 0)) / 100.0, 2),
     }
 
 
@@ -841,12 +844,22 @@ async def checkout(payload: CheckoutInput, user: dict = Depends(require_user)):
 
 async def _credit_if_paid(record):
     if record.get("payment_status") == "paid" and not record.get("credited"):
-        credits = float(record.get("credits", 0))
-        await db.users.update_one({"user_id": record["user_id"]}, {"$inc": {"balance": credits}})
-        await db.payment_transactions.update_one({"session_id": record["session_id"]},
-                                                 {"$set": {"credited": True}})
-        await record_transaction(record["user_id"], "deposit", credits,
-                                 {"amount_usd": record["amount"] / 100.0, "package": record["lookup_key"]})
+        if record.get("kind") == "cashier_deposit":
+            usd_cents = int(record.get("usd_cents", 0))
+            await db.users.update_one({"user_id": record["user_id"]}, {"$inc": {"real_balance_cents": usd_cents}})
+            await db.payment_transactions.update_one({"session_id": record["session_id"]}, {"$set": {"credited": True}})
+            await db.cashier_transactions.update_one(
+                {"provider_ref": record["session_id"]},
+                {"$set": {"status": "completed", "updated_at": datetime.now(timezone.utc).isoformat()}})
+            await record_transaction(record["user_id"], "deposit_fiat", usd_cents / 100.0,
+                                     {"method": "card", "currency": record.get("currency"), "session_id": record["session_id"]})
+        else:
+            credits = float(record.get("credits", 0))
+            await db.users.update_one({"user_id": record["user_id"]}, {"$inc": {"balance": credits}})
+            await db.payment_transactions.update_one({"session_id": record["session_id"]},
+                                                     {"$set": {"credited": True}})
+            await record_transaction(record["user_id"], "deposit", credits,
+                                     {"amount_usd": record["amount"] / 100.0, "package": record["lookup_key"]})
 
 
 @api.get("/payments/status/{session_id}")
@@ -888,6 +901,254 @@ async def stripe_webhook(request: Request):
         if record:
             await _credit_if_paid(record)
     return {"status": "ok"}
+
+
+# ---------------------------------------------------------------------------
+# REAL-MONEY CASHIER (Stripe fiat + NOWPayments crypto + approval vault)
+# Sandbox / test-key framework. All balances held in USD cents.
+# ---------------------------------------------------------------------------
+class StripeCashierInput(BaseModel):
+    currency: str
+    amount: float = Field(gt=0)
+    origin_url: str
+
+
+class CryptoDepositInput(BaseModel):
+    pay_currency: str
+    amount_usd: float = Field(gt=0)
+
+
+class WithdrawInput(BaseModel):
+    currency: str
+    amount: float = Field(gt=0)
+    destination: str = Field(min_length=4)
+
+
+def _pub_cashier(t: dict) -> dict:
+    return {
+        "id": t["id"], "direction": t["direction"], "method": t["method"],
+        "currency": t["currency"], "amount": t["amount"], "amount_usd": round(t.get("amount_usd_cents", 0) / 100.0, 2),
+        "status": t["status"], "provider": t.get("provider"), "destination": t.get("destination"),
+        "pay_address": t.get("pay_address"), "pay_amount": t.get("pay_amount"),
+        "sandbox": t.get("sandbox", False), "created_at": t["created_at"], "updated_at": t.get("updated_at"),
+    }
+
+
+@api.get("/cashier/currencies")
+async def cashier_currencies():
+    return {
+        "currencies": cashier.currency_list(),
+        "min_deposit_aud": cashier.MIN_DEPOSIT_AUD,
+        "min_withdraw_aud": cashier.MIN_WITHDRAW_AUD,
+        "min_deposit_usd": round(cashier.MIN_DEPOSIT_USD_CENTS / 100.0, 2),
+        "min_withdraw_usd": round(cashier.MIN_WITHDRAW_USD_CENTS / 100.0, 2),
+    }
+
+
+@api.get("/cashier/summary")
+async def cashier_summary(user: dict = Depends(require_user)):
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
+    cents = int(fresh.get("real_balance_cents", 0))
+    return {
+        "real_balance_cents": cents,
+        "real_balance_usd": round(cents / 100.0, 2),
+        "min_deposit_usd": round(cashier.MIN_DEPOSIT_USD_CENTS / 100.0, 2),
+        "min_withdraw_usd": round(cashier.MIN_WITHDRAW_USD_CENTS / 100.0, 2),
+        "sandbox": cashier._is_placeholder_np() or cashier.is_placeholder_vault(),
+    }
+
+
+@api.post("/cashier/deposit/stripe")
+async def cashier_deposit_stripe(payload: StripeCashierInput, user: dict = Depends(require_user)):
+    code = payload.currency.upper()
+    if code not in cashier.FIAT_CODES:
+        raise HTTPException(status_code=400, detail="Unsupported fiat currency")
+    usd_cents = cashier.to_usd_cents(payload.amount, code)
+    if usd_cents < cashier.MIN_DEPOSIT_USD_CENTS:
+        raise HTTPException(status_code=400, detail=f"Minimum deposit is {cashier.MIN_DEPOSIT_AUD} AUD")
+    minor = cashier.to_minor_unit(payload.amount, code)
+    try:
+        session = stripe.checkout.Session.create(
+            line_items=[{"price_data": {
+                "currency": code.lower(),
+                "product_data": {"name": "Wages of War Casino — Cash Deposit"},
+                "unit_amount": minor,
+            }, "quantity": 1}],
+            mode="payment",
+            success_url=f"{payload.origin_url}/cashier?deposit=success&session_id={{CHECKOUT_SESSION_ID}}",
+            cancel_url=f"{payload.origin_url}/cashier?deposit=cancel",
+            metadata={"kind": "cashier_deposit", "user_id": user["user_id"], "usd_cents": str(usd_cents), "currency": code},
+        )
+    except stripe.error.StripeError as e:
+        logger.error(f"Stripe cashier error: {e}")
+        raise HTTPException(status_code=500, detail="Payment provider error")
+
+    now_iso = datetime.now(timezone.utc).isoformat()
+    await db.payment_transactions.insert_one({
+        "session_id": session.id, "user_id": user["user_id"], "kind": "cashier_deposit",
+        "usd_cents": usd_cents, "amount": minor, "currency": code,
+        "status": "initiated", "payment_status": "pending", "credited": False,
+        "created_at": now_iso, "updated_at": now_iso,
+    })
+    await db.cashier_transactions.insert_one({
+        "id": str(uuid.uuid4()), "user_id": user["user_id"], "user_email": user.get("email"),
+        "user_name": user.get("name"), "direction": "deposit", "method": "card",
+        "currency": code, "amount": payload.amount, "amount_usd_cents": usd_cents,
+        "status": "pending", "provider": "stripe", "provider_ref": session.id,
+        "sandbox": False, "created_at": now_iso, "updated_at": now_iso,
+    })
+    return {"checkout_url": session.url, "session_id": session.id}
+
+
+@api.post("/cashier/deposit/crypto")
+async def cashier_deposit_crypto(payload: CryptoDepositInput, user: dict = Depends(require_user)):
+    code = payload.pay_currency.upper()
+    if code not in cashier.CRYPTO_CODES:
+        raise HTTPException(status_code=400, detail="Unsupported crypto currency")
+    usd_cents = round(payload.amount_usd * 100)
+    if usd_cents < cashier.MIN_DEPOSIT_USD_CENTS:
+        raise HTTPException(status_code=400, detail=f"Minimum deposit is {cashier.MIN_DEPOSIT_AUD} AUD")
+    order_id = f"wow:{user['user_id']}:{uuid.uuid4().hex[:10]}"
+    ipn_url = f"{os.environ.get('FRONTEND_URL','').replace('http://','https://')}/api/webhooks/nowpayments"
+    pay = await cashier.np_create_payment(payload.amount_usd, code, order_id, ipn_url)
+    now_iso = datetime.now(timezone.utc).isoformat()
+    txn = {
+        "id": str(uuid.uuid4()), "user_id": user["user_id"], "user_email": user.get("email"),
+        "user_name": user.get("name"), "direction": "deposit", "method": "crypto",
+        "currency": code, "amount": pay["pay_amount"], "amount_usd_cents": usd_cents,
+        "status": "pending", "provider": "nowpayments", "provider_ref": pay["payment_id"],
+        "pay_address": pay["pay_address"], "pay_amount": pay["pay_amount"],
+        "sandbox": pay["sandbox"], "created_at": now_iso, "updated_at": now_iso,
+    }
+    await db.cashier_transactions.insert_one(dict(txn))
+    return {
+        "payment_id": pay["payment_id"], "pay_address": pay["pay_address"],
+        "pay_amount": pay["pay_amount"], "pay_currency": code, "amount_usd": payload.amount_usd,
+        "status": pay["status"], "sandbox": pay["sandbox"],
+    }
+
+
+@api.get("/cashier/deposit/crypto/status/{payment_id}")
+async def cashier_crypto_status(payment_id: str, user: dict = Depends(require_user)):
+    t = await db.cashier_transactions.find_one({"provider_ref": payment_id, "user_id": user["user_id"]}, {"_id": 0})
+    if not t:
+        raise HTTPException(status_code=404, detail="Deposit not found")
+    return {"payment_id": payment_id, "status": t["status"], "sandbox": t.get("sandbox", False)}
+
+
+async def _credit_crypto_deposit(payment_id: str):
+    t = await db.cashier_transactions.find_one_and_update(
+        {"provider_ref": payment_id, "status": "pending", "direction": "deposit"},
+        {"$set": {"status": "completed", "updated_at": datetime.now(timezone.utc).isoformat()}})
+    if t:
+        await db.users.update_one({"user_id": t["user_id"]}, {"$inc": {"real_balance_cents": int(t["amount_usd_cents"])}})
+        await record_transaction(t["user_id"], "deposit_crypto", t["amount_usd_cents"] / 100.0,
+                                 {"method": "crypto", "currency": t["currency"], "payment_id": payment_id})
+
+
+@api.post("/webhooks/nowpayments")
+async def nowpayments_ipn(request: Request):
+    payload = await request.json()
+    if not cashier.np_verify_ipn(payload, request.headers.get("x-nowpayments-sig")):
+        raise HTTPException(status_code=401, detail="Invalid IPN signature")
+    payment_id = str(payload.get("payment_id", ""))
+    if payment_id and payload.get("payment_status") == "finished":
+        await _credit_crypto_deposit(payment_id)
+    return {"received": True}
+
+
+@api.post("/cashier/withdraw")
+async def cashier_withdraw(payload: WithdrawInput, user: dict = Depends(require_user)):
+    code = payload.currency.upper()
+    if code not in cashier.CURRENCIES:
+        raise HTTPException(status_code=400, detail="Unsupported currency")
+    usd_cents = cashier.to_usd_cents(payload.amount, code)
+    if usd_cents < cashier.MIN_WITHDRAW_USD_CENTS:
+        raise HTTPException(status_code=400, detail=f"Minimum withdrawal is {cashier.MIN_WITHDRAW_AUD} AUD")
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
+    if int(fresh.get("real_balance_cents", 0)) < usd_cents:
+        raise HTTPException(status_code=400, detail="Insufficient cash balance")
+    # hold funds immediately
+    await db.users.update_one({"user_id": user["user_id"]}, {"$inc": {"real_balance_cents": -usd_cents}})
+    ref = str(uuid.uuid4())
+    vault = await cashier.vault_submit_withdrawal(code, payload.amount, payload.destination, ref)
+    now_iso = datetime.now(timezone.utc).isoformat()
+    await db.cashier_transactions.insert_one({
+        "id": ref, "user_id": user["user_id"], "user_email": user.get("email"), "user_name": user.get("name"),
+        "direction": "withdrawal", "method": "crypto" if code in cashier.CRYPTO_CODES else "card",
+        "currency": code, "amount": payload.amount, "amount_usd_cents": usd_cents,
+        "status": "pending", "provider": "vault", "provider_ref": vault.get("vault_id") or ref,
+        "destination": payload.destination, "vault_ok": vault["ok"], "vault_detail": vault["detail"],
+        "sandbox": cashier.is_placeholder_vault(), "created_at": now_iso, "updated_at": now_iso,
+    })
+    await record_transaction(user["user_id"], "withdrawal_request", -usd_cents / 100.0,
+                             {"currency": code, "destination": payload.destination, "status": "pending"})
+    return {"id": ref, "status": "pending", "vault_connected": vault["ok"],
+            "balance_usd": round((int(fresh.get("real_balance_cents", 0)) - usd_cents) / 100.0, 2)}
+
+
+@api.get("/cashier/transactions")
+async def cashier_transactions(user: dict = Depends(require_user)):
+    rows = await db.cashier_transactions.find({"user_id": user["user_id"]}, {"_id": 0}) \
+        .sort("created_at", -1).to_list(100)
+    return [_pub_cashier(t) for t in rows]
+
+
+# ---- Admin cashier controls ----
+@api.get("/admin/cashier/summary")
+async def admin_cashier_summary(admin: dict = Depends(require_admin)):
+    agg = await db.cashier_transactions.aggregate([
+        {"$group": {"_id": {"direction": "$direction", "status": "$status"}, "usd": {"$sum": "$amount_usd_cents"}, "n": {"$sum": 1}}}
+    ]).to_list(100)
+    deposits = sum(g["usd"] for g in agg if g["_id"]["direction"] == "deposit" and g["_id"]["status"] == "completed")
+    withdrawals = sum(g["usd"] for g in agg if g["_id"]["direction"] == "withdrawal" and g["_id"]["status"] == "completed")
+    pending_wd = sum(g["n"] for g in agg if g["_id"]["direction"] == "withdrawal" and g["_id"]["status"] == "pending")
+    bal = await db.users.aggregate([{"$group": {"_id": None, "t": {"$sum": "$real_balance_cents"}}}]).to_list(1)
+    return {
+        "total_deposits_usd": round(deposits / 100.0, 2),
+        "total_withdrawals_usd": round(withdrawals / 100.0, 2),
+        "total_player_balances_usd": round((bal[0]["t"] if bal else 0) / 100.0, 2),
+        "pending_withdrawals": pending_wd,
+    }
+
+
+@api.get("/admin/cashier/transactions")
+async def admin_cashier_transactions(search: str = "", method: str = "", status: str = "",
+                                      direction: str = "", admin: dict = Depends(require_admin)):
+    q = {}
+    if search:
+        q["$or"] = [{"user_email": {"$regex": search, "$options": "i"}},
+                    {"user_name": {"$regex": search, "$options": "i"}}]
+    if method:
+        q["method"] = method
+    if status:
+        q["status"] = status
+    if direction:
+        q["direction"] = direction
+    rows = await db.cashier_transactions.find(q, {"_id": 0}).sort("created_at", -1).to_list(300)
+    return [{**_pub_cashier(t), "user_email": t.get("user_email"), "user_name": t.get("user_name"),
+             "vault_ok": t.get("vault_ok"), "vault_detail": t.get("vault_detail")} for t in rows]
+
+
+@api.post("/admin/cashier/withdrawals/{txn_id}/{action}")
+async def admin_cashier_withdrawal_action(txn_id: str, action: str, admin: dict = Depends(require_admin)):
+    if action not in ("approve", "reject"):
+        raise HTTPException(status_code=400, detail="action must be approve or reject")
+    t = await db.cashier_transactions.find_one({"id": txn_id, "direction": "withdrawal"})
+    if not t or t["status"] != "pending":
+        raise HTTPException(status_code=400, detail="No pending withdrawal with that id")
+    now_iso = datetime.now(timezone.utc).isoformat()
+    if action == "approve":
+        await db.cashier_transactions.update_one({"id": txn_id}, {"$set": {"status": "completed", "updated_at": now_iso}})
+        await record_transaction(t["user_id"], "withdrawal_approved", -t["amount_usd_cents"] / 100.0,
+                                 {"currency": t["currency"], "by": admin["email"]})
+        return {"id": txn_id, "status": "completed"}
+    # reject -> refund held funds
+    await db.users.update_one({"user_id": t["user_id"]}, {"$inc": {"real_balance_cents": int(t["amount_usd_cents"])}})
+    await db.cashier_transactions.update_one({"id": txn_id}, {"$set": {"status": "rejected", "updated_at": now_iso}})
+    await record_transaction(t["user_id"], "withdrawal_rejected", t["amount_usd_cents"] / 100.0,
+                             {"currency": t["currency"], "by": admin["email"]})
+    return {"id": txn_id, "status": "rejected"}
 
 
 @api.get("/")

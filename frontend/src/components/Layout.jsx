@@ -16,7 +16,7 @@ import api from "@/lib/api";
 import { toast } from "sonner";
 import {
   Coins, Gift, UserCircle, Wallet as WalletIcon, SignOut, Medal, Trophy, GameController, ShieldCheck,
-  SpeakerSimpleHigh, SpeakerSimpleSlash,
+  SpeakerSimpleHigh, SpeakerSimpleSlash, Vault as VaultIcon,
 } from "@phosphor-icons/react";
 
 function MuteToggle() {
@@ -147,6 +147,9 @@ export function Layout({ children }) {
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate("/wallet")} className="font-mono text-sm gap-2 cursor-pointer">
                       <WalletIcon size={16} /> Wallet & Deposit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem data-testid="nav-cashier-btn" onClick={() => navigate("/cashier")} className="font-mono text-sm gap-2 cursor-pointer text-gold">
+                      <VaultIcon size={16} /> Cashier · Deposit/Withdraw
                     </DropdownMenuItem>
                     <DropdownMenuSeparator className="bg-border" />
                     {user.role === "admin" && (
