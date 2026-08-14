@@ -39,6 +39,11 @@ export default function Lobby() {
     wild_west_recon: ["sheriff", "revolver", "wild"],
     sweet_ammo: ["candy", "heart", "grape"],
     money_train_convoy: ["vault", "coin", "gunner"],
+    pharaohs_arsenal: ["pharaoh", "ankh", "anubis"],
+    kraken_depths: ["kraken", "pearl", "scatter"],
+    inferno_airstrike: ["jet", "missile", "flame"],
+    frozen_front: ["yeti", "snow", "wild"],
+    golden_dynasty: ["emperor", "lantern", "coin"],
   };
 
   return (
