@@ -1,7 +1,8 @@
 import {
   Crown, Sun, Trophy, Circle, Hourglass, Diamond, Compass, Skull, Bug, Fish,
   Boat, Anchor, Package, Star, Crosshair, Horse, Heart, Square, Sparkle, Bank,
-  Cube, Coin, Target, Lightning,
+  Cube, Coin, Target, Lightning, Eye, Dog, Drop, Shrimp, Knife, Ghost,
+  AirplaneTilt, Rocket, Bomb, Flame, Snowflake, Mountains, PawPrint, Fire, Feather,
 } from "@phosphor-icons/react";
 
 // symbol id -> { Icon, color, text? }  (text overrides the icon, used for card ranks)
@@ -44,6 +45,30 @@ export const SYMBOL_META = {
   gunner: { Icon: Crosshair, color: "#4EE44E" },
   coin: { Icon: Coin, color: "#FFD84E" },
 
+  pharaoh: { Icon: Crown, color: "#F6E27A" },
+  anubis: { Icon: Dog, color: "#57E6C6" },
+  eye_ra: { Icon: Eye, color: "#7FE3FF" },
+  ankh: { Icon: Sparkle, color: "#D4AF37", label: "ANKH" },
+
+  kraken: { Icon: Ghost, color: "#57E6C6" },
+  harpoon: { Icon: Knife, color: "#B8C4B8" },
+  pearl: { Icon: Drop, color: "#7FE3FF" },
+  shell: { Icon: Shrimp, color: "#FF9EC4" },
+
+  jet: { Icon: AirplaneTilt, color: "#B8C4B8" },
+  missile: { Icon: Rocket, color: "#FF5A5A" },
+  bomb_sym: { Icon: Bomb, color: "#FFB454" },
+  flame: { Icon: Flame, color: "#FF7A2E" },
+
+  yeti: { Icon: PawPrint, color: "#EDEDED" },
+  wolf: { Icon: Dog, color: "#B8C4B8" },
+  snow: { Icon: Snowflake, color: "#7FE3FF" },
+  peak: { Icon: Mountains, color: "#9FD0FF" },
+
+  emperor: { Icon: Crown, color: "#FF5A5A" },
+  lantern: { Icon: Fire, color: "#FF7A2E" },
+  fan: { Icon: Feather, color: "#F6E27A" },
+
   ace: { text: "A", color: "#EDEDED" },
   king: { text: "K", color: "#D8D8D8" },
   queen: { text: "Q", color: "#C6C6C6" },
@@ -63,6 +88,11 @@ export const MACHINE_ART = {
   wild_west_recon: { accent: "#C9A06A", from: "#1f150a", to: "#0a0d0a", tag: "FRONTIER" },
   sweet_ammo: { accent: "#FF7BC0", from: "#26101f", to: "#0a0d0a", tag: "TUMBLE" },
   money_train_convoy: { accent: "#4EE44E", from: "#0a1f0a", to: "#0a0d0a", tag: "MAX 100,000x" },
+  pharaohs_arsenal: { accent: "#E0B24A", from: "#241a08", to: "#0a0d0a", tag: "EXPANDING" },
+  kraken_depths: { accent: "#57E6C6", from: "#08201f", to: "#0a0d0a", tag: "FREE SPINS" },
+  inferno_airstrike: { accent: "#FF7A2E", from: "#26100a", to: "#0a0d0a", tag: "JACKPOT" },
+  frozen_front: { accent: "#9FD0FF", from: "#0a1826", to: "#0a0d0a", tag: "STICKY WILDS" },
+  golden_dynasty: { accent: "#FF5A5A", from: "#26080a", to: "#0a0d0a", tag: "MAX 88,000x" },
 };
 
 export const fmt = (n) =>
