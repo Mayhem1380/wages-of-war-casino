@@ -7,6 +7,12 @@ const COINS = "/slots/sym_firecoin.png";
 
 const F = FLAGSHIP_ART;
 const SLIDES = {
+  keno: [
+    { img: "/slots/keno_bg.jpg", kicker: "// WARHEAD KENO", title: "MARK YOUR TARGETS", sub: "PICK UP TO 10 · LAUNCH THE DRAW", accent: "#4EE44E" },
+    { img: "/slots/thumb_inferno.jpg", kicker: "DIRECT HIT", title: "UP TO 5,000×", sub: "DETONATE THE GRID", accent: "#FF8A2E" },
+    { img: "/brand/nexus_warthog.png", kicker: "CLOSE AIR SUPPORT", title: "PRECISION STRIKE", sub: "EVERY HIT COUNTS", accent: "#F6C64A" },
+    { img: "/slots/keno_bg.jpg", kicker: "// TACTICAL PAYOUTS", title: "STACK THE HITS", sub: "MORE MARKS · BIGGER MULTIPLIERS", accent: "#57E6C6" },
+  ],
   "game-preview": [
     { img: F.pharaohs_arsenal.thumb, kicker: "AAA FLAGSHIP", title: "PHARAOH'S ARSENAL", sub: "HOLD & WIN · ROYAL 10,000×", accent: "#F6C64A" },
     { img: F.inferno_airstrike.thumb, kicker: "AAA FLAGSHIP", title: "INFERNO AIRSTRIKE", sub: "FIRE-COIN JACKPOT BARRAGE", accent: "#FF8A2E" },

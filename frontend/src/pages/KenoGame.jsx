@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { fmt } from "@/data/gameMeta";
+import { AnimatedShowcase } from "@/components/AnimatedShowcase";
 import { KENO } from "@/constants/testIds";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -77,6 +78,10 @@ export default function KenoGame() {
           <Coins size={18} weight="fill" className="text-gold" />
           <span data-testid={KENO.balance} className="font-mono text-lg text-gold">{fmt(user?.balance || 0)}</span>
         </div>
+      </div>
+
+      <div className="mb-6">
+        <AnimatedShowcase variant="keno" testId="keno-video" />
       </div>
 
       <div className="grid lg:grid-cols-[1fr_260px] gap-6">
