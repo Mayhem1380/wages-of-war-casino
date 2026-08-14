@@ -4,6 +4,7 @@ import api from "@/lib/api";
 import { MACHINE_ART } from "@/data/gameMeta";
 import { LOBBY } from "@/constants/testIds";
 import { SymbolTile } from "@/components/SymbolTile";
+import { VideoPlaceholder } from "@/components/VideoPlaceholder";
 import { Target, CaretRight, Coins, GameController, Skull } from "@phosphor-icons/react";
 
 function CornerCard({ children, onClick, testId, accent = "#4EE44E", className = "" }) {
@@ -46,6 +47,11 @@ export default function Lobby() {
         <p className="font-mono text-xs tracking-[0.4em] text-nvg/70">// OPERATIONS LOBBY</p>
         <h1 className="font-display text-5xl sm:text-6xl tracking-wide text-foreground">SELECT YOUR MISSION</h1>
         <p className="text-muted-foreground mt-2">Ranked by deployment popularity. Highest-value targets first.</p>
+      </div>
+
+      {/* GAME PREVIEW VIDEO */}
+      <div className="mb-10">
+        <VideoPlaceholder testId="lobby-preview-video" label="GAME PREVIEW — Coming Soon" />
       </div>
 
       {/* SLOTS GRID (asymmetric) */}

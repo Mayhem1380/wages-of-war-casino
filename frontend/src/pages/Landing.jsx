@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { BRAND, fmt } from "@/data/gameMeta";
 import { LANDING } from "@/constants/testIds";
 import api from "@/lib/api";
+import { VideoPlaceholder } from "@/components/VideoPlaceholder";
 import {
   Coins, GameController, Medal, Trophy, ShieldCheck, Lightning, CaretRight, Target, Gift, Clock, ArrowUpRight,
 } from "@phosphor-icons/react";
@@ -143,6 +144,15 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* INTRO VIDEO */}
+      <section className="max-w-[1400px] mx-auto px-4 sm:px-8 pt-16">
+        <div className="mb-6">
+          <p className="font-mono text-xs tracking-[0.4em] text-nvg/70">// BRIEFING REEL</p>
+          <h2 className="font-display text-4xl sm:text-5xl tracking-wide text-foreground">MISSION BRIEFING</h2>
+        </div>
+        <VideoPlaceholder testId="home-intro-video" label="PROMOTIONAL VIDEO — Coming Soon" />
+      </section>
+
       {/* FEATURED */}
       <section className="max-w-[1400px] mx-auto px-4 sm:px-8 py-20">
         <div className="flex items-end justify-between mb-8">
@@ -208,6 +218,9 @@ export default function Landing() {
           </div>
           <div className="relative">
             <img src={BRAND.giveaway} alt="Wages of War Casino giveaway" className="w-full max-w-sm mx-auto ring-1 ring-gold/30" />
+            <div className="mt-6">
+              <VideoPlaceholder testId="giveaway-video" label="GIVEAWAY ANNOUNCEMENT VIDEO — Coming Soon" />
+            </div>
           </div>
         </div>
       </section>

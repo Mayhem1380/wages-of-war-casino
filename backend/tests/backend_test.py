@@ -77,6 +77,13 @@ class TestSlots:
         pops = [m["popularity"] for m in arr]
         assert pops == sorted(pops, reverse=True)
 
+    def test_list_slots_expected_ids(self):
+        arr = requests.get(f"{API}/games/slots").json()
+        ids = {m["id"] for m in arr}
+        expected = {"gates_of_glory", "book_of_ops", "big_bass_bombardment",
+                    "sweet_ammo", "wild_west_recon", "money_train_convoy"}
+        assert ids == expected, f"missing/extra: {ids ^ expected}"
+
     def test_slot_detail(self):
         arr = requests.get(f"{API}/games/slots").json()
         mid = arr[0]["id"]

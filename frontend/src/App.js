@@ -1,5 +1,5 @@
 import "@/App.css";
-import React from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { Toaster } from "sonner";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
@@ -16,16 +16,20 @@ import Leaderboard from "@/pages/Leaderboard";
 import Vip from "@/pages/Vip";
 import ResponsibleGaming from "@/pages/ResponsibleGaming";
 import FleetSales from "@/pages/FleetSales";
+import LegalPage from "@/pages/LegalPage";
 import PaymentSuccess from "@/pages/PaymentSuccess";
 import AuthCallback from "@/pages/AuthCallback";
 
 function Protected({ children }) {
   const { user, openAuth } = useAuth();
+  useEffect(() => {
+    if (user === false) openAuth("login");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
   if (user === null) {
     return <div className="max-w-2xl mx-auto p-16 font-mono text-nvg/70">// establishing secure link...</div>;
   }
   if (!user) {
-    openAuth("login");
     return <Navigate to="/" replace />;
   }
   return children;
@@ -48,6 +52,13 @@ function AppRouter() {
         <Route path="/vip" element={<Vip />} />
         <Route path="/responsible-gaming" element={<ResponsibleGaming />} />
         <Route path="/fleet-sales" element={<FleetSales />} />
+        <Route path="/terms" element={<LegalPage slug="terms" />} />
+        <Route path="/privacy" element={<LegalPage slug="privacy" />} />
+        <Route path="/responsible-gambling" element={<LegalPage slug="responsible-gambling" />} />
+        <Route path="/age-verification" element={<LegalPage slug="age-verification" />} />
+        <Route path="/cookie-policy" element={<LegalPage slug="cookie-policy" />} />
+        <Route path="/aml-policy" element={<LegalPage slug="aml-policy" />} />
+        <Route path="/bonus-terms" element={<LegalPage slug="bonus-terms" />} />
         <Route path="/wallet" element={<Protected><Wallet /></Protected>} />
         <Route path="/profile" element={<Protected><Profile /></Protected>} />
         <Route path="/payment/success" element={<PaymentSuccess />} />
