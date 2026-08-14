@@ -7,10 +7,8 @@ export function BrandLogo({ size = 40, showText = true, subtitle = true }) {
       <img
         src={BRAND.emblem}
         alt="Wages of War Casino"
-        width={size}
-        height={size}
-        className="rounded-full object-cover ring-1 ring-gold/60"
-        style={{ width: size, height: size, boxShadow: "0 0 14px rgba(212,175,55,0.35)" }}
+        className="object-contain drop-shadow-[0_0_14px_rgba(212,175,55,0.45)]"
+        style={{ height: size * 1.15, width: "auto" }}
       />
       {showText && (
         <div className="leading-none">

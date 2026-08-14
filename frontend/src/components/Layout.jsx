@@ -185,8 +185,14 @@ export function Layout({ children }) {
 
       <main className="flex-1">{children}</main>
 
-      <footer className="border-t-2 border-gold/20 bg-black/70 mt-16">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-8 py-16">
+      <footer className="relative border-t-2 border-gold/20 bg-black/70 mt-16 overflow-hidden">
+        <div
+          className="absolute inset-0 pointer-events-none opacity-[0.22] mix-blend-screen"
+          style={{ backgroundImage: `url(${BRAND.footerUnderwater})`, backgroundSize: "cover", backgroundPosition: "center" }}
+          aria-hidden="true"
+        />
+        <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0.8))" }} aria-hidden="true" />
+        <div className="relative max-w-[1400px] mx-auto px-4 sm:px-8 py-16">
           <div className="grid md:grid-cols-4 gap-10">
             <div className="md:col-span-2">
               <BrandLogo size={44} />
