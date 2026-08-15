@@ -75,6 +75,10 @@ Structural real-money payment system wired with TEST/PLACEHOLDER keys, ready to 
 ## Deferred (pivoted to real-money per user directive)
 - Slot search bar + filter tabs, animated win celebrations, daily streak wheel, live tournaments — NOT built this session.
 
+## Branding Update (2026-06)
+- Header + hero logo swapped to the new "WAGES OF WAR CASINO · NIGHT OPS EDITION" medallion (public/brand/header_coin.png, circular-cropped from user upload). BRAND.emblem + BRAND.coinNightOps updated in gameMeta.js.
+- Footer underwater watermark regenerated (Gemini) into a NIGHT-VISION scene: combat diver aiming a machine gun at a great white shark with jaws open attacking. Saved to public/brand/footer_underwater.jpg; footer watermark opacity raised 0.22 -> 0.4 in Layout.jsx.
+
 ## Next Tasks
 - Provide VAULT_API_KEY (external approval vault) and optional STRIPE_WEBHOOK_SECRET to complete the last two live connections.
 
