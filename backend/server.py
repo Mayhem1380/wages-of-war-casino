@@ -41,6 +41,7 @@ FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
 
 stripe.api_key = os.environ.get("STRIPE_SECRET_KEY") or "sk_test_emergent"
 STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
+STRIPE_WEBHOOK_SECRETS = [s.strip() for s in STRIPE_WEBHOOK_SECRET.split(",") if s.strip()]
 TAX_MODE = "full"  # US + digital credits -> Stripe managed payments
 
 STARTING_BALANCE = 10000.0
@@ -887,9 +888,14 @@ async def payment_status(session_id: str):
 async def stripe_webhook(request: Request):
     payload = await request.body()
     sig = request.headers.get("stripe-signature", "")
-    try:
-        event = stripe.Webhook.construct_event(payload, sig, STRIPE_WEBHOOK_SECRET)
-    except Exception:
+    event = None
+    for secret in STRIPE_WEBHOOK_SECRETS:
+        try:
+            event = stripe.Webhook.construct_event(payload, sig, secret)
+            break
+        except Exception:
+            continue
+    if event is None:
         raise HTTPException(status_code=400, detail="Invalid signature")
     obj, t = event["data"]["object"], event["type"]
     if t == "checkout.session.completed":
