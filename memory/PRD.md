@@ -75,6 +75,12 @@ Structural real-money payment system wired with TEST/PLACEHOLDER keys, ready to 
 ## Deferred (pivoted to real-money per user directive)
 - Slot search bar + filter tabs, animated win celebrations, daily streak wheel, live tournaments — NOT built this session.
 
+## Trophy Banner + AAA Roster + Award Badge (2026-06)
+- Giveaway/"trophy" banner (public/brand/giveaway.webp) regenerated via Gemini edit twice: (1) swapped the two side coins to the new medallions (left Nexus Studio Master, right Wages of War Night Ops F-16) and changed the CTA domain to EXACTLY "Wagesofwarcasin0.online"; (2) replaced the centre jet-in-glass-case with a photorealistic special-forces soldier action figure, everything else preserved. Old saved as giveaway_old.webp.
+- Landing hero: added gold "BEST PLATFORM 2026" trophy badge (data-testid hero-award-badge).
+- AAA roster expanded to satisfy "22 AAA": PUBLIC_SLOT_IDS in games.py was gating the lobby to only 6 machines; opened it to all 24. Added gates_of_glory, samurai_strike, voodoo_vengeance, corsair_cannons to FLAGSHIP_IDS (backend + frontend) + FLAGSHIP_ART, with new painted hero art (bg_/thumb_ gatesglory/samurai/voodoo/corsair). Lobby now serves 24 slots: 22 AAA flagship + 2 standard (sweet_ammo, warpath_legends). Verified: /games/slots returns 24 (22 flagship); flagship spin path works on the new slots.
+- NOTE: exposing all 24 slots may break the legacy 6-slot regression suite (games.py comment) — product-facing change per user request.
+
 ## Landing Visual Upgrades (2026-06)
 - Mission Briefing reel: replaced coin/logo placeholder with a generated A-10 Warthog desert close-air-support image (public/brand/nexus_warthog.jpg; refs updated in AnimatedShowcase.jsx, both keno + promo slides).
 - Stats strip rebuilt (Landing.jsx) from plain phosphor icons to premium image tiles: stat_rifle/stat_keno/stat_vip/stat_supply.jpg (Gemini-generated, dark tactical panels w/ green NVG glow + gold). "Slot Machines" count dropped -> reads "ELITE / SLOT MACHINES". Others: 5000× MAX, 8 TIERS, EVERY 24H.

@@ -629,6 +629,24 @@ PUBLIC_SLOT_IDS = [
     "sweet_ammo",
     "wild_west_recon",
     "money_train_convoy",
+    "pharaohs_arsenal",
+    "kraken_depths",
+    "inferno_airstrike",
+    "frozen_front",
+    "golden_dynasty",
+    "samurai_strike",
+    "voodoo_vengeance",
+    "corsair_cannons",
+    "warpath_legends",
+    "happy_prosperity",
+    "panda_magic",
+    "gold_bonanza",
+    "dragons_riches",
+    "five_dragons",
+    "god_of_sun",
+    "gates_of_olympus",
+    "fortune_coins",
+    "year_of_ox",
 ]
 
 FLAGSHIP_IDS = {"pharaohs_arsenal", "inferno_airstrike", "golden_dynasty",
@@ -636,7 +654,8 @@ FLAGSHIP_IDS = {"pharaohs_arsenal", "inferno_airstrike", "golden_dynasty",
                 "wild_west_recon", "kraken_depths", "frozen_front",
                 "happy_prosperity", "panda_magic", "gold_bonanza",
                 "dragons_riches", "five_dragons", "god_of_sun",
-                "gates_of_olympus", "fortune_coins", "year_of_ox"}
+                "gates_of_olympus", "fortune_coins", "year_of_ox",
+                "gates_of_glory", "samurai_strike", "voodoo_vengeance", "corsair_cannons"}
 
 # jackpot name -> multiplier of the total bet
 JACKPOT_LADDER = {
