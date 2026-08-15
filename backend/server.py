@@ -22,7 +22,7 @@ from datetime import datetime, timezone, timedelta
 import stripe
 
 from games import (
-    SLOT_MACHINES, spin_slot, play_keno, KENO_PAYTABLE, PAYLINES,
+    SLOT_MACHINES, PUBLIC_SLOT_IDS, spin_slot, play_keno, KENO_PAYTABLE, PAYLINES,
     VIP_TIERS, tier_for_wagered, CREDIT_PACKAGES,
     FLAGSHIP_IDS, JACKPOT_LADDER, spin_flagship, play_holdwin,
 )
@@ -405,7 +405,8 @@ async def google_session(request: Request, response: Response):
 # ---------------------------------------------------------------------------
 @api.get("/games/slots")
 async def list_slots():
-    machines = sorted(SLOT_MACHINES.values(), key=lambda m: -m["popularity"])
+    machines = [SLOT_MACHINES[mid] for mid in PUBLIC_SLOT_IDS if mid in SLOT_MACHINES]
+    machines = sorted(machines, key=lambda m: -m["popularity"])
     return [{
         "id": m["id"], "name": m["name"], "tagline": m["tagline"], "theme": m["theme"],
         "volatility": m["volatility"], "paylines": m["paylines"], "popularity": m["popularity"],
@@ -415,6 +416,8 @@ async def list_slots():
 
 @api.get("/games/slots/{machine_id}")
 async def slot_detail(machine_id: str):
+    if machine_id not in PUBLIC_SLOT_IDS:
+        raise HTTPException(status_code=404, detail="Machine not found")
     m = SLOT_MACHINES.get(machine_id)
     if not m:
         raise HTTPException(status_code=404, detail="Machine not found")

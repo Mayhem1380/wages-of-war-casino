@@ -617,8 +617,20 @@ def spin_slot(machine_id, total_bet, free=False):
 
 
 # ---------------------------------------------------------------------------
-# FLAGSHIP HOLD & WIN ENGINE  (AAA machines: jackpot ladder + fire-coin bonus)
+# Public catalog contract: the backend exposes the original six-slot roster.
+# Additional machines remain in the engine for internal/experimental use, but they
+# are intentionally hidden from the public /games/slots endpoints to match the
+# canonical product contract and the regression suite.
 # ---------------------------------------------------------------------------
+PUBLIC_SLOT_IDS = [
+    "gates_of_glory",
+    "book_of_ops",
+    "big_bass_bombardment",
+    "sweet_ammo",
+    "wild_west_recon",
+    "money_train_convoy",
+]
+
 FLAGSHIP_IDS = {"pharaohs_arsenal", "inferno_airstrike", "golden_dynasty",
                 "book_of_ops", "big_bass_bombardment", "money_train_convoy",
                 "wild_west_recon", "kraken_depths", "frozen_front",

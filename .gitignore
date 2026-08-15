@@ -31,6 +31,12 @@ dist/
 dist
 
 # Environment files (comprehensive coverage)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+backend/.env
 
 *token.json*
 *credentials.json*
@@ -75,6 +81,10 @@ agenthub/agents/youtube/db
 
 # Build caches
 .cache/
+
+# Generated package manager files
+package-lock.json
+yarn.lock
 
 memory/test_credentials.md
 
