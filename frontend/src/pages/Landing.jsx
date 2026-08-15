@@ -125,19 +125,20 @@ export default function Landing() {
       </section>
 
       {/* STATS STRIP */}
-      <section className="border-y border-gold/20 bg-black/50">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-8 grid grid-cols-2 md:grid-cols-4">
+      <section className="border-y border-gold/20 bg-black">
+        <div className="max-w-[1400px] mx-auto grid grid-cols-2 md:grid-cols-4">
           {[
-            { Icon: GameController, label: "SLOT MACHINES", value: "15 Elite" },
-            { Icon: Target, label: "WARHEAD KENO", value: "5000x Max" },
-            { Icon: Medal, label: "VIP RANKS", value: "8 Tiers" },
-            { Icon: Gift, label: "DAILY SUPPLY DROP", value: "Every 24h" },
-          ].map((s, i) => (
-            <div key={s.label} className="flex items-center gap-3 py-6 px-4 border-r border-border last:border-r-0">
-              <s.Icon size={30} weight="fill" className="text-nvg" />
-              <div>
-                <div className="font-display text-2xl tracking-wide text-gold leading-none">{s.value}</div>
-                <div className="font-mono text-[10px] tracking-widest text-muted-foreground mt-1">{s.label}</div>
+            { img: "/brand/stat_rifle.jpg", label: "SLOT MACHINES", value: "ELITE" },
+            { img: "/brand/stat_keno.jpg", label: "WARHEAD KENO", value: "5000× MAX" },
+            { img: "/brand/stat_vip.jpg", label: "VIP RANKS", value: "8 TIERS" },
+            { img: "/brand/stat_supply.jpg", label: "DAILY SUPPLY DROP", value: "EVERY 24H" },
+          ].map((s) => (
+            <div key={s.label} className="relative h-36 md:h-44 overflow-hidden border-r border-border last:border-r-0 group">
+              <img src={s.img} alt={s.label} className="absolute inset-0 w-full h-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-110" />
+              <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(5,6,5,0.15) 0%, rgba(5,6,5,0.5) 55%, rgba(5,6,5,0.94) 100%)" }} />
+              <div className="absolute inset-x-0 bottom-0 p-4">
+                <div className="font-display text-2xl md:text-3xl tracking-wide text-gold leading-none drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">{s.value}</div>
+                <div className="font-mono text-[10px] tracking-[0.3em] text-white/70 mt-1.5">{s.label}</div>
               </div>
             </div>
           ))}
