@@ -10,7 +10,7 @@ const SLIDES = {
   keno: [
     { img: "/slots/keno_bg.jpg", kicker: "// WARHEAD KENO", title: "MARK YOUR TARGETS", sub: "PICK UP TO 10 · LAUNCH THE DRAW", accent: "#4EE44E" },
     { img: "/slots/thumb_inferno.jpg", kicker: "DIRECT HIT", title: "UP TO 5,000×", sub: "DETONATE THE GRID", accent: "#FF8A2E" },
-    { img: "/brand/nexus_warthog.png", kicker: "CLOSE AIR SUPPORT", title: "PRECISION STRIKE", sub: "EVERY HIT COUNTS", accent: "#F6C64A" },
+    { img: "/brand/nexus_warthog.jpg", kicker: "CLOSE AIR SUPPORT", title: "PRECISION STRIKE", sub: "EVERY HIT COUNTS", accent: "#F6C64A" },
     { img: "/slots/keno_bg.jpg", kicker: "// TACTICAL PAYOUTS", title: "STACK THE HITS", sub: "MORE MARKS · BIGGER MULTIPLIERS", accent: "#57E6C6" },
   ],
   "game-preview": [
@@ -25,7 +25,7 @@ const SLIDES = {
     { img: BRAND.hero, kicker: "// BRIEFING REEL", title: "15 ELITE SLOTS", sub: "6 AAA FLAGSHIPS · HOLD & WIN", accent: "#F6C64A" },
     { img: "/brand/nexus_sniper.png", kicker: "NEXUS STUDIO MASTER", title: "SPECIAL FORCES SNIPER", sub: "ARID TERRAIN MISSION", accent: "#E0B24A" },
     { img: F.pharaohs_arsenal.thumb, kicker: "JACKPOT LADDER", title: "ROYAL 10,000×", sub: "GRAND · MAJOR · MIDI · MINOR · MINI", accent: "#FF5A5A" },
-    { img: "/brand/nexus_warthog.png", kicker: "NEXUS STUDIO MASTER", title: "A-10 WARTHOG", sub: "CLOSE AIR SUPPORT · DESERT ENGAGEMENT", accent: "#FF8A2E" },
+    { img: "/brand/nexus_warthog.jpg", kicker: "NEXUS STUDIO MASTER", title: "A-10 WARTHOG", sub: "CLOSE AIR SUPPORT · DESERT ENGAGEMENT", accent: "#FF8A2E" },
     { img: F.inferno_airstrike.thumb, kicker: "POWER FEATURE", title: "HOLD & WIN", sub: "FIRE COINS LOCK · POWER WHEEL", accent: "#FF8A2E" },
     { img: F.money_train_convoy.thumb, kicker: "WARHEAD KENO", title: "UP TO 5,000×", sub: "MARK · LAUNCH · DETONATE", accent: "#4EE44E" },
     { img: F.book_of_ops.thumb, kicker: "8 VIP RANKS", title: "WEEKLY CASHBACK", sub: "CLIMB · EARN · DOMINATE", accent: "#57E6C6" },

@@ -75,6 +75,10 @@ Structural real-money payment system wired with TEST/PLACEHOLDER keys, ready to 
 ## Deferred (pivoted to real-money per user directive)
 - Slot search bar + filter tabs, animated win celebrations, daily streak wheel, live tournaments — NOT built this session.
 
+## Landing Visual Upgrades (2026-06)
+- Mission Briefing reel: replaced coin/logo placeholder with a generated A-10 Warthog desert close-air-support image (public/brand/nexus_warthog.jpg; refs updated in AnimatedShowcase.jsx, both keno + promo slides).
+- Stats strip rebuilt (Landing.jsx) from plain phosphor icons to premium image tiles: stat_rifle/stat_keno/stat_vip/stat_supply.jpg (Gemini-generated, dark tactical panels w/ green NVG glow + gold). "Slot Machines" count dropped -> reads "ELITE / SLOT MACHINES". Others: 5000× MAX, 8 TIERS, EVERY 24H.
+
 ## Branding Update (2026-06)
 - Header + hero logo swapped to the new "WAGES OF WAR CASINO · NIGHT OPS EDITION" medallion (public/brand/header_coin.png, circular-cropped from user upload). BRAND.emblem + BRAND.coinNightOps updated in gameMeta.js.
 - Footer underwater watermark regenerated (Gemini) into a NIGHT-VISION scene: combat diver aiming a machine gun at a great white shark with jaws open attacking. Saved to public/brand/footer_underwater.jpg; footer watermark opacity raised 0.22 -> 0.4 in Layout.jsx.
