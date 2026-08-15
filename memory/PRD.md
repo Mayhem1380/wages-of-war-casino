@@ -76,4 +76,11 @@ Structural real-money payment system wired with TEST/PLACEHOLDER keys, ready to 
 - Slot search bar + filter tabs, animated win celebrations, daily streak wheel, live tournaments — NOT built this session.
 
 ## Next Tasks
-- Publish to production and share Stripe onboarding link if the user wants to claim the sandbox.
+- Provide VAULT_API_KEY (external approval vault) and optional STRIPE_WEBHOOK_SECRET to complete the last two live connections.
+
+## Live Keys Applied (2026-06)
+- STRIPE_SECRET_KEY + STRIPE_PUBLISHABLE_KEY: user's own test-mode keys (account 51U0tKa...), verified creating real cs_test checkout sessions.
+- NOWPAYMENTS_API_KEY: user's PRODUCTION key + NOWPAYMENTS_IPN_SECRET set; NOWPAYMENTS_BASE_URL switched to https://api.nowpayments.io/v1. Verified creating REAL crypto deposit addresses (BTC/USDT-TRC20).
+- SAFETY FIX: np_create_payment no longer returns a fake sandbox address on failure when a live key is set — it raises CryptoProviderError (HTTP 502) so players never see a dead deposit address. Sandbox mock only for placeholder keys. Added NP_CURRENCY_MAP (USDT->usdttrc20 etc).
+- /cashier/summary now returns crypto_live + vault_live flags; Cashier banner shows "DEPOSITS LIVE" and notes withdrawals use in-app admin approval until VAULT_API_KEY is live.
+- Still placeholder: VAULT_API_KEY (withdrawals stay pending for in-app admin approve/reject) and STRIPE_WEBHOOK_SECRET (deposit crediting covered by polling).

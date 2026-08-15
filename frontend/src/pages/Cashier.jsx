@@ -156,12 +156,20 @@ export default function Cashier() {
         </div>
       </div>
 
-      {summary?.sandbox && (
+      {summary && (summary.crypto_live || summary.vault_live) && !(summary.crypto_live && summary.vault_live) && (
+        <div className="hud border-nvg/50 bg-nvg/5 p-4 mb-6 flex items-start gap-3">
+          <ShieldCheck size={22} weight="fill" className="text-nvg shrink-0 mt-0.5" />
+          <p className="text-sm text-foreground/80">
+            <span className="text-nvg font-semibold">DEPOSITS LIVE.</span> Card (Stripe) and crypto (NOWPayments) deposits are connected and process real payments.
+            {!summary.vault_live && " Withdrawals are released via in-app admin approval until the external approval-vault key is connected."}
+          </p>
+        </div>
+      )}
+      {summary && !summary.crypto_live && !summary.vault_live && (
         <div className="hud border-alert/50 bg-alert/5 p-4 mb-6 flex items-start gap-3">
           <Warning size={22} weight="fill" className="text-alert shrink-0 mt-0.5" />
           <p className="text-sm text-foreground/80">
-            <span className="text-alert font-semibold">SANDBOX MODE.</span> Payment rails are wired with test/placeholder keys
-            (Stripe test, NOWPayments sandbox, approval vault). No real funds move until live keys are connected.
+            <span className="text-alert font-semibold">SANDBOX MODE.</span> Payment rails are wired with test/placeholder keys. No real funds move until live keys are connected.
           </p>
         </div>
       )}

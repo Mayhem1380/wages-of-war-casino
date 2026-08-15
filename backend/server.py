@@ -954,6 +954,8 @@ async def cashier_summary(user: dict = Depends(require_user)):
         "real_balance_usd": round(cents / 100.0, 2),
         "min_deposit_usd": round(cashier.MIN_DEPOSIT_USD_CENTS / 100.0, 2),
         "min_withdraw_usd": round(cashier.MIN_WITHDRAW_USD_CENTS / 100.0, 2),
+        "crypto_live": not cashier._is_placeholder_np(),
+        "vault_live": not cashier.is_placeholder_vault(),
         "sandbox": cashier._is_placeholder_np() or cashier.is_placeholder_vault(),
     }
 
@@ -1010,7 +1012,10 @@ async def cashier_deposit_crypto(payload: CryptoDepositInput, user: dict = Depen
         raise HTTPException(status_code=400, detail=f"Minimum deposit is {cashier.MIN_DEPOSIT_AUD} AUD")
     order_id = f"wow:{user['user_id']}:{uuid.uuid4().hex[:10]}"
     ipn_url = f"{os.environ.get('FRONTEND_URL','').replace('http://','https://')}/api/webhooks/nowpayments"
-    pay = await cashier.np_create_payment(payload.amount_usd, code, order_id, ipn_url)
+    try:
+        pay = await cashier.np_create_payment(payload.amount_usd, code, order_id, ipn_url)
+    except cashier.CryptoProviderError as e:
+        raise HTTPException(status_code=502, detail=str(e))
     now_iso = datetime.now(timezone.utc).isoformat()
     txn = {
         "id": str(uuid.uuid4()), "user_id": user["user_id"], "user_email": user.get("email"),
