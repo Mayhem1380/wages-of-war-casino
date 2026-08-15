@@ -190,7 +190,7 @@ export function Layout({ children }) {
 
       <footer className="relative border-t-2 border-gold/20 bg-black/70 mt-16 overflow-hidden">
         <div
-          className="absolute inset-0 pointer-events-none opacity-[0.22] mix-blend-screen"
+          className="absolute inset-0 pointer-events-none opacity-[0.4] mix-blend-screen"
           style={{ backgroundImage: `url(${BRAND.footerUnderwater})`, backgroundSize: "cover", backgroundPosition: "center" }}
           aria-hidden="true"
         />
