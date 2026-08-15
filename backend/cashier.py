@@ -97,50 +97,66 @@ _MOCK_ADDR = {
 
 
 def _is_placeholder_np() -> bool:
-    return (not NOWPAYMENTS_API_KEY) or "placeholder" in NOWPAYMENTS_API_KEY.lower() or "test" in NOWPAYMENTS_API_KEY.lower()
+    return (not NOWPAYMENTS_API_KEY) or "placeholder" in NOWPAYMENTS_API_KEY.lower()
+
+
+# Map our display codes to NOWPayments network-specific tickers.
+NP_CURRENCY_MAP = {
+    "BTC": "btc", "ETH": "eth", "USDT": "usdttrc20", "SOL": "sol", "XRP": "xrp",
+}
+
+
+class CryptoProviderError(RuntimeError):
+    pass
 
 
 async def np_create_payment(amount_usd: float, pay_currency: str, order_id: str, ipn_url: str) -> dict:
-    """Create a NOWPayments crypto deposit. Falls back to a clearly-marked
-    sandbox mock when the API key is a placeholder or the call fails."""
-    pay_currency = pay_currency.upper()
-    pay_amount = usd_cents_to_currency(round(amount_usd * 100), pay_currency)
+    """Create a NOWPayments crypto deposit.
 
-    if not _is_placeholder_np():
+    - Placeholder key -> returns a clearly-marked SANDBOX mock (safe, no real funds).
+    - Live key -> calls the real API. On ANY failure it RAISES CryptoProviderError
+      (never a fake address) so a player can never be shown a dead deposit address.
+    """
+    code = pay_currency.upper()
+    pay_amount = usd_cents_to_currency(round(amount_usd * 100), code)
+
+    if _is_placeholder_np():
+        return {
+            "payment_id": f"sandbox_{uuid.uuid4().hex[:16]}",
+            "pay_address": _MOCK_ADDR.get(code, f"SANDBOX-{code}-ADDRESS"),
+            "pay_amount": pay_amount, "pay_currency": code, "status": "waiting", "sandbox": True,
+        }
+
+    np_code = NP_CURRENCY_MAP.get(code, code.lower())
+    headers = {"x-api-key": NOWPAYMENTS_API_KEY, "Content-Type": "application/json"}
+    body = {
+        "price_amount": float(amount_usd), "price_currency": "usd", "pay_currency": np_code,
+        "order_id": order_id, "order_description": "Wages of War Casino deposit",
+        "ipn_callback_url": ipn_url,
+    }
+    try:
+        async with httpx.AsyncClient(timeout=25) as c:
+            r = await c.post(NOWPAYMENTS_BASE_URL + "/payment", headers=headers, json=body)
+    except Exception as e:
+        logger.warning("NOWPayments unreachable: %s", e)
+        raise CryptoProviderError("Crypto provider is temporarily unavailable. Please try again shortly.")
+    if r.status_code >= 400:
         try:
-            headers = {"x-api-key": NOWPAYMENTS_API_KEY, "Content-Type": "application/json"}
-            body = {
-                "price_amount": float(amount_usd),
-                "price_currency": "usd",
-                "pay_currency": pay_currency.lower(),
-                "order_id": order_id,
-                "order_description": "Wages of War Casino deposit",
-                "ipn_callback_url": ipn_url,
-            }
-            async with httpx.AsyncClient(timeout=20) as c:
-                r = await c.post(NOWPAYMENTS_BASE_URL + "/payment", headers=headers, json=body)
-            if r.status_code < 400:
-                p = r.json()
-                return {
-                    "payment_id": str(p["payment_id"]),
-                    "pay_address": p.get("pay_address"),
-                    "pay_amount": p.get("pay_amount", pay_amount),
-                    "pay_currency": (p.get("pay_currency") or pay_currency).upper(),
-                    "status": p.get("payment_status", "waiting"),
-                    "sandbox": False,
-                }
-            logger.warning("NOWPayments create failed %s: %s", r.status_code, r.text[:200])
-        except Exception as e:  # network / auth issues -> fall through to mock
-            logger.warning("NOWPayments error, using sandbox mock: %s", e)
-
-    # Sandbox mock (placeholder key) — structurally complete, ready for live keys.
+            msg = r.json().get("message") or r.text[:160]
+        except Exception:
+            msg = r.text[:160]
+        logger.warning("NOWPayments create failed %s: %s", r.status_code, msg)
+        if r.status_code == 429:
+            raise CryptoProviderError("Crypto provider is busy. Please try again in a moment.")
+        raise CryptoProviderError(str(msg))
+    p = r.json()
     return {
-        "payment_id": f"sandbox_{uuid.uuid4().hex[:16]}",
-        "pay_address": _MOCK_ADDR.get(pay_currency, f"SANDBOX-{pay_currency}-ADDRESS"),
-        "pay_amount": pay_amount,
-        "pay_currency": pay_currency,
-        "status": "waiting",
-        "sandbox": True,
+        "payment_id": str(p["payment_id"]),
+        "pay_address": p.get("pay_address"),
+        "pay_amount": p.get("pay_amount", pay_amount),
+        "pay_currency": code,
+        "status": p.get("payment_status", "waiting"),
+        "sandbox": False,
     }
 
 
