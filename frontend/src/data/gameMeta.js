@@ -269,6 +269,26 @@ export const FLAGSHIP_ART = {
     frame: "#C23A2E",
     panel: "#26090a",
   },
+  gates_of_glory: {
+    thumb: "/slots/thumb_gatesglory.jpg",
+    bg: "/slots/bg_gatesglory.jpg",
+    accent: "#F6E27A", frame: "#B8860B", panel: "#1a1206",
+  },
+  samurai_strike: {
+    thumb: "/slots/thumb_samurai.jpg",
+    bg: "/slots/bg_samurai.jpg",
+    accent: "#F6E27A", frame: "#8a6a1e", panel: "#12100a",
+  },
+  voodoo_vengeance: {
+    thumb: "/slots/thumb_voodoo.jpg",
+    bg: "/slots/bg_voodoo.jpg",
+    accent: "#C07BFF", frame: "#5A3A8a", panel: "#160a26",
+  },
+  corsair_cannons: {
+    thumb: "/slots/thumb_corsair.jpg",
+    bg: "/slots/bg_corsair.jpg",
+    accent: "#7FE3FF", frame: "#1E7D6E", panel: "#07201d",
+  },
 };
 
 // Lobby card theming per machine
@@ -293,7 +313,7 @@ export const MACHINE_ART = {
 export const fmt = (n) =>
   Number(n || 0).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 
-export const FLAGSHIP_IDS = ["pharaohs_arsenal", "inferno_airstrike", "golden_dynasty", "book_of_ops", "big_bass_bombardment", "money_train_convoy", "wild_west_recon", "kraken_depths", "frozen_front", "happy_prosperity", "panda_magic", "gold_bonanza", "dragons_riches", "five_dragons", "god_of_sun", "gates_of_olympus", "fortune_coins", "year_of_ox"];
+export const FLAGSHIP_IDS = ["pharaohs_arsenal", "inferno_airstrike", "golden_dynasty", "book_of_ops", "big_bass_bombardment", "money_train_convoy", "wild_west_recon", "kraken_depths", "frozen_front", "happy_prosperity", "panda_magic", "gold_bonanza", "dragons_riches", "five_dragons", "god_of_sun", "gates_of_olympus", "fortune_coins", "year_of_ox", "gates_of_glory", "samurai_strike", "voodoo_vengeance", "corsair_cannons"];
 
 export const BRAND = {
   hero: "/brand/hero.jpeg",

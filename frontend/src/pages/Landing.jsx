@@ -85,12 +85,15 @@ export default function Landing() {
         />
         <div className="relative max-w-[1400px] mx-auto px-4 sm:px-8 pt-24 pb-28 md:pt-32 md:pb-40">
           <div className="max-w-3xl">
-            <div className="flex items-center gap-2 mb-6 animate-pop">
+            <div className="flex flex-wrap items-center gap-2 mb-6 animate-pop">
               <span className="border border-nvg/50 text-nvg font-mono text-xs px-3 py-1 tracking-widest">
                 MGA/B2C/912/2025
               </span>
               <span className="border border-gold/50 text-gold font-mono text-xs px-3 py-1 tracking-widest">
                 NIGHT-VISION OPS
+              </span>
+              <span data-testid="hero-award-badge" className="flex items-center gap-1.5 border border-gold/70 bg-gold/10 text-gold font-mono text-xs px-3 py-1 tracking-widest glow-gold">
+                <Trophy size={13} weight="fill" /> BEST PLATFORM 2026
               </span>
             </div>
             <h1 className="font-display text-6xl sm:text-7xl lg:text-8xl leading-[0.85] tracking-tight animate-pop" style={{ animationDelay: "0.05s" }}>
