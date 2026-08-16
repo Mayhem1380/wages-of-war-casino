@@ -1,0 +1,40 @@
+{
+  "summary": "Iteration 9: Full end-to-end QA sweep for real-money cashier + 24-slot flagship roster. Backend: extended pytest suite to 79/79 PASSED — updated legacy slot count expectations (6→24 with 22 flagships), added TestFlagshipSlots (5 tests: voodoo_vengeance/sweet_ammo/4 recent-upgrade spins, holdwin session validation, holdwin trigger→resolve flow), TestCashier (10 tests: currencies, summary auth+shape, Stripe checkout_url, Stripe min-deposit reject, NOWPayments live BTC pay_address with sandbox=false verification, crypto min-deposit reject, withdraw min/balance rejects, transactions listing), TestCashierWithdrawalAndAdmin (5 tests: seed real_balance_cents via mongo → submit AUD $30 withdrawal → verify hold + admin summary pending + approve→completed + reject→refund flows + auth gating + bad-action 400). Frontend: admin login → /lobby renders exactly 24 slot cards including the 4 recently-upgraded flagships (gates_of_glory, samurai_strike, voodoo_vengeance, corsair_cannons); /cashier renders cashier-root with balance, all 3 tabs (fiat/crypto/withdraw) and history; crypto tab BTC deposit produced a REAL NOWPayments pay_address (33RUmrmmh6NkhP9AVuHVyYF1NPCatRDDeF...) confirming live key is working end-to-end; /admin renders admin-root with Payments tab showing $19.80 total withdrawals, $280.20 player cash balances, and full transaction ledger with per-row approve/reject controls (visible in screenshot).",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Cashier (/cashier)", "issues": ["React hydration warning: <span> injected as child of <option> inside cashier-fiat-currency / cashier-crypto-currency / cashier-wd-currency selects (likely from a wrapping component / instrumentation). Non-blocking — selects still work — but produces console warning on first render."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "Optional: eliminate <span>-in-<option> hydration warning on /cashier selects (Cashier.jsx lines ~212/232/269).",
+    "Optional: expose a boolean 'flagship' field on /api/games/slots list items (currently must be inferred from FLAGSHIP_IDS set) for cleaner UI consumption."
+  ],
+  "critical_code_review_comments": [
+    "server.py is now 1221 lines — carryover from iter 8, cashier block adds ~250 lines; suggest extracting /api/cashier/* and /api/admin/cashier/* into cashier_router.py.",
+    "cashier._is_placeholder_np and cashier.is_placeholder_vault are called from server.py using the underscore-prefixed private function — either promote is_placeholder_np to a public helper or add a public alias to avoid the private-import smell.",
+    "WithdrawInput.destination only enforces min_length=4 with no currency-specific format validation (e.g. BTC vs bank IBAN). For a real-money system this should be tightened before going fully live, though acceptable while vault is placeholder.",
+    "cashier_withdraw() decrements real_balance_cents BEFORE calling vault_submit_withdrawal; on vault exception the transaction is still inserted with status='pending' — good — but there's no compensating refund if the insert itself fails after the $inc. Consider wrapping in a mongo transaction or ordering insert first.",
+    "admin_cashier_withdrawal_action allows action ∈ {approve,reject} but does not verify t['status']=='pending' before the refund $inc branch — currently protected by the earlier check, but code path is fragile. Consider Literal typing + explicit guard on reject branch too.",
+    "np_create_payment correctly RAISES CryptoProviderError on live failures (no fake addresses) — good safety property.",
+    "Admin Payments UI (AdminDashboard.jsx) approve/reject buttons only render for direction==='withdrawal' && status==='pending' — verified with screenshot showing pending WD rows with green ✓ and red ✕ controls."
+  ],
+  "updated_files": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/iteration_9.json",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "success_rate": { "backend": "100% (79/79)", "frontend": "100% of cashier + admin + lobby flows" },
+  "test_credentials": "Admin admin@wagesofwarcasino.com / WagesOfWar2025!; ephemeral test users via /api/auth/register; real_balance_cents seeded directly in mongo for withdrawal-flow tests.",
+  "seed_data_creation": "Ephemeral test_wd_* / test_wdr_* users with 10000 real_balance_cents ($100 USD) seeded for withdrawal approve/reject tests; ephemeral cashier_transactions rows for pending/approved/rejected withdrawals; NOWPayments live BTC deposit records (real pay_address issued by production NOWPayments API).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Cashier testids: cashier-root, cashier-balance, cashier-tab-{fiat,crypto,withdraw}, cashier-{fiat,crypto,wd}-{amount,currency,submit}, cashier-crypto-{address,qr}, cashier-wd-destination, cashier-history. Admin payments testids: admin-tab-payments, admin-pay-txn-{id}, admin-pay-approve-{id}, admin-pay-reject-{id}. Approve/Reject only render for withdrawals with status=pending. NOWPayments live key returns real BTC addresses (sandbox:false). VAULT_API_KEY is placeholder so all withdrawals stay pending until admin approves — EXPECTED. Min deposit $10 AUD ($6.60 USD cents=660); min withdraw $20 AUD ($13.20 USD cents=1320). To seed real_balance_cents for a user, direct mongo update on users collection. 24 slots exposed via /api/games/slots (22 flagship); PUBLIC_SLOT_IDS and FLAGSHIP_IDS in games.py. Recent flagship IDs: gates_of_glory, samurai_strike, voodoo_vengeance, corsair_cannons.",
+  "rca of the issue": "N/A — no bugs found. All 79 backend tests pass; frontend Cashier + Admin Payments + Lobby all render correctly with live Stripe and live NOWPayments integrations."
+}

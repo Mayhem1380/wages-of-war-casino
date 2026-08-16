@@ -75,6 +75,12 @@ Structural real-money payment system wired with TEST/PLACEHOLDER keys, ready to 
 ## Deferred (pivoted to real-money per user directive)
 - Slot search bar + filter tabs, animated win celebrations, daily streak wheel, live tournaments — NOT built this session.
 
+## Fleet Reel + Coming-Soon + Full QA Sweep (2026-06)
+- FleetSales.jsx: added a "Global Gaming Fleet Sales" cinematic section under the trophy giveaway — background video (public/brand/nexus_fleet_reel.mp4, re-encoded to web-safe H.264 Main + faststart, poster nexus_fleet_poster.jpg) with a placeholder pricing column on the left (Recon $35k / Fleet $75k / Command $150k / Global P.O.A. — awaiting real prices from owner) + Request Fleet Quote CTA.
+- Lobby.jsx: added "100+ ELITE SLOTS BEING DEPLOYED — COMING SOON" reinforcements teaser (data-testid lobby-coming-soon) after the slot grid.
+- FULL QA SWEEP (testing_agent iteration_9): backend 79/79 PASS (slots 24/22-flagship, flagship spins, Hold&Win, cashier Stripe checkout_url, live NOWPayments real BTC address sandbox:false, min/insufficient validation, withdraw hold + admin approve/reject/refund). Frontend: lobby 24 cards, cashier 3 tabs + real crypto address, admin Payments approve/reject all verified. No critical/minor bugs. Non-blocking: <span>-in-<option> console warning on cashier selects (instrumentation).
+- GAPS: KYC / identity + age verification NOT built (required before real-money go-live). Withdrawal external vault still placeholder (in-app admin approval works). Video plays in real browsers; headless test Chromium lacks H.264 so poster is the fallback.
+
 ## Trophy Banner + AAA Roster + Award Badge (2026-06)
 - Giveaway/"trophy" banner (public/brand/giveaway.webp) regenerated via Gemini edit twice: (1) swapped the two side coins to the new medallions (left Nexus Studio Master, right Wages of War Night Ops F-16) and changed the CTA domain to EXACTLY "Wagesofwarcasin0.online"; (2) replaced the centre jet-in-glass-case with a photorealistic special-forces soldier action figure, everything else preserved. Old saved as giveaway_old.webp.
 - Landing hero: added gold "BEST PLATFORM 2026" trophy badge (data-testid hero-award-badge).
