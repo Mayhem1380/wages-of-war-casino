@@ -212,7 +212,7 @@ export default function Landing() {
             <h2 className="font-display text-4xl sm:text-5xl tracking-wide gold-gradient mt-2">THE $35,000 GIVEAWAY IS LIVE</h2>
             <p className="text-muted-foreground mt-4 leading-relaxed">
               To celebrate the launch of the Nexus Studio Master fleet, one full Turnkey Platform
-              License is up for extraction. Enlist, climb the ranks, and join the elite.
+              Licence is up for extraction. Enlist, climb the ranks, and join the elite.
             </p>
             <GiveawayCountdown />
             <Button onClick={primaryCta} className="mt-6 bg-nvg hover:bg-nvg/90 text-black font-display text-lg tracking-widest px-6 glow-nvg">
