@@ -43,6 +43,14 @@ export default function FleetSales() {
     { Icon: Headset, title: "Command Support", body: "Dedicated onboarding and 24/7 operational support from the Nexus Studio Master team." },
   ];
 
+  // NOTE: placeholder pricing — replace with your confirmed fleet licence prices.
+  const pricing = [
+    { name: "Recon — Single Brand", note: "Turnkey casino · your branding", price: "$35,000" },
+    { name: "Fleet — Multi Brand", note: "Multi-currency · multi-language", price: "$75,000" },
+    { name: "Command — White Label", note: "Full licence + ops support", price: "$150,000" },
+    { name: "Global — Enterprise", note: "Custom multi-market deployment", price: "P.O.A." },
+  ];
+
   return (
     <div data-testid={FLEET.root} className="max-w-[1200px] mx-auto px-4 sm:px-8 py-10">
       <button onClick={() => navigate("/")} className="flex items-center gap-2 text-muted-foreground hover:text-nvg font-mono text-sm mb-6">
@@ -97,6 +105,43 @@ export default function FleetSales() {
           </Button>
         </div>
         <img src={BRAND.giveaway} alt="Wages of War Casino giveaway" className="w-full max-w-sm mx-auto ring-1 ring-gold/30" />
+      </div>
+
+      {/* NEXUS FLEET CINEMATIC REEL + PRICING */}
+      <div data-testid="fleet-pricing-reel" className="hud hud-gold relative overflow-hidden mb-10">
+        <video
+          src="/brand/nexus_fleet_reel.mp4"
+          poster="/brand/nexus_fleet_poster.jpg"
+          autoPlay muted loop playsInline preload="auto"
+          className="absolute inset-0 w-full h-full object-cover opacity-70"
+        />
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: "linear-gradient(90deg, rgba(5,6,5,0.97) 0%, rgba(5,6,5,0.9) 40%, rgba(5,6,5,0.4) 75%, rgba(5,6,5,0.15) 100%)" }}
+        />
+        <div className="relative p-8 md:p-10 min-h-[460px] flex flex-col justify-center max-w-xl">
+          <p className="font-mono text-xs tracking-[0.4em] text-gold animate-flicker">// NEXUS STUDIO MASTER</p>
+          <h2 className="font-display text-4xl sm:text-5xl tracking-wide gold-gradient mt-2 leading-none">
+            GLOBAL GAMING FLEET SALES
+          </h2>
+          <p className="text-sm text-muted-foreground mt-3 max-w-md leading-relaxed">
+            Deploy your own military-grade casino from the Nexus Studio Master fleet. Select a deployment package.
+          </p>
+          <div className="mt-6 space-y-3">
+            {pricing.map((p) => (
+              <div key={p.name} className="flex items-center justify-between gap-4 border border-gold/25 bg-black/50 backdrop-blur-sm px-4 py-3 hover:border-gold/70 transition-colors">
+                <div className="min-w-0">
+                  <div className="font-stencil tracking-wide text-foreground uppercase text-sm truncate">{p.name}</div>
+                  <div className="font-mono text-[10px] text-muted-foreground">{p.note}</div>
+                </div>
+                <div className="font-display text-2xl text-gold whitespace-nowrap drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)]">{p.price}</div>
+              </div>
+            ))}
+          </div>
+          <a href="#enquiry" className="inline-flex items-center gap-2 mt-6 w-fit font-stencil tracking-widest uppercase text-sm text-black bg-gold px-5 py-2.5 hover:bg-gold/90 glow-gold">
+            <RocketLaunch size={16} weight="fill" /> Request Fleet Quote
+          </a>
+        </div>
       </div>
 
       <div className="hud hud-gold p-8 mb-10" id="enquiry">

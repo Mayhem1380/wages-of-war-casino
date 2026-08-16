@@ -6,7 +6,7 @@ import { LOBBY } from "@/constants/testIds";
 import { SymbolTile } from "@/components/SymbolTile";
 import { AnimatedShowcase } from "@/components/AnimatedShowcase";
 import { LobbyHype } from "@/components/LobbyHype";
-import { Target, CaretRight, Coins, GameController, Skull } from "@phosphor-icons/react";
+import { Target, CaretRight, Coins, GameController, Skull, RocketLaunch } from "@phosphor-icons/react";
 
 function CornerCard({ children, onClick, testId, accent = "#4EE44E", className = "" }) {
   return (
@@ -168,6 +168,21 @@ export default function Lobby() {
             </CornerCard>
           );
         })}
+      </div>
+
+      {/* REINFORCEMENTS INBOUND — 100+ slots coming soon */}
+      <div data-testid="lobby-coming-soon" className="mt-8 hud hud-gold relative overflow-hidden">
+        <div className="relative p-6 sm:p-8 flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left">
+          <div className="shrink-0 w-16 h-16 rounded-full border-2 border-gold/60 flex items-center justify-center glow-gold">
+            <RocketLaunch size={34} weight="fill" className="text-gold" />
+          </div>
+          <div className="flex-1">
+            <p className="font-mono text-xs tracking-[0.4em] text-gold animate-flicker">// REINFORCEMENTS INBOUND</p>
+            <h2 className="font-display text-3xl sm:text-4xl tracking-wide gold-gradient leading-none mt-1">100+ ELITE SLOTS BEING DEPLOYED</h2>
+            <p className="text-sm text-muted-foreground mt-2 max-w-2xl">A hundred more high-grade, chart-topping pokies are inbound — soon to be delivered to the Wages of War ops floor. Lock in your rank now and be first to spin them.</p>
+          </div>
+          <span className="font-stencil tracking-widest uppercase text-sm text-black bg-gold px-4 py-2 whitespace-nowrap glow-gold">COMING SOON</span>
+        </div>
       </div>
 
       {/* OTHER GAMES */}

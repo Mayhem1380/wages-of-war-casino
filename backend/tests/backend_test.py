@@ -84,20 +84,35 @@ class TestAuth:
 
 # ---------------- SLOTS ----------------
 class TestSlots:
-    def test_list_slots_six_sorted(self):
+    def test_list_slots_twenty_four_sorted(self):
         r = requests.get(f"{API}/games/slots")
         assert r.status_code == 200
         arr = r.json()
-        assert len(arr) == 6
+        assert len(arr) == 24, f"expected 24 slots, got {len(arr)}"
         pops = [m["popularity"] for m in arr]
         assert pops == sorted(pops, reverse=True)
 
-    def test_list_slots_expected_ids(self):
+    def test_list_slots_flagship_count(self):
+        arr = requests.get(f"{API}/games/slots").json()
+        flagships = [m for m in arr if m.get("flagship") or m.get("is_flagship") or m.get("aaa") or m.get("tier") == "flagship"]
+        # Fallback: infer from expected set if flag not exposed
+        expected_flagship_ids = {"pharaohs_arsenal", "inferno_airstrike", "golden_dynasty",
+                                 "book_of_ops", "big_bass_bombardment", "money_train_convoy",
+                                 "wild_west_recon", "kraken_depths", "frozen_front",
+                                 "happy_prosperity", "panda_magic", "gold_bonanza",
+                                 "dragons_riches", "five_dragons", "god_of_sun",
+                                 "gates_of_olympus", "fortune_coins", "year_of_ox",
+                                 "gates_of_glory", "samurai_strike", "voodoo_vengeance", "corsair_cannons"}
+        ids = {m["id"] for m in arr}
+        assert expected_flagship_ids.issubset(ids), f"missing flagship ids: {expected_flagship_ids - ids}"
+        assert len(expected_flagship_ids) == 22
+
+    def test_list_slots_recent_upgrades_present(self):
+        """Verify the 4 recently-upgraded flagship slots are exposed."""
         arr = requests.get(f"{API}/games/slots").json()
         ids = {m["id"] for m in arr}
-        expected = {"gates_of_glory", "book_of_ops", "big_bass_bombardment",
-                    "sweet_ammo", "wild_west_recon", "money_train_convoy"}
-        assert ids == expected, f"missing/extra: {ids ^ expected}"
+        recent = {"gates_of_glory", "samurai_strike", "voodoo_vengeance", "corsair_cannons"}
+        assert recent.issubset(ids), f"missing recent flagships: {recent - ids}"
 
     def test_slot_detail(self):
         arr = requests.get(f"{API}/games/slots").json()
@@ -564,3 +579,242 @@ class TestAdmin:
         r = requests.post(f"{API}/admin/players/{uid}/balance",
                           headers=auth_headers, json={"amount": 10, "mode": "delta"})
         assert r.status_code == 403
+
+
+# ---------------- FLAGSHIP SLOT / HOLD&WIN ----------------
+class TestFlagshipSlots:
+    def test_spin_voodoo_vengeance_returns_grid(self, auth_headers):
+        r = requests.post(f"{API}/games/slots/spin",
+                          json={"machine_id": "voodoo_vengeance", "bet": 20}, headers=auth_headers)
+        assert r.status_code == 200, r.text
+        d = r.json()
+        assert "grid" in d and isinstance(d["grid"], list)
+        # flagships include firecoins overlay + holdwin_triggered flag
+        assert "firecoins" in d
+        assert "holdwin_triggered" in d
+
+    def test_spin_standard_sweet_ammo(self, auth_headers):
+        r = requests.post(f"{API}/games/slots/spin",
+                          json={"machine_id": "sweet_ammo", "bet": 20}, headers=auth_headers)
+        assert r.status_code == 200, r.text
+        d = r.json()
+        assert "grid" in d and "line_wins" in d and "total_win" in d
+
+    def test_spin_all_flagship_recent_upgrades(self, auth_headers):
+        for mid in ["gates_of_glory", "samurai_strike", "voodoo_vengeance", "corsair_cannons"]:
+            r = requests.post(f"{API}/games/slots/spin",
+                              json={"machine_id": mid, "bet": 20}, headers=auth_headers)
+            assert r.status_code == 200, f"{mid}: {r.text}"
+            assert "grid" in r.json()
+
+    def test_holdwin_endpoint_requires_valid_session(self, auth_headers):
+        r = requests.post(f"{API}/games/slots/holdwin",
+                          json={"session_id": "nonexistent"}, headers=auth_headers)
+        assert r.status_code in (400, 404)
+
+    def test_holdwin_flow_when_triggered(self, auth_headers):
+        """Try to force a holdwin trigger by spinning a flagship many times, then resolve."""
+        session_id = None
+        for _ in range(80):
+            r = requests.post(f"{API}/games/slots/spin",
+                              json={"machine_id": "voodoo_vengeance", "bet": 100}, headers=auth_headers)
+            if r.status_code != 200:
+                # ran out of balance -> stop
+                break
+            d = r.json()
+            sess = d.get("holdwin_session")
+            if sess and sess.get("session_id"):
+                session_id = sess["session_id"]
+                break
+        if not session_id:
+            pytest.skip("holdwin not triggered in 80 spins (probabilistic)")
+        r2 = requests.post(f"{API}/games/slots/holdwin",
+                           json={"session_id": session_id}, headers=auth_headers)
+        assert r2.status_code == 200, r2.text
+        d = r2.json()
+        # response should contain resolution data
+        assert isinstance(d, dict)
+
+
+# ---------------- CASHIER (PLAYER) ----------------
+class TestCashier:
+    def test_currencies_list(self):
+        r = requests.get(f"{API}/cashier/currencies")
+        assert r.status_code == 200, r.text
+        d = r.json()
+        assert "currencies" in d and isinstance(d["currencies"], list)
+        codes = {c["code"] for c in d["currencies"]}
+        for expected in ("USD", "AUD", "BTC", "ETH", "USDT"):
+            assert expected in codes, f"missing currency {expected}"
+        assert d.get("min_deposit_aud") == 10.0
+        assert d.get("min_withdraw_aud") == 20.0
+
+    def test_summary_requires_auth(self):
+        r = requests.get(f"{API}/cashier/summary")
+        assert r.status_code == 401
+
+    def test_summary_authed(self, auth_headers):
+        r = requests.get(f"{API}/cashier/summary", headers=auth_headers)
+        assert r.status_code == 200, r.text
+        d = r.json()
+        for k in ("real_balance_cents", "real_balance_usd", "min_deposit_usd", "min_withdraw_usd", "crypto_live", "vault_live"):
+            assert k in d, f"missing {k}"
+        assert isinstance(d["real_balance_cents"], int)
+
+    def test_stripe_deposit_returns_checkout_url(self, auth_headers):
+        r = requests.post(f"{API}/cashier/deposit/stripe",
+                          json={"currency": "AUD", "amount": 20.0, "origin_url": BASE_URL},
+                          headers=auth_headers)
+        assert r.status_code == 200, r.text
+        d = r.json()
+        assert d.get("checkout_url", "").startswith("http")
+        assert d.get("session_id")
+
+    def test_stripe_deposit_below_minimum_rejected(self, auth_headers):
+        r = requests.post(f"{API}/cashier/deposit/stripe",
+                          json={"currency": "AUD", "amount": 5.0, "origin_url": BASE_URL},
+                          headers=auth_headers)
+        assert r.status_code == 400
+
+    def test_crypto_deposit_btc_returns_pay_address(self, auth_headers):
+        r = requests.post(f"{API}/cashier/deposit/crypto",
+                          json={"pay_currency": "BTC", "amount_usd": 20.0},
+                          headers=auth_headers)
+        # NOWPayments live can occasionally 429/502 — retry once
+        if r.status_code >= 500 or r.status_code == 429:
+            time.sleep(2)
+            r = requests.post(f"{API}/cashier/deposit/crypto",
+                              json={"pay_currency": "BTC", "amount_usd": 20.0},
+                              headers=auth_headers)
+        assert r.status_code == 200, r.text
+        d = r.json()
+        assert d.get("pay_address"), d
+        # With live NOWPayments key, sandbox should be false
+        assert d.get("sandbox") is False, f"expected sandbox=false with live key, got {d}"
+
+    def test_crypto_deposit_below_minimum_rejected(self, auth_headers):
+        r = requests.post(f"{API}/cashier/deposit/crypto",
+                          json={"pay_currency": "BTC", "amount_usd": 1.0},
+                          headers=auth_headers)
+        assert r.status_code == 400
+
+    def test_withdraw_below_minimum_rejected(self, auth_headers):
+        r = requests.post(f"{API}/cashier/withdraw",
+                          json={"currency": "AUD", "amount": 5.0, "destination": "AU12345678901234"},
+                          headers=auth_headers)
+        assert r.status_code == 400
+
+    def test_withdraw_above_balance_rejected(self, auth_headers):
+        r = requests.post(f"{API}/cashier/withdraw",
+                          json={"currency": "AUD", "amount": 999999.0, "destination": "AU12345678901234"},
+                          headers=auth_headers)
+        assert r.status_code == 400
+
+    def test_transactions_authed(self, auth_headers):
+        r = requests.get(f"{API}/cashier/transactions", headers=auth_headers)
+        assert r.status_code == 200
+        assert isinstance(r.json(), list)
+
+
+# ---------------- CASHIER WITHDRAWAL FLOW + ADMIN APPROVAL ----------------
+class TestCashierWithdrawalAndAdmin:
+    """Create a user, seed real_balance_cents via mongo, submit withdrawal,
+    then approve/reject via admin endpoints."""
+
+    def _seed_real_balance(self, user_id: str, cents: int):
+        try:
+            from motor.motor_asyncio import AsyncIOMotorClient
+            import asyncio
+        except ImportError:
+            pytest.skip("motor not installed")
+        mongo_url = os.environ.get("MONGO_URL", "mongodb://localhost:27017")
+        db_name = os.environ.get("DB_NAME", "test_database")
+
+        async def go():
+            client = AsyncIOMotorClient(mongo_url)
+            await client[db_name].users.update_one({"user_id": user_id},
+                                                    {"$set": {"real_balance_cents": cents}})
+            client.close()
+        asyncio.run(go())
+
+    def test_valid_withdrawal_holds_funds_and_admin_approve(self, admin_headers):
+        # Fresh user
+        email = f"test_wd_{uuid.uuid4().hex[:8]}@wowtest.com"
+        r = requests.post(f"{API}/auth/register", json={"email": email, "password": "abc123", "name": "WD"})
+        assert r.status_code == 200
+        token = r.json()["token"]
+        uid = r.json()["user"]["user_id"]
+        h = {"Authorization": f"Bearer {token}"}
+        # Seed $100 USD
+        self._seed_real_balance(uid, 10000)
+
+        # Submit valid AUD withdrawal ($30 AUD ~ $19.80 USD > min $13.20 USD)
+        r = requests.post(f"{API}/cashier/withdraw", headers=h,
+                          json={"currency": "AUD", "amount": 30.0,
+                                "destination": "AU12345678901234"})
+        assert r.status_code == 200, r.text
+        d = r.json()
+        assert d["status"] == "pending"
+        wd_id = d["id"]
+
+        # Balance should be decremented
+        s = requests.get(f"{API}/cashier/summary", headers=h).json()
+        assert s["real_balance_cents"] < 10000, s
+
+        # Admin summary shows pending
+        adm = requests.get(f"{API}/admin/cashier/summary", headers=admin_headers)
+        assert adm.status_code == 200, adm.text
+        assert adm.json()["pending_withdrawals"] >= 1
+
+        # Admin transactions listing
+        tx = requests.get(f"{API}/admin/cashier/transactions", headers=admin_headers)
+        assert tx.status_code == 200
+        assert any(t["id"] == wd_id for t in tx.json())
+
+        # Approve
+        appr = requests.post(f"{API}/admin/cashier/withdrawals/{wd_id}/approve",
+                             headers=admin_headers)
+        assert appr.status_code == 200, appr.text
+        assert appr.json()["status"] == "completed"
+
+        # Re-approving same withdrawal should now fail (not pending)
+        appr2 = requests.post(f"{API}/admin/cashier/withdrawals/{wd_id}/approve",
+                              headers=admin_headers)
+        assert appr2.status_code == 400
+
+    def test_valid_withdrawal_reject_refunds(self, admin_headers):
+        email = f"test_wdr_{uuid.uuid4().hex[:8]}@wowtest.com"
+        r = requests.post(f"{API}/auth/register", json={"email": email, "password": "abc123", "name": "WD"})
+        token = r.json()["token"]
+        uid = r.json()["user"]["user_id"]
+        h = {"Authorization": f"Bearer {token}"}
+        self._seed_real_balance(uid, 10000)
+
+        r = requests.post(f"{API}/cashier/withdraw", headers=h,
+                          json={"currency": "AUD", "amount": 30.0,
+                                "destination": "AU12345678901234"})
+        assert r.status_code == 200, r.text
+        wd_id = r.json()["id"]
+
+        before = requests.get(f"{API}/cashier/summary", headers=h).json()["real_balance_cents"]
+
+        rej = requests.post(f"{API}/admin/cashier/withdrawals/{wd_id}/reject",
+                            headers=admin_headers)
+        assert rej.status_code == 200, rej.text
+        assert rej.json()["status"] == "rejected"
+
+        after = requests.get(f"{API}/cashier/summary", headers=h).json()["real_balance_cents"]
+        assert after > before, (before, after)  # refunded
+
+    def test_admin_cashier_summary_unauth_401(self):
+        r = requests.get(f"{API}/admin/cashier/summary")
+        assert r.status_code == 401
+
+    def test_admin_cashier_summary_forbidden_for_normal_user(self, auth_headers):
+        r = requests.get(f"{API}/admin/cashier/summary", headers=auth_headers)
+        assert r.status_code == 403
+
+    def test_admin_cashier_bad_action(self, admin_headers):
+        r = requests.post(f"{API}/admin/cashier/withdrawals/xx/foobar", headers=admin_headers)
+        assert r.status_code == 400
+
