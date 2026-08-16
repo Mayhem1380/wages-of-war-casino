@@ -32,9 +32,9 @@ const SLIDES = {
     { img: F.golden_dynasty.thumb, kicker: "ENLIST NOW", title: "10,000 FREE CREDITS", sub: "DEPLOY INTO THE FLOOR", accent: "#4EE44E" },
   ],
   giveaway: [
-    { img: BRAND.giveaway, kicker: "// MISSION ALERT", title: "$35,000 GIVEAWAY", sub: "TURNKEY PLATFORM LICENSE", accent: "#F6C64A" },
+    { img: BRAND.giveaway, kicker: "// MISSION ALERT", title: "$35,000 GIVEAWAY", sub: "TURNKEY PLATFORM LICENCE", accent: "#F6C64A" },
     { img: BRAND.nexusBanner, kicker: "FLEET LAUNCH", title: "NEXUS STUDIO MASTER", sub: "GLOBAL GAMING FLEET", accent: "#FF8A2E" },
-    { img: F.golden_dynasty.thumb, kicker: "PRIZE POOL", title: "ONE FULL LICENSE", sub: "UP FOR EXTRACTION", accent: "#FFC04A" },
+    { img: F.golden_dynasty.thumb, kicker: "PRIZE POOL", title: "ONE FULL LICENCE", sub: "UP FOR EXTRACTION", accent: "#FFC04A" },
     { img: F.pharaohs_arsenal.thumb, kicker: "CLIMB THE RANKS", title: "JOIN THE ELITE", sub: "ENLIST TO QUALIFY", accent: "#F6C64A" },
     { img: F.inferno_airstrike.thumb, kicker: "LIMITED WINDOW", title: "DON'T MISS OUT", sub: "DRAW CLOSING SOON", accent: "#FF5A5A" },
   ],
