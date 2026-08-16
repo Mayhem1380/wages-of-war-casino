@@ -63,7 +63,7 @@ export default function KenoGame() {
 
   return (
     <div data-testid={KENO.root} className="relative min-h-screen"
-      style={{ backgroundImage: "linear-gradient(rgba(6,10,8,0.86), rgba(4,7,5,0.94)), url(/slots/keno_bg.jpg)", backgroundSize: "cover", backgroundPosition: "center", backgroundAttachment: "fixed" }}>
+      style={{ backgroundImage: "linear-gradient(rgba(6,10,8,0.55), rgba(4,7,5,0.78)), url(/slots/keno_bg.jpg)", backgroundSize: "cover", backgroundPosition: "center", backgroundAttachment: "fixed" }}>
     <div className="max-w-5xl mx-auto px-4 sm:px-8 py-8">
       <button onClick={() => navigate("/lobby")} className="flex items-center gap-2 text-muted-foreground hover:text-nvg font-mono text-sm mb-6">
         <ArrowLeft size={16} /> RETURN TO LOBBY

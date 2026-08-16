@@ -75,6 +75,13 @@ Structural real-money payment system wired with TEST/PLACEHOLDER keys, ready to 
 ## Deferred (pivoted to real-money per user directive)
 - Slot search bar + filter tabs, animated win celebrations, daily streak wheel, live tournaments — NOT built this session.
 
+## Graphics Revisions Round (2026-06)
+- Header + hero coin restored to the F-15 gold-wing "NIGHT OPS EDITION" medallion (header_coin.png?v=4).
+- Stats strip reverted from image tiles back to clean phosphor icons (Landing.jsx).
+- Footer: reverted to the BLUE underwater scene (footer_underwater.jpg from backup), added a teal-tinted breathing medallion (footer_logo_blue.png) centered between diver & shark + CSS rising bubbles (Layout.jsx). Matches user's underwater-casino-logo-bubbles reference.
+- Trophy/giveaway banner confirmed correct (soldier figure + wagesofwarcasin0.online + Nexus/Night-Ops coins).
+- Keno + Coin Flip now have painted backgrounds: /slots/keno_bg.jpg (war-room radar bunker) and /slots/coinflip_bg.jpg (armory vault); overlays lightened in KenoGame.jsx / CoinFlipGame.jsx.
+
 ## Fleet Reel + Coming-Soon + Full QA Sweep (2026-06)
 - FleetSales.jsx: added a "Global Gaming Fleet Sales" cinematic section under the trophy giveaway — background video (public/brand/nexus_fleet_reel.mp4, re-encoded to web-safe H.264 Main + faststart, poster nexus_fleet_poster.jpg) with a placeholder pricing column on the left (Recon $35k / Fleet $75k / Command $150k / Global P.O.A. — awaiting real prices from owner) + Request Fleet Quote CTA.
 - Lobby.jsx: added "100+ ELITE SLOTS BEING DEPLOYED — COMING SOON" reinforcements teaser (data-testid lobby-coming-soon) after the slot grid.
