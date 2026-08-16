@@ -18,6 +18,7 @@ export default function CoinFlipGame() {
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState(null);
   const [flip, setFlip] = useState(false);
+  const LBL = { heads: "GRENADE", tails: "KNIFE" };
 
   const play = async () => {
     if (!user) { openAuth("register"); return; }
@@ -33,8 +34,8 @@ export default function CoinFlipGame() {
         setFlip(false);
         setResult(data);
         refreshUser();
-        if (data.win > 0) { sfx.win(); toast.success(`${data.outcome.toUpperCase()} — WIN +${fmt(data.win)}`); }
-        else { sfx.lose(); toast(`${data.outcome.toUpperCase()} — no dice.`); }
+        if (data.win > 0) { sfx.win(); toast.success(`${LBL[data.outcome]} — WIN +${fmt(data.win)}`); }
+        else { sfx.lose(); toast(`${LBL[data.outcome]} — no dice.`); }
         setBusy(false);
       }, 900);
     } catch (e) {
@@ -52,7 +53,7 @@ export default function CoinFlipGame() {
         side === s ? "border-gold text-gold bg-gold/10 glow-gold" : "border-border text-muted-foreground hover:border-gold/50"
       }`}
     >
-      {s.toUpperCase()}
+      {LBL[s]}
     </button>
   );
 
@@ -88,7 +89,7 @@ export default function CoinFlipGame() {
         <div data-testid={COINFLIP.result} className="h-10 text-center">
           {result && !flip && (
             <p className={`font-display text-3xl tracking-wide animate-pop ${result.win > 0 ? "gold-gradient" : "text-alert"}`}>
-              {result.outcome.toUpperCase()} · {result.win > 0 ? `+${fmt(result.win)}` : `-${fmt(bet)}`}
+              {LBL[result.outcome]} · {result.win > 0 ? `+${fmt(result.win)}` : `-${fmt(bet)}`}
             </p>
           )}
         </div>

@@ -75,6 +75,11 @@ Structural real-money payment system wired with TEST/PLACEHOLDER keys, ready to 
 ## Deferred (pivoted to real-money per user directive)
 - Slot search bar + filter tabs, animated win celebrations, daily streak wheel, live tournaments — NOT built this session.
 
+## Coin-Flip Reskin + Spelling Pass (2026-06)
+- Dog-Tag Flip coin faces reskinned: coin_heads.png = grenade, coin_tails.png = knife (auto edge-detected circular alpha to strip baked checkerboard). Buttons + result labels now GRENADE/KNIFE via LBL map in CoinFlipGame.jsx (backend outcome heads/tails unchanged).
+- Spelling: normalized US "License"→UK "Licence" in AnimatedShowcase.jsx (x2) + Landing.jsx; no other typos found.
+- Banner swap NOT done — the "WE SELL PLATFORMS" trophy image was not present as a usable upload; current $35k soldier banner (giveaway.webp) retained.
+
 ## Graphics Revisions Round (2026-06)
 - Header + hero coin restored to the F-15 gold-wing "NIGHT OPS EDITION" medallion (header_coin.png?v=4).
 - Stats strip reverted from image tiles back to clean phosphor icons (Landing.jsx).
