@@ -61,7 +61,7 @@ export default function CoinFlipGame() {
 
   return (
     <div data-testid={COINFLIP.root} className="relative min-h-screen"
-      style={{ backgroundImage: "linear-gradient(rgba(10,8,4,0.88), rgba(6,5,3,0.95)), url(/slots/keno_bg.jpg)", backgroundSize: "cover", backgroundPosition: "center", backgroundAttachment: "fixed" }}>
+      style={{ backgroundImage: "linear-gradient(rgba(8,10,10,0.55), rgba(4,6,6,0.8)), url(/slots/coinflip_bg.jpg)", backgroundSize: "cover", backgroundPosition: "center", backgroundAttachment: "fixed" }}>
     <div className="max-w-lg mx-auto px-4 sm:px-8 py-8">
       <button onClick={() => navigate("/lobby")} className="flex items-center gap-2 text-muted-foreground hover:text-nvg font-mono text-sm mb-6">
         <ArrowLeft size={16} /> RETURN TO LOBBY
