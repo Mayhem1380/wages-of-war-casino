@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <rect width="100%" height="100%" rx="14" fill="#1f0703" />
+  <g>
+    <path d="M50 130 L150 70 L160 120 L90 160 Z" fill="#FFB454" />
+    <path d="M90 60 Q100 40 110 60" fill="#FF5A5A" />
+    <text x="100" y="175" font-family="Inter, sans-serif" font-size="18" fill="#fff" text-anchor="middle">INF2</text>
+  </g>
+</svg>

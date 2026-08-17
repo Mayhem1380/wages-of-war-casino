@@ -7,6 +7,7 @@ NOTE: This is the structural framework wired with TEST / PLACEHOLDER keys.
 Swap the env vars for live keys to go live. Real fund movement stays in
 sandbox until live credentials + a licensed gambling PSP are connected.
 """
+
 import os
 import hashlib
 import hmac
@@ -24,15 +25,78 @@ logger = logging.getLogger("wagesofwar.cashier")
 # ---------------------------------------------------------------------------
 CURRENCIES = {
     # code:  name, type, symbol, decimals, usd_price, color
-    "USD": {"name": "US Dollar", "type": "FIAT", "symbol": "$", "decimals": 2, "usd_price": 1.0, "color": "#3B82F6"},
-    "EUR": {"name": "Euro", "type": "FIAT", "symbol": "€", "decimals": 2, "usd_price": 1.08, "color": "#6366F1"},
-    "GBP": {"name": "British Pound", "type": "FIAT", "symbol": "£", "decimals": 2, "usd_price": 1.27, "color": "#8B5CF6"},
-    "AUD": {"name": "Australian Dollar", "type": "FIAT", "symbol": "A$", "decimals": 2, "usd_price": 0.66, "color": "#10B981"},
-    "BTC": {"name": "Bitcoin", "type": "CRYPTO", "symbol": "₿", "decimals": 8, "usd_price": 67000.0, "color": "#F7931A"},
-    "ETH": {"name": "Ethereum", "type": "CRYPTO", "symbol": "Ξ", "decimals": 8, "usd_price": 3500.0, "color": "#627EEA"},
-    "USDT": {"name": "Tether", "type": "CRYPTO", "symbol": "₮", "decimals": 6, "usd_price": 1.0, "color": "#26A17B"},
-    "SOL": {"name": "Solana", "type": "CRYPTO", "symbol": "◎", "decimals": 6, "usd_price": 150.0, "color": "#14F195"},
-    "XRP": {"name": "XRP", "type": "CRYPTO", "symbol": "✕", "decimals": 6, "usd_price": 0.60, "color": "#23292F"},
+    "USD": {
+        "name": "US Dollar",
+        "type": "FIAT",
+        "symbol": "$",
+        "decimals": 2,
+        "usd_price": 1.0,
+        "color": "#3B82F6",
+    },
+    "EUR": {
+        "name": "Euro",
+        "type": "FIAT",
+        "symbol": "€",
+        "decimals": 2,
+        "usd_price": 1.08,
+        "color": "#6366F1",
+    },
+    "GBP": {
+        "name": "British Pound",
+        "type": "FIAT",
+        "symbol": "£",
+        "decimals": 2,
+        "usd_price": 1.27,
+        "color": "#8B5CF6",
+    },
+    "AUD": {
+        "name": "Australian Dollar",
+        "type": "FIAT",
+        "symbol": "A$",
+        "decimals": 2,
+        "usd_price": 0.66,
+        "color": "#10B981",
+    },
+    "BTC": {
+        "name": "Bitcoin",
+        "type": "CRYPTO",
+        "symbol": "₿",
+        "decimals": 8,
+        "usd_price": 67000.0,
+        "color": "#F7931A",
+    },
+    "ETH": {
+        "name": "Ethereum",
+        "type": "CRYPTO",
+        "symbol": "Ξ",
+        "decimals": 8,
+        "usd_price": 3500.0,
+        "color": "#627EEA",
+    },
+    "USDT": {
+        "name": "Tether",
+        "type": "CRYPTO",
+        "symbol": "₮",
+        "decimals": 6,
+        "usd_price": 1.0,
+        "color": "#26A17B",
+    },
+    "SOL": {
+        "name": "Solana",
+        "type": "CRYPTO",
+        "symbol": "◎",
+        "decimals": 6,
+        "usd_price": 150.0,
+        "color": "#14F195",
+    },
+    "XRP": {
+        "name": "XRP",
+        "type": "CRYPTO",
+        "symbol": "✕",
+        "decimals": 6,
+        "usd_price": 0.60,
+        "color": "#23292F",
+    },
 }
 
 FIAT_CODES = [c for c, m in CURRENCIES.items() if m["type"] == "FIAT"]
@@ -54,7 +118,22 @@ MIN_WITHDRAW_USD_CENTS = _aud_to_usd_cents(MIN_WITHDRAW_AUD)
 def currency_list():
     out = []
     for code, m in CURRENCIES.items():
-        out.append({"code": code, **{k: m[k] for k in ("name", "type", "symbol", "decimals", "usd_price", "color")}})
+        out.append(
+            {
+                "code": code,
+                **{
+                    k: m[k]
+                    for k in (
+                        "name",
+                        "type",
+                        "symbol",
+                        "decimals",
+                        "usd_price",
+                        "color",
+                    )
+                },
+            }
+        )
     return out
 
 
@@ -85,7 +164,9 @@ def fmt_usd(usd_cents: int) -> str:
 # ---------------------------------------------------------------------------
 NOWPAYMENTS_API_KEY = os.environ.get("NOWPAYMENTS_API_KEY", "")
 NOWPAYMENTS_IPN_SECRET = os.environ.get("NOWPAYMENTS_IPN_SECRET", "")
-NOWPAYMENTS_BASE_URL = os.environ.get("NOWPAYMENTS_BASE_URL", "https://api-sandbox.nowpayments.io/v1")
+NOWPAYMENTS_BASE_URL = os.environ.get(
+    "NOWPAYMENTS_BASE_URL", "https://api-sandbox.nowpayments.io/v1"
+)
 
 _MOCK_ADDR = {
     "BTC": "bc1qsandbox0wagesofwar0deposit0address0demo",
@@ -102,7 +183,11 @@ def _is_placeholder_np() -> bool:
 
 # Map our display codes to NOWPayments network-specific tickers.
 NP_CURRENCY_MAP = {
-    "BTC": "btc", "ETH": "eth", "USDT": "usdttrc20", "SOL": "sol", "XRP": "xrp",
+    "BTC": "btc",
+    "ETH": "eth",
+    "USDT": "usdttrc20",
+    "SOL": "sol",
+    "XRP": "xrp",
 }
 
 
@@ -110,7 +195,9 @@ class CryptoProviderError(RuntimeError):
     pass
 
 
-async def np_create_payment(amount_usd: float, pay_currency: str, order_id: str, ipn_url: str) -> dict:
+async def np_create_payment(
+    amount_usd: float, pay_currency: str, order_id: str, ipn_url: str
+) -> dict:
     """Create a NOWPayments crypto deposit.
 
     - Placeholder key -> returns a clearly-marked SANDBOX mock (safe, no real funds).
@@ -124,22 +211,32 @@ async def np_create_payment(amount_usd: float, pay_currency: str, order_id: str,
         return {
             "payment_id": f"sandbox_{uuid.uuid4().hex[:16]}",
             "pay_address": _MOCK_ADDR.get(code, f"SANDBOX-{code}-ADDRESS"),
-            "pay_amount": pay_amount, "pay_currency": code, "status": "waiting", "sandbox": True,
+            "pay_amount": pay_amount,
+            "pay_currency": code,
+            "status": "waiting",
+            "sandbox": True,
         }
 
     np_code = NP_CURRENCY_MAP.get(code, code.lower())
     headers = {"x-api-key": NOWPAYMENTS_API_KEY, "Content-Type": "application/json"}
     body = {
-        "price_amount": float(amount_usd), "price_currency": "usd", "pay_currency": np_code,
-        "order_id": order_id, "order_description": "Wages of War Casino deposit",
+        "price_amount": float(amount_usd),
+        "price_currency": "usd",
+        "pay_currency": np_code,
+        "order_id": order_id,
+        "order_description": "Wages of War Casino deposit",
         "ipn_callback_url": ipn_url,
     }
     try:
         async with httpx.AsyncClient(timeout=25) as c:
-            r = await c.post(NOWPAYMENTS_BASE_URL + "/payment", headers=headers, json=body)
+            r = await c.post(
+                NOWPAYMENTS_BASE_URL + "/payment", headers=headers, json=body
+            )
     except Exception as e:
         logger.warning("NOWPayments unreachable: %s", e)
-        raise CryptoProviderError("Crypto provider is temporarily unavailable. Please try again shortly.")
+        raise CryptoProviderError(
+            "Crypto provider is temporarily unavailable. Please try again shortly."
+        )
     if r.status_code >= 400:
         try:
             msg = r.json().get("message") or r.text[:160]
@@ -147,7 +244,9 @@ async def np_create_payment(amount_usd: float, pay_currency: str, order_id: str,
             msg = r.text[:160]
         logger.warning("NOWPayments create failed %s: %s", r.status_code, msg)
         if r.status_code == 429:
-            raise CryptoProviderError("Crypto provider is busy. Please try again in a moment.")
+            raise CryptoProviderError(
+                "Crypto provider is busy. Please try again in a moment."
+            )
         raise CryptoProviderError(str(msg))
     p = r.json()
     return {
@@ -172,8 +271,12 @@ def np_verify_ipn(payload: dict, signature: Optional[str]) -> bool:
             return [deep_sort(x) for x in v]
         return v
 
-    canonical = json.dumps(deep_sort(payload), separators=(",", ":"), ensure_ascii=False)
-    expected = hmac.new(NOWPAYMENTS_IPN_SECRET.encode(), canonical.encode(), hashlib.sha512).hexdigest()
+    canonical = json.dumps(
+        deep_sort(payload), separators=(",", ":"), ensure_ascii=False
+    )
+    expected = hmac.new(
+        NOWPAYMENTS_IPN_SECRET.encode(), canonical.encode(), hashlib.sha512
+    ).hexdigest()
     return hmac.compare_digest(expected, signature)
 
 
@@ -197,8 +300,14 @@ async def vault_crypto_address(currency_code: str) -> Optional[str]:
     """Ask the vault for a deposit address (used for crypto payout verification)."""
     try:
         async with httpx.AsyncClient(timeout=15) as c:
-            r = await c.post(f"{VAULT_API_URL}/vault/crypto/address", headers=_vault_headers(),
-                             json={"platform": VAULT_PLATFORM, "currency_code": currency_code.upper()})
+            r = await c.post(
+                f"{VAULT_API_URL}/vault/crypto/address",
+                headers=_vault_headers(),
+                json={
+                    "platform": VAULT_PLATFORM,
+                    "currency_code": currency_code.upper(),
+                },
+            )
         if r.status_code < 400:
             return r.json().get("address")
     except Exception as e:
@@ -206,7 +315,9 @@ async def vault_crypto_address(currency_code: str) -> Optional[str]:
     return None
 
 
-async def vault_submit_withdrawal(currency_code: str, amount: float, destination: str, reference: str) -> dict:
+async def vault_submit_withdrawal(
+    currency_code: str, amount: float, destination: str, reference: str
+) -> dict:
     """Submit a withdrawal to the approval vault. Returns {ok, vault_id, status, detail}.
 
     With a placeholder VAULT_API_KEY the vault rejects auth; we then keep the
@@ -215,22 +326,38 @@ async def vault_submit_withdrawal(currency_code: str, amount: float, destination
     request to the external vault for approval."""
     try:
         async with httpx.AsyncClient(timeout=15) as c:
-            r = await c.post(f"{VAULT_API_URL}/vault/withdraw", headers=_vault_headers(), json={
-                "platform": VAULT_PLATFORM,
-                "currency_code": currency_code.upper(),
-                "amount": amount,
-                "destination": destination,
-                "reference": reference,
-            })
+            r = await c.post(
+                f"{VAULT_API_URL}/vault/withdraw",
+                headers=_vault_headers(),
+                json={
+                    "platform": VAULT_PLATFORM,
+                    "currency_code": currency_code.upper(),
+                    "amount": amount,
+                    "destination": destination,
+                    "reference": reference,
+                },
+            )
         if r.status_code < 400:
             data = r.json()
-            return {"ok": True, "vault_id": str(data.get("id") or data.get("withdrawal_id") or ""),
-                    "status": data.get("status", "pending"), "detail": ""}
-        return {"ok": False, "vault_id": "", "status": "pending",
-                "detail": f"vault {r.status_code}: {r.text[:120]}"}
+            return {
+                "ok": True,
+                "vault_id": str(data.get("id") or data.get("withdrawal_id") or ""),
+                "status": data.get("status", "pending"),
+                "detail": "",
+            }
+        return {
+            "ok": False,
+            "vault_id": "",
+            "status": "pending",
+            "detail": f"vault {r.status_code}: {r.text[:120]}",
+        }
     except Exception as e:
         return {"ok": False, "vault_id": "", "status": "pending", "detail": str(e)}
 
 
 def is_placeholder_vault() -> bool:
-    return (not VAULT_API_KEY) or "placeholder" in VAULT_API_KEY.lower() or "test" in VAULT_API_KEY.lower()
+    return (
+        (not VAULT_API_KEY)
+        or "placeholder" in VAULT_API_KEY.lower()
+        or "test" in VAULT_API_KEY.lower()
+    )

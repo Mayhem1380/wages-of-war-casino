@@ -1,7 +1,12 @@
 import React from "react";
 import { SYMBOL_META } from "@/data/gameMeta";
 
-export function SymbolTile({ id, size = 44, highlighted = false, className = "" }) {
+export function SymbolTile({
+  id,
+  size = 44,
+  highlighted = false,
+  className = "",
+}) {
   const meta = SYMBOL_META[id] || { text: "?", color: "#888" };
   const Icon = meta.Icon;
   return (
@@ -20,13 +25,19 @@ export function SymbolTile({ id, size = 44, highlighted = false, className = "" 
             width: size * 1.15,
             height: size * 1.15,
             objectFit: "contain",
-            filter: highlighted ? `drop-shadow(0 0 14px ${meta.color})` : "drop-shadow(0 2px 4px rgba(0,0,0,0.6))",
+            filter: highlighted
+              ? `drop-shadow(0 0 14px ${meta.color})`
+              : "drop-shadow(0 2px 4px rgba(0,0,0,0.6))",
           }}
         />
       ) : meta.text ? (
         <span
           className="font-display leading-none"
-          style={{ fontSize: size, color: meta.color, textShadow: highlighted ? `0 0 14px ${meta.color}` : "none" }}
+          style={{
+            fontSize: size,
+            color: meta.color,
+            textShadow: highlighted ? `0 0 14px ${meta.color}` : "none",
+          }}
         >
           {meta.text}
         </span>

@@ -1,6 +1,12 @@
 import "@/App.css";
 import React, { useEffect } from "react";
-import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  useLocation,
+  Navigate,
+} from "react-router-dom";
 import { Toaster } from "sonner";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { SoundProvider } from "@/context/SoundContext";
@@ -22,6 +28,7 @@ import LegalPage from "@/pages/LegalPage";
 import AdminDashboard from "@/pages/AdminDashboard";
 import PaymentSuccess from "@/pages/PaymentSuccess";
 import AuthCallback from "@/pages/AuthCallback";
+import KycPage from "@/pages/Kyc";
 import { useParams } from "react-router-dom";
 import { FLAGSHIP_IDS } from "@/data/gameMeta";
 
@@ -37,7 +44,11 @@ function Protected({ children }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
   if (user === null) {
-    return <div className="max-w-2xl mx-auto p-16 font-mono text-nvg/70">// establishing secure link...</div>;
+    return (
+      <div className="max-w-2xl mx-auto p-16 font-mono text-nvg/70">
+        // establishing secure link...
+      </div>
+    );
   }
   if (!user) {
     return <Navigate to="/" replace />;
@@ -64,14 +75,52 @@ function AppRouter() {
         <Route path="/fleet-sales" element={<FleetSales />} />
         <Route path="/terms" element={<LegalPage slug="terms" />} />
         <Route path="/privacy" element={<LegalPage slug="privacy" />} />
-        <Route path="/responsible-gambling" element={<LegalPage slug="responsible-gambling" />} />
-        <Route path="/age-verification" element={<LegalPage slug="age-verification" />} />
-        <Route path="/cookie-policy" element={<LegalPage slug="cookie-policy" />} />
+        <Route
+          path="/responsible-gambling"
+          element={<LegalPage slug="responsible-gambling" />}
+        />
+        <Route
+          path="/age-verification"
+          element={<LegalPage slug="age-verification" />}
+        />
+        <Route
+          path="/cookie-policy"
+          element={<LegalPage slug="cookie-policy" />}
+        />
         <Route path="/aml-policy" element={<LegalPage slug="aml-policy" />} />
         <Route path="/bonus-terms" element={<LegalPage slug="bonus-terms" />} />
-        <Route path="/wallet" element={<Protected><Wallet /></Protected>} />
-        <Route path="/cashier" element={<Protected><Cashier /></Protected>} />
-        <Route path="/profile" element={<Protected><Profile /></Protected>} />
+        <Route
+          path="/wallet"
+          element={
+            <Protected>
+              <Wallet />
+            </Protected>
+          }
+        />
+        <Route
+          path="/cashier"
+          element={
+            <Protected>
+              <Cashier />
+            </Protected>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <Protected>
+              <Profile />
+            </Protected>
+          }
+        />
+        <Route
+          path="/kyc"
+          element={
+            <Protected>
+              <KycPage />
+            </Protected>
+          }
+        />
         <Route path="/payment/success" element={<PaymentSuccess />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,0 +1,20 @@
+{
+  "short_name": "Wages",
+  "name": "Wages of War Casino",
+  "icons": [
+    {
+      "src": "/brand/emblem.jpeg",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "/brand/hero.jpeg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#050605",
+  "background_color": "#000000"
+}

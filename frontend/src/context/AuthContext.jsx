@@ -1,4 +1,12 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from "react";
 import api, { apiError } from "@/lib/api";
 import { toast } from "sonner";
 import { fmt } from "@/data/gameMeta";
@@ -14,8 +22,16 @@ export function AuthProvider({ children }) {
 
   const applyUser = useCallback((data, { announce = true } = {}) => {
     if (data && data.vip_rank != null) {
-      if (announce && lastRankRef.current != null && data.vip_rank > lastRankRef.current) {
-        setRankUp({ tier: data.vip_tier, rank: data.vip_rank, cashback: data.vip_cashback });
+      if (
+        announce &&
+        lastRankRef.current != null &&
+        data.vip_rank > lastRankRef.current
+      ) {
+        setRankUp({
+          tier: data.vip_tier,
+          rank: data.vip_rank,
+          cashback: data.vip_cashback,
+        });
       }
       lastRankRef.current = data.vip_rank;
     }
@@ -27,7 +43,10 @@ export function AuthProvider({ children }) {
       const { data } = await api.get("/auth/me");
       applyUser(data);
       if (data.cashback_just_paid > 0) {
-        toast.success(`Welcome back, operative — ${data.vip_tier} weekly cashback of +${fmt(data.cashback_just_paid)} credits was auto-deposited.`, { duration: 6000 });
+        toast.success(
+          `Welcome back, operative — ${data.vip_tier} weekly cashback of +${fmt(data.cashback_just_paid)} credits was auto-deposited.`,
+          { duration: 6000 },
+        );
       }
       return data;
     } catch {
@@ -44,45 +63,84 @@ export function AuthProvider({ children }) {
     refreshUser();
   }, [refreshUser]);
 
-  const login = useCallback(async (email, password) => {
-    try {
-      const { data } = await api.post("/auth/login", { email, password });
-      applyUser(data.user, { announce: false });
-      return { ok: true };
-    } catch (e) {
-      return { ok: false, error: apiError(e.response?.data?.detail) };
-    }
-  }, [applyUser]);
+  const login = useCallback(
+    async (email, password) => {
+      try {
+        const { data } = await api.post("/auth/login", { email, password });
+        applyUser(data.user, { announce: false });
+        return { ok: true };
+      } catch (e) {
+        return { ok: false, error: apiError(e.response?.data?.detail) };
+      }
+    },
+    [applyUser],
+  );
 
-  const register = useCallback(async (name, email, password) => {
-    try {
-      const { data } = await api.post("/auth/register", { name, email, password });
-      applyUser(data.user, { announce: false });
-      return { ok: true };
-    } catch (e) {
-      return { ok: false, error: apiError(e.response?.data?.detail) };
-    }
-  }, [applyUser]);
+  const register = useCallback(
+    async (name, email, password) => {
+      try {
+        const { data } = await api.post("/auth/register", {
+          name,
+          email,
+          password,
+        });
+        applyUser(data.user, { announce: false });
+        return { ok: true };
+      } catch (e) {
+        return { ok: false, error: apiError(e.response?.data?.detail) };
+      }
+    },
+    [applyUser],
+  );
 
   const logout = useCallback(async () => {
-    try { await api.post("/auth/logout"); } catch (e) { console.warn("logout request failed", e); }
+    try {
+      await api.post("/auth/logout");
+    } catch (e) {
+      console.warn("logout request failed", e);
+    }
     setUser(false);
     lastRankRef.current = null;
   }, []);
 
-  const openAuth = useCallback((mode = "login") => { setAuthMode(mode); setAuthOpen(true); }, []);
+  const openAuth = useCallback((mode = "login") => {
+    setAuthMode(mode);
+    setAuthOpen(true);
+  }, []);
   const clearRankUp = useCallback(() => setRankUp(null), []);
 
-  const value = useMemo(() => ({
-    user, setUser: applyUser, login, register, logout, refreshUser,
-    authOpen, setAuthOpen, authMode, setAuthMode, openAuth, rankUp, clearRankUp,
-  }), [user, applyUser, login, register, logout, refreshUser, authOpen, authMode, openAuth, rankUp, clearRankUp]);
-
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo(
+    () => ({
+      user,
+      setUser: applyUser,
+      login,
+      register,
+      logout,
+      refreshUser,
+      authOpen,
+      setAuthOpen,
+      authMode,
+      setAuthMode,
+      openAuth,
+      rankUp,
+      clearRankUp,
+    }),
+    [
+      user,
+      applyUser,
+      login,
+      register,
+      logout,
+      refreshUser,
+      authOpen,
+      authMode,
+      openAuth,
+      rankUp,
+      clearRankUp,
+    ],
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export const useAuth = () => useContext(AuthContext);

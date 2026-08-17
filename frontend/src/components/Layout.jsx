@@ -3,20 +3,37 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { useSound } from "@/context/SoundContext";
 import { BrandLogo } from "@/components/BrandLogo";
+import CombatBackground from "@/components/CombatBackground";
+import SharkBite from "@/components/SharkBite";
 import { AuthDialog } from "@/components/AuthDialog";
 import { RankUpBanner } from "@/components/RankUpBanner";
+import ChatWidget from "@/components/ChatWidget";
 import { LEGAL_LINKS } from "@/data/legal";
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { NAV } from "@/constants/testIds";
 import { fmt, BRAND } from "@/data/gameMeta";
 import api from "@/lib/api";
 import { toast } from "sonner";
 import {
-  Coins, Gift, UserCircle, Wallet as WalletIcon, SignOut, Medal, Trophy, GameController, ShieldCheck,
-  SpeakerSimpleHigh, SpeakerSimpleSlash, Vault as VaultIcon,
+  Coins,
+  Gift,
+  UserCircle,
+  Wallet as WalletIcon,
+  SignOut,
+  Medal,
+  Trophy,
+  GameController,
+  ShieldCheck,
+  SpeakerSimpleHigh,
+  SpeakerSimpleSlash,
+  Vault as VaultIcon,
 } from "@phosphor-icons/react";
 
 function MuteToggle() {
@@ -27,10 +44,16 @@ function MuteToggle() {
       onClick={toggle}
       title={muted ? "Unmute battle sounds" : "Mute battle sounds"}
       className={`w-9 h-9 flex items-center justify-center border transition-colors ${
-        muted ? "border-border text-muted-foreground hover:text-foreground" : "border-nvg/50 text-nvg hover:bg-nvg/10"
+        muted
+          ? "border-border text-muted-foreground hover:text-foreground"
+          : "border-nvg/50 text-nvg hover:bg-nvg/10"
       }`}
     >
-      {muted ? <SpeakerSimpleSlash size={18} weight="fill" /> : <SpeakerSimpleHigh size={18} weight="fill" />}
+      {muted ? (
+        <SpeakerSimpleSlash size={18} weight="fill" />
+      ) : (
+        <SpeakerSimpleHigh size={18} weight="fill" />
+      )}
     </button>
   );
 }
@@ -41,10 +64,17 @@ function DailyBonus() {
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
-    try { const { data } = await api.get("/bonus/status"); setStatus(data); } catch (e) { console.warn("bonus status load failed", e); }
+    try {
+      const { data } = await api.get("/bonus/status");
+      setStatus(data);
+    } catch (e) {
+      console.warn("bonus status load failed", e);
+    }
   }, []);
 
-  useEffect(() => { if (user) load(); }, [user, load]);
+  useEffect(() => {
+    if (user) load();
+  }, [user, load]);
 
   if (!user) return null;
 
@@ -52,7 +82,9 @@ function DailyBonus() {
     setBusy(true);
     try {
       const { data } = await api.post("/bonus/claim");
-      toast.success(`+${fmt(data.claimed)} credits — ${data.tier} daily supply drop!`);
+      toast.success(
+        `+${fmt(data.claimed)} credits — ${data.tier} daily supply drop!`,
+      );
       await refreshUser();
       await load();
     } catch (e) {
@@ -69,7 +101,9 @@ function DailyBonus() {
       disabled={busy || !ready}
       title={ready ? "Claim daily supply drop" : "Come back in 24h"}
       className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 border font-mono text-xs tracking-wide transition-colors ${
-        ready ? "border-gold/60 text-gold hover:bg-gold/10 animate-flicker" : "border-border text-muted-foreground"
+        ready
+          ? "border-gold/60 text-gold hover:bg-gold/10 animate-flicker"
+          : "border-border text-muted-foreground"
       }`}
     >
       <Gift size={16} weight="fill" />
@@ -101,6 +135,7 @@ export function Layout({ children }) {
 
   return (
     <div className="App tactical-bg scanlines min-h-screen flex flex-col">
+      {user && <CombatBackground />}
       <header className="sticky top-0 z-50 border-b-2 border-gold/25 bg-black/85 backdrop-blur-md">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-8 h-16 flex items-center justify-between gap-4">
           <Link to="/" data-testid={NAV.logo}>
@@ -130,34 +165,68 @@ export function Layout({ children }) {
                   <DropdownMenuTrigger asChild data-testid={NAV.userMenu}>
                     <button className="flex items-center gap-2 outline-none">
                       {user.picture ? (
-                        <img src={user.picture} alt="me" className="w-9 h-9 rounded-full ring-1 ring-nvg/50 object-cover" />
+                        <img
+                          src={user.picture}
+                          alt="me"
+                          className="w-9 h-9 rounded-full ring-1 ring-nvg/50 object-cover"
+                        />
                       ) : (
-                        <UserCircle size={34} weight="fill" className="text-nvg" />
+                        <UserCircle
+                          size={34}
+                          weight="fill"
+                          className="text-nvg"
+                        />
                       )}
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="bg-[#0a0d0a] border-gold/30 w-52">
+                  <DropdownMenuContent
+                    align="end"
+                    className="bg-[#0a0d0a] border-gold/30 w-52"
+                  >
                     <div className="px-2 py-2">
-                      <p className="font-display text-lg tracking-wide text-foreground leading-none">{user.name}</p>
-                      <p className="font-mono text-[11px] text-gold">{user.vip_tier} • Rank {user.vip_rank}</p>
+                      <p className="font-display text-lg tracking-wide text-foreground leading-none">
+                        {user.name}
+                      </p>
+                      <p className="font-mono text-[11px] text-gold">
+                        {user.vip_tier} • Rank {user.vip_rank}
+                      </p>
                     </div>
                     <DropdownMenuSeparator className="bg-border" />
-                    <DropdownMenuItem data-testid={NAV.profileBtn} onClick={() => navigate("/profile")} className="font-mono text-sm gap-2 cursor-pointer">
+                    <DropdownMenuItem
+                      data-testid={NAV.profileBtn}
+                      onClick={() => navigate("/profile")}
+                      className="font-mono text-sm gap-2 cursor-pointer"
+                    >
                       <UserCircle size={16} /> Dossier
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/wallet")} className="font-mono text-sm gap-2 cursor-pointer">
+                    <DropdownMenuItem
+                      onClick={() => navigate("/wallet")}
+                      className="font-mono text-sm gap-2 cursor-pointer"
+                    >
                       <WalletIcon size={16} /> Wallet & Deposit
                     </DropdownMenuItem>
-                    <DropdownMenuItem data-testid="nav-cashier-btn" onClick={() => navigate("/cashier")} className="font-mono text-sm gap-2 cursor-pointer text-gold">
+                    <DropdownMenuItem
+                      data-testid="nav-cashier-btn"
+                      onClick={() => navigate("/cashier")}
+                      className="font-mono text-sm gap-2 cursor-pointer text-gold"
+                    >
                       <VaultIcon size={16} /> Cashier · Deposit/Withdraw
                     </DropdownMenuItem>
                     <DropdownMenuSeparator className="bg-border" />
                     {user.role === "admin" && (
-                      <DropdownMenuItem data-testid="nav-admin-btn" onClick={() => navigate("/admin")} className="font-mono text-sm gap-2 cursor-pointer text-gold">
+                      <DropdownMenuItem
+                        data-testid="nav-admin-btn"
+                        onClick={() => navigate("/admin")}
+                        className="font-mono text-sm gap-2 cursor-pointer text-gold"
+                      >
                         <ShieldCheck size={16} /> Admin Ops
                       </DropdownMenuItem>
                     )}
-                    <DropdownMenuItem data-testid={NAV.logoutBtn} onClick={logout} className="font-mono text-sm gap-2 cursor-pointer text-alert">
+                    <DropdownMenuItem
+                      data-testid={NAV.logoutBtn}
+                      onClick={logout}
+                      className="font-mono text-sm gap-2 cursor-pointer text-alert"
+                    >
                       <SignOut size={16} /> Sign Out
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -186,15 +255,38 @@ export function Layout({ children }) {
         </div>
       </header>
 
+      {/* Announcement banner */}
+      <div className="w-full bg-gradient-to-r from-gold/90 via-gold/70 to-yellow-400 text-black font-display text-sm tracking-wide py-2 text-center z-40">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-8">
+          <strong className="uppercase">Best Platform of 2026</strong>
+          <span className="ml-3">
+            — Everything is competing to be the best online casino in the world;
+            our goal is to be number one.
+          </span>
+        </div>
+      </div>
+
       <main className="flex-1">{children}</main>
 
       <footer className="relative border-t-2 border-gold/20 bg-black/70 mt-16 overflow-hidden">
         <div
           className="absolute inset-0 pointer-events-none opacity-[0.6]"
-          style={{ backgroundImage: `url(${BRAND.footerUnderwater})`, backgroundSize: "cover", backgroundPosition: "center" }}
+          style={{
+            backgroundImage: `url(${BRAND.footerUnderwater})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
           aria-hidden="true"
         />
-        <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0.8))" }} aria-hidden="true" />
+        <SharkBite />
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0.8))",
+          }}
+          aria-hidden="true"
+        />
 
         {/* Blue glowing casino emblem faded between the diver & shark (breathing) + rising bubbles */}
         <style>{`
@@ -207,7 +299,8 @@ export function Layout({ children }) {
           aria-hidden="true"
           className="pointer-events-none absolute left-1/2 top-1/2 w-56 sm:w-80 z-[1]"
           style={{
-            filter: "drop-shadow(0 0 26px rgba(56,189,248,0.85)) drop-shadow(0 0 60px rgba(14,165,233,0.6))",
+            filter:
+              "drop-shadow(0 0 26px rgba(56,189,248,0.85)) drop-shadow(0 0 60px rgba(14,165,233,0.6))",
             animation: "wowBreathe 5s ease-in-out infinite",
           }}
         />
@@ -233,31 +326,70 @@ export function Layout({ children }) {
             <div className="md:col-span-2">
               <BrandLogo size={44} />
               <p className="mt-5 text-sm text-muted-foreground leading-relaxed max-w-md">
-                Wages of War Casino — elite night-vision ops gaming. Play-money virtual credits
-                for entertainment only. No real-money wagering or payouts.
+                Wages of War Casino — elite night-vision ops gaming. Play-money
+                virtual credits for entertainment only. No real-money wagering
+                or payouts.
               </p>
               <div className="mt-5 flex items-center gap-4">
-                <img src={BRAND.coin} alt="Nexus Studio Master" className="w-11 h-11 rounded-full ring-1 ring-gold/40 object-cover" />
+                <img
+                  src={BRAND.coin}
+                  alt="Nexus Studio Master"
+                  className="w-11 h-11 rounded-full ring-1 ring-gold/40 object-cover"
+                />
                 <div className="font-mono text-[11px] text-muted-foreground leading-tight">
                   <div className="tracking-widest text-nvg/70">POWERED BY</div>
                   <div className="text-foreground">NEXUS STUDIO MASTER</div>
                 </div>
-                <img src="/brand/award_emblem.png" alt="Award-Winning Platform 2026 · Established 2025" data-testid="award-emblem" className="w-20 h-20 object-contain drop-shadow-[0_0_16px_rgba(212,175,55,0.5)] ml-auto md:ml-4" />
+                <img
+                  src="/brand/award_emblem.png"
+                  alt="Award-Winning Platform 2026 · Established 2025"
+                  data-testid="award-emblem"
+                  className="w-20 h-20 object-contain drop-shadow-[0_0_16px_rgba(212,175,55,0.5)] ml-auto md:ml-4"
+                />
               </div>
             </div>
 
             <div>
-              <h4 className="font-stencil tracking-[0.3em] text-nvg text-sm uppercase mb-4">Operations</h4>
+              <h4 className="font-stencil tracking-[0.3em] text-nvg text-sm uppercase mb-4">
+                Operations
+              </h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link to="/lobby" className="hover:text-nvg transition-colors">Ops Lobby</Link></li>
-                <li><Link to="/vip" className="hover:text-nvg transition-colors">VIP Ranks</Link></li>
-                <li><Link to="/leaderboard" className="hover:text-nvg transition-colors">Leaderboard</Link></li>
-                <li><Link to="/responsible-gambling" className="hover:text-nvg transition-colors">Responsible Gaming</Link></li>
+                <li>
+                  <Link
+                    to="/lobby"
+                    className="hover:text-nvg transition-colors"
+                  >
+                    Ops Lobby
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/vip" className="hover:text-nvg transition-colors">
+                    VIP Ranks
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/leaderboard"
+                    className="hover:text-nvg transition-colors"
+                  >
+                    Leaderboard
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/responsible-gambling"
+                    className="hover:text-nvg transition-colors"
+                  >
+                    Responsible Gaming
+                  </Link>
+                </li>
               </ul>
             </div>
 
             <div>
-              <h4 className="font-stencil tracking-[0.3em] text-nvg text-sm uppercase mb-4">Legal & Compliance</h4>
+              <h4 className="font-stencil tracking-[0.3em] text-nvg text-sm uppercase mb-4">
+                Legal & Compliance
+              </h4>
               <div className="flex items-center gap-2 text-gold mb-3">
                 <ShieldCheck size={18} weight="fill" />
                 <span className="font-mono text-xs">MGA LICENSED · TYPE 1</span>
@@ -265,7 +397,13 @@ export function Layout({ children }) {
               <ul className="space-y-2 text-sm text-muted-foreground">
                 {LEGAL_LINKS.map(([label, href]) => (
                   <li key={href}>
-                    <Link to={href} data-testid={`footer-legal-${href.slice(1)}`} className="hover:text-nvg transition-colors">{label}</Link>
+                    <Link
+                      to={href}
+                      data-testid={`footer-legal-${href.slice(1)}`}
+                      className="hover:text-nvg transition-colors"
+                    >
+                      {label}
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -273,16 +411,35 @@ export function Layout({ children }) {
           </div>
 
           <div className="mt-14 pt-8 border-t border-border flex flex-col md:flex-row items-start justify-between gap-6">
-            <div data-testid="footer-licence" className="font-mono text-[11px] text-muted-foreground leading-relaxed max-w-3xl space-y-0.5">
-              <p><span className="text-foreground font-semibold">© 2025 Wages of War Operations Ltd.</span> All rights reserved.</p>
-              <p>Licensed and regulated by the Malta Gaming Authority under licence number <span className="text-gold">MGA/B2C/912/2025</span>.</p>
-              <p>Gaming Service Licence (Type 1 – Online Casino &amp; Virtual Slot Content).</p>
+            <div
+              data-testid="footer-licence"
+              className="font-mono text-[11px] text-muted-foreground leading-relaxed max-w-3xl space-y-0.5"
+            >
+              <p>
+                <span className="text-foreground font-semibold">
+                  © 2025 Wages of War Operations Ltd.
+                </span>{" "}
+                All rights reserved.
+              </p>
+              <p>
+                Licensed and regulated by the Malta Gaming Authority under
+                licence number{" "}
+                <span className="text-gold">MGA/B2C/912/2025</span>.
+              </p>
+              <p>
+                Gaming Service Licence (Type 1 – Online Casino &amp; Virtual
+                Slot Content).
+              </p>
               <p>Registered Address: [Registered Address]</p>
               <p>Players must be 18+ to gamble. Please gamble responsibly.</p>
             </div>
             <div className="flex items-center gap-3 shrink-0">
-              <span className="border border-alert/60 text-alert font-mono text-xs px-2 py-0.5">18+</span>
-              <span className="font-mono text-[11px] text-muted-foreground">Play responsibly.</span>
+              <span className="border border-alert/60 text-alert font-mono text-xs px-2 py-0.5">
+                18+
+              </span>
+              <span className="font-mono text-[11px] text-muted-foreground">
+                Play responsibly.
+              </span>
             </div>
           </div>
         </div>
@@ -290,6 +447,7 @@ export function Layout({ children }) {
 
       <AuthDialog />
       <RankUpBanner />
+      <ChatWidget />
       <div className="fx-overlay" aria-hidden="true" />
     </div>
   );

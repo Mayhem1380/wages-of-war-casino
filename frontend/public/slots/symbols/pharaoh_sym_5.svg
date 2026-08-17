@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <rect width="100%" height="100%" rx="16" fill="#261006" />
+  <g>
+    <path d="M30 110 C60 40, 140 40, 170 110 C140 150, 60 150, 30 110 Z" fill="#FFDDAA" />
+    <circle cx="100" cy="95" r="16" fill="#F6C64A" />
+    <text x="100" y="170" font-family="Inter, sans-serif" font-size="18" fill="#3a0e0e" text-anchor="middle">PHR5</text>
+  </g>
+</svg>

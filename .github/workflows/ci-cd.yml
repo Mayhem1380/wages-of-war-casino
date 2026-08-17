@@ -1,0 +1,49 @@
+name: CI/CD
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          cd backend
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Run tests
+        run: |
+          cd backend
+          pytest -q
+
+  build-and-publish:
+    needs: test-backend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build backend image
+        run: |
+          docker build -t ${{ github.repository }}/backend:latest -f backend/Dockerfile backend
+      - name: Build frontend image
+        run: |
+          docker build -t ${{ github.repository }}/frontend:latest -f frontend/Dockerfile frontend
+      - name: Login to DockerHub
+        if: secrets.DOCKERHUB_USERNAME != ''
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Push images to Docker Hub
+        if: secrets.DOCKERHUB_USERNAME != ''
+        run: |
+          docker tag ${{ github.repository }}/backend:latest ${{ secrets.DOCKERHUB_USERNAME }}/wages-of-war-backend:latest
+          docker tag ${{ github.repository }}/frontend:latest ${{ secrets.DOCKERHUB_USERNAME }}/wages-of-war-frontend:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/wages-of-war-backend:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/wages-of-war-frontend:latest

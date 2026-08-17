@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <rect width="100%" height="100%" rx="16" fill="#2a0a06" />
+  <g transform="translate(20,20)">
+    <circle cx="80" cy="60" r="40" fill="#F6E27A" />
+    <path d="M40 120 L120 120 L80 40 Z" fill="#C99A2E" opacity="0.9" />
+    <text x="100" y="170" font-family="Bebas Neue, sans-serif" font-size="20" fill="#fff" text-anchor="middle">PHR1</text>
+  </g>
+</svg>

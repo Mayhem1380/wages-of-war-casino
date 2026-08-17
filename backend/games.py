@@ -1,6 +1,7 @@
 """Wages of War Casino - Provably-styled game engine (play money).
 Server-authoritative RNG for slots and keno.
 """
+
 import secrets
 
 # ---------------------------------------------------------------------------
@@ -36,17 +37,31 @@ PAYLINES = [
 # Machines pick a subset with per-reel weights and a paytable.
 # paytable: multiplier of the PER-LINE bet for 3/4/5 of a kind.
 
-def _machine(mid, name, tagline, theme, volatility, symbols, wild, scatter, paytable, scatter_pay, free_spins, popularity):
+
+def _machine(
+    mid,
+    name,
+    tagline,
+    theme,
+    volatility,
+    symbols,
+    wild,
+    scatter,
+    paytable,
+    scatter_pay,
+    free_spins,
+    popularity,
+):
     return {
         "id": mid,
         "name": name,
         "tagline": tagline,
         "theme": theme,
         "volatility": volatility,
-        "symbols": symbols,          # {sym_id: weight}
+        "symbols": symbols,  # {sym_id: weight}
         "wild": wild,
         "scatter": scatter,
-        "paytable": paytable,        # {sym_id: {"3":x,"4":y,"5":z}}
+        "paytable": paytable,  # {sym_id: {"3":x,"4":y,"5":z}}
         "scatter_pay": scatter_pay,  # {"3":x,"4":y,"5":z} * total bet
         "free_spins": free_spins,
         "popularity": popularity,
@@ -58,9 +73,24 @@ def _machine(mid, name, tagline, theme, volatility, symbols, wild, scatter, payt
 
 SLOT_MACHINES = {
     "gates_of_glory": _machine(
-        "gates_of_glory", "Gates of Glory", "Ascend the tactical pantheon", "olympus",
+        "gates_of_glory",
+        "Gates of Glory",
+        "Ascend the tactical pantheon",
+        "olympus",
         "High",
-        {"crown": 5, "orb": 6, "chalice": 7, "ring": 8, "hourglass": 10, "gem_red": 12, "gem_blue": 12, "gem_green": 14, "gem_purple": 14, "wild": 4, "scatter": 4},
+        {
+            "crown": 5,
+            "orb": 6,
+            "chalice": 7,
+            "ring": 8,
+            "hourglass": 10,
+            "gem_red": 12,
+            "gem_blue": 12,
+            "gem_green": 14,
+            "gem_purple": 14,
+            "wild": 4,
+            "scatter": 4,
+        },
         "wild",
         "scatter",
         {
@@ -79,10 +109,23 @@ SLOT_MACHINES = {
         100,
     ),
     "book_of_ops": _machine(
-        "book_of_ops", "Book of Ops", "Uncover the classified expanding relic", "adventure",
+        "book_of_ops",
+        "Book of Ops",
+        "Uncover the classified expanding relic",
+        "adventure",
         "High",
-        {"explorer": 5, "idol": 6, "scarab": 8, "ace": 12, "king": 12, "queen": 13, "jack": 14, "ten": 15, "book": 6},
-        "book",   # book is wild + scatter combined (classic)
+        {
+            "explorer": 5,
+            "idol": 6,
+            "scarab": 8,
+            "ace": 12,
+            "king": 12,
+            "queen": 13,
+            "jack": 14,
+            "ten": 15,
+            "book": 6,
+        },
+        "book",  # book is wild + scatter combined (classic)
         "book",
         {
             "explorer": {"3": 10, "4": 40, "5": 200},
@@ -99,9 +142,24 @@ SLOT_MACHINES = {
         95,
     ),
     "big_bass_bombardment": _machine(
-        "big_bass_bombardment", "Big Bass Bombardment", "Reel in the heavy ordnance", "fishing",
+        "big_bass_bombardment",
+        "Big Bass Bombardment",
+        "Reel in the heavy ordnance",
+        "fishing",
         "Medium",
-        {"fisherman": 5, "boat": 7, "rod": 8, "box": 9, "ace": 11, "king": 12, "queen": 13, "jack": 14, "ten": 15, "wild": 4, "scatter": 4},
+        {
+            "fisherman": 5,
+            "boat": 7,
+            "rod": 8,
+            "box": 9,
+            "ace": 11,
+            "king": 12,
+            "queen": 13,
+            "jack": 14,
+            "ten": 15,
+            "wild": 4,
+            "scatter": 4,
+        },
         "wild",
         "scatter",
         {
@@ -120,9 +178,24 @@ SLOT_MACHINES = {
         90,
     ),
     "wild_west_recon": _machine(
-        "wild_west_recon", "Wild West Recon", "Frontier firefight bonanza", "western",
+        "wild_west_recon",
+        "Wild West Recon",
+        "Frontier firefight bonanza",
+        "western",
         "Medium",
-        {"sheriff": 5, "revolver": 7, "boot": 8, "horseshoe": 9, "ace": 11, "king": 12, "queen": 13, "jack": 14, "ten": 15, "wild": 4, "scatter": 4},
+        {
+            "sheriff": 5,
+            "revolver": 7,
+            "boot": 8,
+            "horseshoe": 9,
+            "ace": 11,
+            "king": 12,
+            "queen": 13,
+            "jack": 14,
+            "ten": 15,
+            "wild": 4,
+            "scatter": 4,
+        },
         "wild",
         "scatter",
         {
@@ -141,9 +214,23 @@ SLOT_MACHINES = {
         82,
     ),
     "sweet_ammo": _machine(
-        "sweet_ammo", "Sweet Ammo", "Sugar-coated tumble multipliers", "candy",
+        "sweet_ammo",
+        "Sweet Ammo",
+        "Sugar-coated tumble multipliers",
+        "candy",
         "High",
-        {"heart": 6, "square": 7, "circle": 8, "grape": 10, "plum": 11, "apple": 12, "banana": 13, "candy": 14, "wild": 4, "scatter": 4},
+        {
+            "heart": 6,
+            "square": 7,
+            "circle": 8,
+            "grape": 10,
+            "plum": 11,
+            "apple": 12,
+            "banana": 13,
+            "candy": 14,
+            "wild": 4,
+            "scatter": 4,
+        },
         "wild",
         "scatter",
         {
@@ -161,9 +248,23 @@ SLOT_MACHINES = {
         88,
     ),
     "money_train_convoy": _machine(
-        "money_train_convoy", "Money Train Convoy", "Armoured payload heist", "heist",
+        "money_train_convoy",
+        "Money Train Convoy",
+        "Armoured payload heist",
+        "heist",
         "Extreme",
-        {"vault": 4, "loco": 6, "gunner": 7, "coin": 9, "ace": 12, "king": 13, "queen": 14, "jack": 15, "wild": 4, "scatter": 4},
+        {
+            "vault": 4,
+            "loco": 6,
+            "gunner": 7,
+            "coin": 9,
+            "ace": 12,
+            "king": 13,
+            "queen": 14,
+            "jack": 15,
+            "wild": 4,
+            "scatter": 4,
+        },
         "wild",
         "scatter",
         {
@@ -181,10 +282,23 @@ SLOT_MACHINES = {
         78,
     ),
     "pharaohs_arsenal": _machine(
-        "pharaohs_arsenal", "Pharaoh's Arsenal", "Unearth the buried war relic", "egypt",
+        "pharaohs_arsenal",
+        "Pharaoh's Arsenal",
+        "Unearth the buried war relic",
+        "egypt",
         "High",
-        {"pharaoh": 5, "anubis": 6, "eye_ra": 8, "ace": 12, "king": 12, "queen": 13, "jack": 14, "ten": 15, "ankh": 6},
-        "ankh",   # ankh is wild + scatter combined (expanding relic style)
+        {
+            "pharaoh": 5,
+            "anubis": 6,
+            "eye_ra": 8,
+            "ace": 12,
+            "king": 12,
+            "queen": 13,
+            "jack": 14,
+            "ten": 15,
+            "ankh": 6,
+        },
+        "ankh",  # ankh is wild + scatter combined (expanding relic style)
         "ankh",
         {
             "pharaoh": {"3": 10, "4": 40, "5": 200},
@@ -201,9 +315,24 @@ SLOT_MACHINES = {
         91,
     ),
     "kraken_depths": _machine(
-        "kraken_depths", "Kraken Depths", "Depth-charge the abyss payload", "naval",
+        "kraken_depths",
+        "Kraken Depths",
+        "Depth-charge the abyss payload",
+        "naval",
         "Medium",
-        {"kraken": 5, "harpoon": 7, "pearl": 8, "shell": 9, "ace": 11, "king": 12, "queen": 13, "jack": 14, "ten": 15, "wild": 4, "scatter": 4},
+        {
+            "kraken": 5,
+            "harpoon": 7,
+            "pearl": 8,
+            "shell": 9,
+            "ace": 11,
+            "king": 12,
+            "queen": 13,
+            "jack": 14,
+            "ten": 15,
+            "wild": 4,
+            "scatter": 4,
+        },
         "wild",
         "scatter",
         {
@@ -222,9 +351,23 @@ SLOT_MACHINES = {
         86,
     ),
     "inferno_airstrike": _machine(
-        "inferno_airstrike", "Inferno Airstrike", "Scorched-earth jackpot barrage", "inferno",
+        "inferno_airstrike",
+        "Inferno Airstrike",
+        "Scorched-earth jackpot barrage",
+        "inferno",
         "Extreme",
-        {"jet": 4, "missile": 6, "bomb_sym": 7, "flame": 9, "ace": 12, "king": 13, "queen": 14, "jack": 15, "wild": 4, "scatter": 4},
+        {
+            "jet": 4,
+            "missile": 6,
+            "bomb_sym": 7,
+            "flame": 9,
+            "ace": 12,
+            "king": 13,
+            "queen": 14,
+            "jack": 15,
+            "wild": 4,
+            "scatter": 4,
+        },
         "wild",
         "scatter",
         {
@@ -242,9 +385,24 @@ SLOT_MACHINES = {
         84,
     ),
     "frozen_front": _machine(
-        "frozen_front", "Frozen Front", "Arctic recon sticky-wild assault", "arctic",
+        "frozen_front",
+        "Frozen Front",
+        "Arctic recon sticky-wild assault",
+        "arctic",
         "High",
-        {"yeti": 5, "wolf": 7, "snow": 8, "peak": 9, "ace": 11, "king": 12, "queen": 13, "jack": 14, "ten": 15, "wild": 4, "scatter": 4},
+        {
+            "yeti": 5,
+            "wolf": 7,
+            "snow": 8,
+            "peak": 9,
+            "ace": 11,
+            "king": 12,
+            "queen": 13,
+            "jack": 14,
+            "ten": 15,
+            "wild": 4,
+            "scatter": 4,
+        },
         "wild",
         "scatter",
         {
@@ -263,9 +421,23 @@ SLOT_MACHINES = {
         81,
     ),
     "golden_dynasty": _machine(
-        "golden_dynasty", "Golden Dynasty", "Imperial fortune barrage", "dynasty",
+        "golden_dynasty",
+        "Golden Dynasty",
+        "Imperial fortune barrage",
+        "dynasty",
         "Extreme",
-        {"emperor": 5, "lantern": 7, "fan": 8, "coin": 9, "ace": 12, "king": 13, "queen": 14, "jack": 15, "wild": 4, "scatter": 4},
+        {
+            "emperor": 5,
+            "lantern": 7,
+            "fan": 8,
+            "coin": 9,
+            "ace": 12,
+            "king": 13,
+            "queen": 14,
+            "jack": 15,
+            "wild": 4,
+            "scatter": 4,
+        },
         "wild",
         "scatter",
         {
@@ -283,9 +455,24 @@ SLOT_MACHINES = {
         77,
     ),
     "samurai_strike": _machine(
-        "samurai_strike", "Samurai Strike", "Bushido blade free-spin assault", "bushido",
+        "samurai_strike",
+        "Samurai Strike",
+        "Bushido blade free-spin assault",
+        "bushido",
         "High",
-        {"shogun": 5, "katana": 7, "moon_jp": 8, "crane": 9, "ace": 11, "king": 12, "queen": 13, "jack": 14, "ten": 15, "wild": 4, "scatter": 4},
+        {
+            "shogun": 5,
+            "katana": 7,
+            "moon_jp": 8,
+            "crane": 9,
+            "ace": 11,
+            "king": 12,
+            "queen": 13,
+            "jack": 14,
+            "ten": 15,
+            "wild": 4,
+            "scatter": 4,
+        },
         "wild",
         "scatter",
         {
@@ -304,9 +491,23 @@ SLOT_MACHINES = {
         80,
     ),
     "voodoo_vengeance": _machine(
-        "voodoo_vengeance", "Voodoo Vengeance", "Dark ritual jackpot hex", "voodoo",
+        "voodoo_vengeance",
+        "Voodoo Vengeance",
+        "Dark ritual jackpot hex",
+        "voodoo",
         "Extreme",
-        {"witchdoctor": 4, "totem": 6, "charm": 7, "spirit": 9, "ace": 12, "king": 13, "queen": 14, "jack": 15, "wild": 4, "scatter": 4},
+        {
+            "witchdoctor": 4,
+            "totem": 6,
+            "charm": 7,
+            "spirit": 9,
+            "ace": 12,
+            "king": 13,
+            "queen": 14,
+            "jack": 15,
+            "wild": 4,
+            "scatter": 4,
+        },
         "wild",
         "scatter",
         {
@@ -324,9 +525,24 @@ SLOT_MACHINES = {
         79,
     ),
     "corsair_cannons": _machine(
-        "corsair_cannons", "Corsair Cannons", "Broadside plunder free spins", "pirate",
+        "corsair_cannons",
+        "Corsair Cannons",
+        "Broadside plunder free spins",
+        "pirate",
         "Medium",
-        {"corsair": 5, "saber": 7, "compass_sym": 8, "doubloon": 9, "ace": 11, "king": 12, "queen": 13, "jack": 14, "ten": 15, "wild": 4, "scatter": 4},
+        {
+            "corsair": 5,
+            "saber": 7,
+            "compass_sym": 8,
+            "doubloon": 9,
+            "ace": 11,
+            "king": 12,
+            "queen": 13,
+            "jack": 14,
+            "ten": 15,
+            "wild": 4,
+            "scatter": 4,
+        },
         "wild",
         "scatter",
         {
@@ -345,9 +561,24 @@ SLOT_MACHINES = {
         82,
     ),
     "warpath_legends": _machine(
-        "warpath_legends", "Warpath Legends", "Frontier tribe stampede spins", "tribal",
+        "warpath_legends",
+        "Warpath Legends",
+        "Frontier tribe stampede spins",
+        "tribal",
         "High",
-        {"warchief": 5, "tomahawk": 7, "buffalo": 8, "eagle": 9, "ace": 11, "king": 12, "queen": 13, "jack": 14, "ten": 15, "wild": 4, "scatter": 4},
+        {
+            "warchief": 5,
+            "tomahawk": 7,
+            "buffalo": 8,
+            "eagle": 9,
+            "ace": 11,
+            "king": 12,
+            "queen": 13,
+            "jack": 14,
+            "ten": 15,
+            "wild": 4,
+            "scatter": 4,
+        },
         "wild",
         "scatter",
         {
@@ -366,10 +597,25 @@ SLOT_MACHINES = {
         78,
     ),
     "happy_prosperity": _machine(
-        "happy_prosperity", "Happy Prosperity", "Fortune god's golden barrage", "fortune",
+        "happy_prosperity",
+        "Happy Prosperity",
+        "Fortune god's golden barrage",
+        "fortune",
         "Extreme",
-        {"caishen": 5, "ingot": 7, "envelope": 8, "firecracker": 9, "ace": 12, "king": 13, "queen": 14, "jack": 15, "wild": 4, "scatter": 4},
-        "wild", "scatter",
+        {
+            "caishen": 5,
+            "ingot": 7,
+            "envelope": 8,
+            "firecracker": 9,
+            "ace": 12,
+            "king": 13,
+            "queen": 14,
+            "jack": 15,
+            "wild": 4,
+            "scatter": 4,
+        },
+        "wild",
+        "scatter",
         {
             "caishen": {"3": 12, "4": 30, "5": 75},
             "ingot": {"3": 6, "4": 18, "5": 40},
@@ -380,13 +626,31 @@ SLOT_MACHINES = {
             "queen": {"3": 0.6, "4": 2, "5": 6},
             "jack": {"3": 0.5, "4": 1.5, "5": 5},
         },
-        {"3": 2, "4": 10, "5": 88}, 12, 96,
+        {"3": 2, "4": 10, "5": 88},
+        12,
+        96,
     ),
     "panda_magic": _machine(
-        "panda_magic", "Panda Magic", "Mystic bamboo fortune spins", "panda",
+        "panda_magic",
+        "Panda Magic",
+        "Mystic bamboo fortune spins",
+        "panda",
         "High",
-        {"panda": 5, "bamboo": 7, "koi": 8, "lotus": 9, "ace": 11, "king": 12, "queen": 13, "jack": 14, "ten": 15, "wild": 4, "scatter": 4},
-        "wild", "scatter",
+        {
+            "panda": 5,
+            "bamboo": 7,
+            "koi": 8,
+            "lotus": 9,
+            "ace": 11,
+            "king": 12,
+            "queen": 13,
+            "jack": 14,
+            "ten": 15,
+            "wild": 4,
+            "scatter": 4,
+        },
+        "wild",
+        "scatter",
         {
             "panda": {"3": 10, "4": 25, "5": 60},
             "bamboo": {"3": 4, "4": 12, "5": 30},
@@ -398,13 +662,31 @@ SLOT_MACHINES = {
             "jack": {"3": 0.5, "4": 1.5, "5": 5},
             "ten": {"3": 0.4, "4": 1, "5": 4},
         },
-        {"3": 3, "4": 10, "5": 50}, 10, 94,
+        {"3": 3, "4": 10, "5": 50},
+        10,
+        94,
     ),
     "gold_bonanza": _machine(
-        "gold_bonanza", "Gold Bonanza", "Strike the mother lode", "goldrush",
+        "gold_bonanza",
+        "Gold Bonanza",
+        "Strike the mother lode",
+        "goldrush",
         "Extreme",
-        {"prospector": 5, "goldbar": 7, "nugget": 8, "pickaxe": 9, "ace": 11, "king": 12, "queen": 13, "jack": 14, "ten": 15, "wild": 4, "scatter": 4},
-        "wild", "scatter",
+        {
+            "prospector": 5,
+            "goldbar": 7,
+            "nugget": 8,
+            "pickaxe": 9,
+            "ace": 11,
+            "king": 12,
+            "queen": 13,
+            "jack": 14,
+            "ten": 15,
+            "wild": 4,
+            "scatter": 4,
+        },
+        "wild",
+        "scatter",
         {
             "prospector": {"3": 10, "4": 25, "5": 60},
             "goldbar": {"3": 5, "4": 15, "5": 35},
@@ -416,13 +698,30 @@ SLOT_MACHINES = {
             "jack": {"3": 0.5, "4": 1.5, "5": 5},
             "ten": {"3": 0.4, "4": 1, "5": 4},
         },
-        {"3": 2, "4": 10, "5": 66}, 10, 93,
+        {"3": 2, "4": 10, "5": 66},
+        10,
+        93,
     ),
     "dragons_riches": _machine(
-        "dragons_riches", "Dragon's Riches", "Hoard of the war-wyrm", "dragon",
+        "dragons_riches",
+        "Dragon's Riches",
+        "Hoard of the war-wyrm",
+        "dragon",
         "Extreme",
-        {"dragon": 5, "dragoncoin": 7, "dragonpearl": 8, "dragongate": 9, "ace": 12, "king": 13, "queen": 14, "jack": 15, "wild": 4, "scatter": 4},
-        "wild", "scatter",
+        {
+            "dragon": 5,
+            "dragoncoin": 7,
+            "dragonpearl": 8,
+            "dragongate": 9,
+            "ace": 12,
+            "king": 13,
+            "queen": 14,
+            "jack": 15,
+            "wild": 4,
+            "scatter": 4,
+        },
+        "wild",
+        "scatter",
         {
             "dragon": {"3": 12, "4": 30, "5": 80},
             "dragoncoin": {"3": 6, "4": 18, "5": 40},
@@ -433,13 +732,31 @@ SLOT_MACHINES = {
             "queen": {"3": 0.6, "4": 2, "5": 6},
             "jack": {"3": 0.5, "4": 1.5, "5": 5},
         },
-        {"3": 2, "4": 10, "5": 100}, 12, 92,
+        {"3": 2, "4": 10, "5": 100},
+        12,
+        92,
     ),
     "five_dragons": _machine(
-        "five_dragons", "5 Dragons", "Five elemental war-dragons", "dragon",
+        "five_dragons",
+        "5 Dragons",
+        "Five elemental war-dragons",
+        "dragon",
         "High",
-        {"firedragon": 5, "golddragon": 7, "waterdragon": 8, "earthdragon": 9, "ace": 11, "king": 12, "queen": 13, "jack": 14, "ten": 15, "wild": 4, "scatter": 4},
-        "wild", "scatter",
+        {
+            "firedragon": 5,
+            "golddragon": 7,
+            "waterdragon": 8,
+            "earthdragon": 9,
+            "ace": 11,
+            "king": 12,
+            "queen": 13,
+            "jack": 14,
+            "ten": 15,
+            "wild": 4,
+            "scatter": 4,
+        },
+        "wild",
+        "scatter",
         {
             "firedragon": {"3": 10, "4": 25, "5": 60},
             "golddragon": {"3": 5, "4": 15, "5": 35},
@@ -451,13 +768,30 @@ SLOT_MACHINES = {
             "jack": {"3": 0.5, "4": 1.5, "5": 5},
             "ten": {"3": 0.4, "4": 1, "5": 4},
         },
-        {"3": 3, "4": 10, "5": 88}, 10, 91,
+        {"3": 3, "4": 10, "5": 88},
+        10,
+        91,
     ),
     "god_of_sun": _machine(
-        "god_of_sun", "God of Sun", "Solar wrath jackpot rise", "sun",
+        "god_of_sun",
+        "God of Sun",
+        "Solar wrath jackpot rise",
+        "sun",
         "Extreme",
-        {"sungod": 5, "sundisc": 7, "sunpyramid": 8, "suneagle": 9, "ace": 12, "king": 13, "queen": 14, "jack": 15, "wild": 4, "scatter": 4},
-        "wild", "scatter",
+        {
+            "sungod": 5,
+            "sundisc": 7,
+            "sunpyramid": 8,
+            "suneagle": 9,
+            "ace": 12,
+            "king": 13,
+            "queen": 14,
+            "jack": 15,
+            "wild": 4,
+            "scatter": 4,
+        },
+        "wild",
+        "scatter",
         {
             "sungod": {"3": 12, "4": 30, "5": 80},
             "sundisc": {"3": 6, "4": 18, "5": 40},
@@ -468,13 +802,30 @@ SLOT_MACHINES = {
             "queen": {"3": 0.6, "4": 2, "5": 6},
             "jack": {"3": 0.5, "4": 1.5, "5": 5},
         },
-        {"3": 2, "4": 10, "5": 96}, 12, 90,
+        {"3": 2, "4": 10, "5": 96},
+        12,
+        90,
     ),
     "gates_of_olympus": _machine(
-        "gates_of_olympus", "Gates of Olympus", "Zeus rains divine multipliers", "olympus",
+        "gates_of_olympus",
+        "Gates of Olympus",
+        "Zeus rains divine multipliers",
+        "olympus",
         "Extreme",
-        {"zeus": 5, "helm": 7, "ringz": 8, "goblet": 9, "ace": 12, "king": 13, "queen": 14, "jack": 15, "wild": 4, "scatter": 4},
-        "wild", "scatter",
+        {
+            "zeus": 5,
+            "helm": 7,
+            "ringz": 8,
+            "goblet": 9,
+            "ace": 12,
+            "king": 13,
+            "queen": 14,
+            "jack": 15,
+            "wild": 4,
+            "scatter": 4,
+        },
+        "wild",
+        "scatter",
         {
             "zeus": {"3": 12, "4": 30, "5": 80},
             "helm": {"3": 6, "4": 18, "5": 40},
@@ -485,13 +836,31 @@ SLOT_MACHINES = {
             "queen": {"3": 0.6, "4": 2, "5": 6},
             "jack": {"3": 0.5, "4": 1.5, "5": 5},
         },
-        {"3": 2, "4": 10, "5": 100}, 12, 98,
+        {"3": 2, "4": 10, "5": 100},
+        12,
+        98,
     ),
     "fortune_coins": _machine(
-        "fortune_coins", "Fortune Coins", "Lucky cat coin cascade", "fortune",
+        "fortune_coins",
+        "Fortune Coins",
+        "Lucky cat coin cascade",
+        "fortune",
         "High",
-        {"fortunecat": 5, "chincoin": 7, "goldtoad": 8, "scroll": 9, "ace": 11, "king": 12, "queen": 13, "jack": 14, "ten": 15, "wild": 4, "scatter": 4},
-        "wild", "scatter",
+        {
+            "fortunecat": 5,
+            "chincoin": 7,
+            "goldtoad": 8,
+            "scroll": 9,
+            "ace": 11,
+            "king": 12,
+            "queen": 13,
+            "jack": 14,
+            "ten": 15,
+            "wild": 4,
+            "scatter": 4,
+        },
+        "wild",
+        "scatter",
         {
             "fortunecat": {"3": 10, "4": 25, "5": 60},
             "chincoin": {"3": 5, "4": 15, "5": 35},
@@ -503,13 +872,31 @@ SLOT_MACHINES = {
             "jack": {"3": 0.5, "4": 1.5, "5": 5},
             "ten": {"3": 0.4, "4": 1, "5": 4},
         },
-        {"3": 3, "4": 10, "5": 66}, 10, 89,
+        {"3": 3, "4": 10, "5": 66},
+        10,
+        89,
     ),
     "year_of_ox": _machine(
-        "year_of_ox", "Year of the Ox", "Golden ox new-year fortune", "zodiac",
+        "year_of_ox",
+        "Year of the Ox",
+        "Golden ox new-year fortune",
+        "zodiac",
         "High",
-        {"ox": 5, "oxlantern": 7, "blossom": 8, "drum": 9, "ace": 11, "king": 12, "queen": 13, "jack": 14, "ten": 15, "wild": 4, "scatter": 4},
-        "wild", "scatter",
+        {
+            "ox": 5,
+            "oxlantern": 7,
+            "blossom": 8,
+            "drum": 9,
+            "ace": 11,
+            "king": 12,
+            "queen": 13,
+            "jack": 14,
+            "ten": 15,
+            "wild": 4,
+            "scatter": 4,
+        },
+        "wild",
+        "scatter",
         {
             "ox": {"3": 10, "4": 25, "5": 60},
             "oxlantern": {"3": 5, "4": 15, "5": 35},
@@ -521,7 +908,9 @@ SLOT_MACHINES = {
             "jack": {"3": 0.5, "4": 1.5, "5": 5},
             "ten": {"3": 0.4, "4": 1, "5": 4},
         },
-        {"3": 3, "4": 10, "5": 66}, 10, 88,
+        {"3": 3, "4": 10, "5": 66},
+        10,
+        88,
     ),
 }
 
@@ -573,13 +962,15 @@ def spin_slot(machine_id, total_bet, free=False):
         if mult:
             win = mult * line_bet
             total_win += win
-            line_wins.append({
-                "line": idx,
-                "symbol": base,
-                "count": count,
-                "win": round(win, 2),
-                "positions": [[reel, pl[reel]] for reel in range(count)],
-            })
+            line_wins.append(
+                {
+                    "line": idx,
+                    "symbol": base,
+                    "count": count,
+                    "win": round(win, 2),
+                    "positions": [[reel, pl[reel]] for reel in range(count)],
+                }
+            )
 
     # scatters
     scatter_positions = []
@@ -649,13 +1040,30 @@ PUBLIC_SLOT_IDS = [
     "year_of_ox",
 ]
 
-FLAGSHIP_IDS = {"pharaohs_arsenal", "inferno_airstrike", "golden_dynasty",
-                "book_of_ops", "big_bass_bombardment", "money_train_convoy",
-                "wild_west_recon", "kraken_depths", "frozen_front",
-                "happy_prosperity", "panda_magic", "gold_bonanza",
-                "dragons_riches", "five_dragons", "god_of_sun",
-                "gates_of_olympus", "fortune_coins", "year_of_ox",
-                "gates_of_glory", "samurai_strike", "voodoo_vengeance", "corsair_cannons"}
+FLAGSHIP_IDS = {
+    "pharaohs_arsenal",
+    "inferno_airstrike",
+    "golden_dynasty",
+    "book_of_ops",
+    "big_bass_bombardment",
+    "money_train_convoy",
+    "wild_west_recon",
+    "kraken_depths",
+    "frozen_front",
+    "happy_prosperity",
+    "panda_magic",
+    "gold_bonanza",
+    "dragons_riches",
+    "five_dragons",
+    "god_of_sun",
+    "gates_of_olympus",
+    "fortune_coins",
+    "year_of_ox",
+    "gates_of_glory",
+    "samurai_strike",
+    "voodoo_vengeance",
+    "corsair_cannons",
+}
 
 # jackpot name -> multiplier of the total bet
 JACKPOT_LADDER = {
@@ -670,9 +1078,20 @@ JACKPOT_LADDER = {
 # fire-coin outcomes (value, weight). value is a credit-multiplier of total bet,
 # or a jackpot key string.
 _FIRECOIN_TABLE = [
-    (1, 44), (2, 34), (3, 24), (5, 16), (8, 10), (10, 7),
-    (15, 5), (20, 3), (25, 2), (50, 1),
-    ("mini", 7), ("minor", 4), ("midi", 2), ("major", 1),
+    (1, 44),
+    (2, 34),
+    (3, 24),
+    (5, 16),
+    (8, 10),
+    (10, 7),
+    (15, 5),
+    (20, 3),
+    (25, 2),
+    (50, 1),
+    ("mini", 7),
+    ("minor", 4),
+    ("midi", 2),
+    ("major", 1),
 ]
 FIRECOIN_TRIGGER = 6  # coins needed on a base spin to launch Hold & Win
 
@@ -725,7 +1144,11 @@ def play_holdwin(total_bet, initial_coins, respin_prob=95):
     sequence plus the final tally. 15-cell (5x3) grid; fill all -> GRAND."""
     locked = {}
     for c in initial_coins:
-        locked[tuple(c["pos"])] = {"pos": c["pos"], "value": c["value"], "jackpot": c.get("jackpot")}
+        locked[tuple(c["pos"])] = {
+            "pos": c["pos"],
+            "value": c["value"],
+            "jackpot": c.get("jackpot"),
+        }
 
     respins = 3
     sequence = []
@@ -743,11 +1166,13 @@ def play_holdwin(total_bet, initial_coins, respin_prob=95):
                     new_coins.append(coin)
         if new_coins:
             respins = 3  # any new coin resets respins
-        sequence.append({
-            "new_coins": new_coins,
-            "respins_left": respins,
-            "filled": len(locked),
-        })
+        sequence.append(
+            {
+                "new_coins": new_coins,
+                "respins_left": respins,
+                "filled": len(locked),
+            }
+        )
 
     coins = list(locked.values())
     total = sum(c["value"] for c in coins)
@@ -784,7 +1209,12 @@ def play_holdwin(total_bet, initial_coins, respin_prob=95):
             award = round(JACKPOT_LADDER[jp] * total_bet, 2)
             total += award
             jackpots_won.append(jp)
-        wheel = {"segments": segments, "index": idx, "result": seg, "award": round(award, 2)}
+        wheel = {
+            "segments": segments,
+            "index": idx,
+            "result": seg,
+            "award": round(award, 2),
+        }
 
     return {
         "sequence": sequence,
@@ -795,7 +1225,6 @@ def play_holdwin(total_bet, initial_coins, respin_prob=95):
         "wheel": wheel,
         "total_bet": round(total_bet, 2),
     }
-
 
 
 # ---------------------------------------------------------------------------
@@ -876,9 +1305,44 @@ def tier_for_wagered(wagered):
 
 # Credit packages available for purchase (play-money credits).
 CREDIT_PACKAGES = [
-    {"lookup_key": "recon_pack", "id": "recon_pack", "name": "Recon Pack", "credits": 10000, "amount": 499, "bonus": 0},
-    {"lookup_key": "strike_pack", "id": "strike_pack", "name": "Strike Pack", "credits": 25000, "amount": 999, "bonus": 2500},
-    {"lookup_key": "assault_pack", "id": "assault_pack", "name": "Assault Pack", "credits": 60000, "amount": 1999, "bonus": 10000},
-    {"lookup_key": "command_pack", "id": "command_pack", "name": "Command Pack", "credits": 160000, "amount": 4999, "bonus": 40000},
-    {"lookup_key": "warlord_pack", "id": "warlord_pack", "name": "Warlord Pack", "credits": 400000, "amount": 9999, "bonus": 150000},
+    {
+        "lookup_key": "recon_pack",
+        "id": "recon_pack",
+        "name": "Recon Pack",
+        "credits": 10000,
+        "amount": 499,
+        "bonus": 0,
+    },
+    {
+        "lookup_key": "strike_pack",
+        "id": "strike_pack",
+        "name": "Strike Pack",
+        "credits": 25000,
+        "amount": 999,
+        "bonus": 2500,
+    },
+    {
+        "lookup_key": "assault_pack",
+        "id": "assault_pack",
+        "name": "Assault Pack",
+        "credits": 60000,
+        "amount": 1999,
+        "bonus": 10000,
+    },
+    {
+        "lookup_key": "command_pack",
+        "id": "command_pack",
+        "name": "Command Pack",
+        "credits": 160000,
+        "amount": 4999,
+        "bonus": 40000,
+    },
+    {
+        "lookup_key": "warlord_pack",
+        "id": "warlord_pack",
+        "name": "Warlord Pack",
+        "credits": 400000,
+        "amount": 9999,
+        "bonus": 150000,
+    },
 ]
