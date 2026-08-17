@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <rect width="100%" height="100%" rx="16" fill="#210406" />
+  <g>
+    <polygon points="40,160 100,40 160,160" fill="#E0B24A" />
+    <circle cx="100" cy="90" r="16" fill="#FF9EC4" />
+    <text x="100" y="175" font-family="Inter, sans-serif" font-size="18" fill="#2a0a06" text-anchor="middle">DYN5</text>
+  </g>
+</svg>

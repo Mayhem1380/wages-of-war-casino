@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <rect width="100%" height="100%" rx="16" fill="#2b0c07" />
+  <g>
+    <rect x="40" y="30" width="120" height="100" rx="10" fill="#F6E27A" />
+    <path d="M60 140 L140 140 L100 60 Z" fill="#C99A2E" />
+    <text x="100" y="170" font-family="Inter, sans-serif" font-size="18" fill="#2a0a06" text-anchor="middle">PHR4</text>
+  </g>
+</svg>

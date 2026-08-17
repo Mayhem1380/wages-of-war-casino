@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1">
+      <stop offset="0" stop-color="#2b1607" />
+      <stop offset="1" stop-color="#4b2a0f" />
+    </linearGradient>
+    <filter id="grain"><feTurbulence baseFrequency="0.8" numOctaves="2" stitchTiles="stitch" result="t"/><feColorMatrix in="t" type="saturate" values="0"/><feBlend in2="SourceGraphic" mode="overlay"/></filter>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#g)"/>
+  <g transform="translate(120,80)">
+    <circle cx="1200" cy="420" r="420" fill="rgba(255,200,120,0.06)" />
+    <rect x="0" y="120" width="1360" height="560" rx="28" fill="rgba(0,0,0,0.28)" />
+    <g transform="translate(80,40)">
+      <path d="M260 40 C380 -10 820 -10 980 40 C1150 90 1240 220 1180 360 C1120 500 820 520 520 520 C220 520 120 400 120 260 C120 160 180 80 260 40 Z" fill="#d4af37" opacity="0.9" filter="url(#grain)"/>
+      <text x="420" y="360" font-family="Bebas Neue, sans-serif" font-size="220" fill="#1a0b00">PHARAOH'S</text>
+      <text x="420" y="500" font-family="Barlow Condensed, sans-serif" font-size="120" fill="#fff8e6">ARSENAL</text>
+    </g>
+  </g>
+</svg>

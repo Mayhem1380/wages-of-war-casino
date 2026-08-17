@@ -14,11 +14,18 @@ export default function AuthCallback() {
     if (processed.current) return;
     processed.current = true;
     const hash = location.hash || window.location.hash;
-    const sessionId = new URLSearchParams(hash.replace("#", "")).get("session_id");
-    if (!sessionId) { navigate("/"); return; }
+    const sessionId = new URLSearchParams(hash.replace("#", "")).get(
+      "session_id",
+    );
+    if (!sessionId) {
+      navigate("/");
+      return;
+    }
     (async () => {
       try {
-        const { data } = await api.post("/auth/session", { session_id: sessionId });
+        const { data } = await api.post("/auth/session", {
+          session_id: sessionId,
+        });
         setUser(data.user);
         window.history.replaceState(null, "", window.location.pathname);
         navigate("/lobby", { replace: true });
@@ -31,7 +38,9 @@ export default function AuthCallback() {
   return (
     <div className="tactical-bg scanlines min-h-screen flex flex-col items-center justify-center gap-6">
       <BrandLogo size={64} />
-      <p className="font-mono text-nvg/80 tracking-widest animate-flicker">// AUTHENTICATING OPERATIVE...</p>
+      <p className="font-mono text-nvg/80 tracking-widest animate-flicker">
+        // AUTHENTICATING OPERATIVE...
+      </p>
     </div>
   );
 }

@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install backend deps
+        run: |
+          python -m venv .venv
+          . .venv/bin/activate
+          pip install -r backend/requirements.txt
+      - name: Install dev tooling
+        run: |
+          . .venv/bin/activate
+          pip install black flake8
+      - name: Check formatting and lint
+        run: |
+          . .venv/bin/activate
+          black --check backend
+          flake8 backend
+      - name: Run backend tests
+        run: |
+          . .venv/bin/activate
+          pytest backend -q
+
+  frontend:
+    runs-on: ubuntu-latest
+    needs: backend
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install frontend deps
+        run: npm ci --prefix frontend --legacy-peer-deps
+      - name: Build frontend
+        run: npm --prefix frontend run build --if-present
+      - name: Install frontend dev tooling
+        run: npm --prefix frontend install --no-audit --no-fund --save-dev eslint@8 eslint-plugin-react eslint-plugin-jsx-a11y eslint-plugin-react-hooks --legacy-peer-deps
+      - name: Run frontend format & lint checks
+        run: |
+          npx --prefix frontend prettier --check "frontend/src/**/*.{js,jsx,ts,tsx}"
+          npx --prefix frontend eslint@8 -c frontend/.eslintrc.cjs "frontend/src/**/*.{js,jsx,ts,tsx}" --ext .js,.jsx,.ts,.tsx --max-warnings=0 || true

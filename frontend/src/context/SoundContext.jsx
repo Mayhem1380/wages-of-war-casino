@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useCallback, useMemo } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useMemo,
+} from "react";
 import { soundManager } from "@/lib/sounds";
 
 const SoundContext = createContext(null);
@@ -11,7 +17,9 @@ export function SoundProvider({ children }) {
     setMuted(now);
   }, []);
   const value = useMemo(() => ({ muted, toggle }), [muted, toggle]);
-  return <SoundContext.Provider value={value}>{children}</SoundContext.Provider>;
+  return (
+    <SoundContext.Provider value={value}>{children}</SoundContext.Provider>
+  );
 }
 
 export const useSound = () => useContext(SoundContext);

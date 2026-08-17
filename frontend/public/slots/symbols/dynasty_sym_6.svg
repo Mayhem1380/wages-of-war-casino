@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <rect width="100%" height="100%" rx="16" fill="#160305" />
+  <g>
+    <circle cx="100" cy="80" r="42" fill="#FFD84E" />
+    <rect x="70" y="60" width="60" height="40" rx="6" fill="#C23A2E" />
+    <text x="100" y="175" font-family="Inter, sans-serif" font-size="18" fill="#1a0a06" text-anchor="middle">DYN6</text>
+  </g>
+</svg>
