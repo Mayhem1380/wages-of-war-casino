@@ -1,0 +1,63 @@
+name: Build and Deploy Frontend via SCP
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: |
+          npm ci
+
+      - name: Build frontend
+        working-directory: frontend
+        run: |
+          npm run build
+
+      - name: Package build
+        run: |
+          TARFILE="wagesofwar_build_$(date +%Y%m%d%H%M%S).tar.gz"
+          tar -czf "$TARFILE" -C frontend build
+          echo "TARFILE=$TARFILE" >> $GITHUB_ENV
+
+      - name: Upload tarball via SCP
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          port: ${{ secrets.DEPLOY_PORT }}
+          source: "$TARFILE"
+          target: "/tmp"
+
+      - name: Extract on remote and run post-deploy command
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          port: ${{ secrets.DEPLOY_PORT }}
+          script: |
+            set -e
+            DEST=${{ secrets.DEPLOY_PATH }}
+            TARFILE="/tmp/$TARFILE"
+            mkdir -p "$DEST"
+            tar -xzf "$TARFILE" -C "$DEST" --strip-components=1
+            rm -f "$TARFILE"
+            if [ -n "${{ secrets.DEPLOY_AFTER_CMD }}" ]; then
+              echo "Running post-deploy command"
+              bash -lc "${{ secrets.DEPLOY_AFTER_CMD }}"
+            fi
