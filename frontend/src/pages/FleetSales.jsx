@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,42 @@ import { BRAND } from "@/data/gameMeta";
 import { FLEET } from "@/constants/testIds";
 import api, { apiError } from "@/lib/api";
 import { toast } from "sonner";
+
+// Platform giveaway draw ~15 months out
+const GIVEAWAY_END = new Date("2027-09-15T00:00:00Z").getTime();
+
+function GiveawayCountdown() {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const diff = Math.max(0, GIVEAWAY_END - now);
+  const s = Math.floor(diff / 1000);
+  const months = Math.floor(s / (30 * 86400));
+  const days = Math.floor((s % (30 * 86400)) / 86400);
+  const hrs = Math.floor((s % 86400) / 3600);
+  const mins = Math.floor((s % 3600) / 60);
+  const secs = s % 60;
+  const cell = (v, l) => (
+    <div className="flex flex-col items-center">
+      <span className="font-display text-3xl sm:text-4xl text-gold leading-none tabular-nums">{String(v).padStart(2, "0")}</span>
+      <span className="font-mono text-[9px] tracking-[0.3em] text-muted-foreground mt-1">{l}</span>
+    </div>
+  );
+  return (
+    <div data-testid="giveaway-countdown" className="mt-5 border border-gold/30 bg-black/50 p-4">
+      <p className="font-mono text-[10px] tracking-[0.4em] text-nvg animate-flicker mb-3">// DRAW CLOSES IN</p>
+      <div className="flex items-center gap-3 sm:gap-5">
+        {cell(months, "MONTHS")}<span className="text-gold/40 text-2xl">:</span>
+        {cell(days, "DAYS")}<span className="text-gold/40 text-2xl">:</span>
+        {cell(hrs, "HRS")}<span className="text-gold/40 text-2xl">:</span>
+        {cell(mins, "MIN")}<span className="text-gold/40 text-2xl">:</span>
+        {cell(secs, "SEC")}
+      </div>
+    </div>
+  );
+}
 import {
   ArrowLeft,
   GlobeHemisphereWest,
@@ -181,6 +217,7 @@ export default function FleetSales() {
             fleet is up for extraction. Enlist at Wages of War Casino, climb the
             ranks, and join the elite in contention.
           </p>
+          <GiveawayCountdown />
           <ul className="mt-4 space-y-2">
             {[
               "Full platform licence",
