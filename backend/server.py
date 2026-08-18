@@ -19,7 +19,6 @@ import urllib.request
 import json
 from datetime import datetime, timezone, timedelta
 import asyncio
-import random
 import shutil
 
 import stripe
@@ -439,13 +438,11 @@ async def games_gamble(payload: GambleInput, user: dict = Depends(require_user))
     # consume the win stake
     await adjust_balance(user["user_id"], -amt)
 
-    import random
-
     outcome = None
     payout = 0.0
     if payload.mode == "color":
-        # 50/50 chance
-        pick = random.choice(["red", "black"])
+        # 50/50 chance (cryptographically secure)
+        pick = secrets.choice(["red", "black"])
         if pick == payload.choice:
             payout = round(amt * 2.0, 2)
             outcome = "win"
@@ -453,7 +450,7 @@ async def games_gamble(payload: GambleInput, user: dict = Depends(require_user))
             outcome = "lose"
     else:
         # suit: 1/4 chance -> 4x payout
-        pick = random.choice(["hearts", "diamonds", "clubs", "spades"])
+        pick = secrets.choice(["hearts", "diamonds", "clubs", "spades"])
         if pick == payload.choice:
             payout = round(amt * 4.0, 2)
             outcome = "win"
@@ -1163,7 +1160,16 @@ async def wheel_spin(user: dict = Depends(require_user)):
             ld = ld.replace(tzinfo=timezone.utc)
         if datetime.now(timezone.utc) - ld < timedelta(hours=48):
             new_streak = int(fresh.get("wheel_streak", 0)) + 1
-    idx = random.choices(range(len(WHEEL_SEGMENTS)), weights=WHEEL_WEIGHTS, k=1)[0]
+    # cryptographically-secure weighted segment pick
+    _total = sum(WHEEL_WEIGHTS)
+    _r = secrets.randbelow(_total)
+    _acc = 0
+    idx = len(WHEEL_SEGMENTS) - 1
+    for _j, _w in enumerate(WHEEL_WEIGHTS):
+        _acc += _w
+        if _r < _acc:
+            idx = _j
+            break
     base = WHEEL_SEGMENTS[idx]
     mult = 2 if new_streak % 7 == 0 else 1
     amount = base * mult
