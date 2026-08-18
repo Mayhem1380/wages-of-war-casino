@@ -75,6 +75,12 @@ Structural real-money payment system wired with TEST/PLACEHOLDER keys, ready to 
 ## Deferred (pivoted to real-money per user directive)
 - Slot search bar + filter tabs, animated win celebrations, daily streak wheel, live tournaments — NOT built this session.
 
+## War-map + Giveaway Countdown (2026-06)
+- Site-wide holographic war-map backdrop behind all tiles: public/brand/warmap_bg.jpg applied as fixed z-0 opacity-0.18 layer in Layout.jsx (header z-50, main/footer set relative z-10).
+- Giveaway countdown: GiveawayCountdown component in FleetSales.jsx (target GIVEAWAY_END 2027-09-15, ~15 months) rendered beside the trophy banner (data-testid giveaway-countdown).
+- NOTE: app is DEPLOYED to https://wagesofwarcasin0.online — these are preview-only until user redeploys.
+- PENDING (next dedicated tasks): KYC / identity + age verification (NOT built — required for real-money compliance; use integration playbook); place 3 user sample landscapes onto slots; give Warhead Keno full AAA graphics.
+
 ## Coin-Flip Reskin + Spelling Pass (2026-06)
 - Dog-Tag Flip coin faces reskinned: coin_heads.png = grenade, coin_tails.png = knife (auto edge-detected circular alpha to strip baked checkerboard). Buttons + result labels now GRENADE/KNIFE via LBL map in CoinFlipGame.jsx (backend outcome heads/tails unchanged).
 - Spelling: normalized US "License"→UK "Licence" in AnimatedShowcase.jsx (x2) + Landing.jsx; no other typos found.
