@@ -344,7 +344,7 @@ export const sfx = {
       node.g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.6);
       node.osc.stop(t0 + 0.7);
     } catch (e) {
-      /* ignore */
+      console.debug("sound stop failed", e);
     }
   },
 };

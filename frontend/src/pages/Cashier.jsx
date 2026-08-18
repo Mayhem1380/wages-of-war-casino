@@ -124,8 +124,8 @@ export default function Cashier() {
             await load();
             setParams({}, { replace: true });
           }
-        } catch {
-          /* keep polling */
+        } catch (e) {
+          console.warn("Deposit status poll failed, retrying", e);
         }
         if (tries > 20) {
           clearInterval(poll);
