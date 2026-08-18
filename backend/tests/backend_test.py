@@ -20,7 +20,7 @@ API = f"{BASE_URL}/api"
 @pytest.fixture(scope="session")
 def new_user():
     email = f"test_{uuid.uuid4().hex[:10]}@wowtest.com"
-    password = "SecretPass123"
+    password = os.environ.get("TEST_USER_PASSWORD", "SecretPass123")
     r = requests.post(
         f"{API}/auth/register",
         json={"email": email, "password": password, "name": "Test Op"},
@@ -618,8 +618,8 @@ class TestCashbackHistory:
 
 
 # ---------------- ADMIN DASHBOARD ----------------
-ADMIN_EMAIL = "admin@wagesofwarcasino.com"
-ADMIN_PASSWORD = "WagesOfWar2025!"
+ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "admin@wagesofwarcasino.com")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "WagesOfWar2025!")
 
 
 @pytest.fixture(scope="session")

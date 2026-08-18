@@ -66,8 +66,8 @@ export default function Cashier() {
       setSummary(s.data);
       setHistory(h.data);
       setKyc(k.data);
-    } catch {
-      /* ignore */
+    } catch (e) {
+      console.warn("Cashier data load failed", e);
     }
   }, []);
 
@@ -95,8 +95,8 @@ export default function Cashier() {
           toast.error("Verification failed: you must be 18 or older.");
           setParams({}, { replace: true });
         }
-      } catch {
-        /* keep polling */
+      } catch (e) {
+        console.warn("KYC status poll failed, retrying", e);
       }
       if (tries > 25) {
         clearInterval(poll);
