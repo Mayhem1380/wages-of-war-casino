@@ -1189,3 +1189,112 @@ class TestKyc:
         assert (
             "identity" in body or "verification" in body or "kyc" in body
         ), body
+
+
+# ---------------- WHEEL (Daily Streak Wheel) ----------------
+class TestWheel:
+    def test_wheel_status_unauth_401(self):
+        r = requests.get(f"{API}/wheel/status")
+        assert r.status_code == 401
+
+    def test_wheel_status_authed_shape(self, auth_headers):
+        r = requests.get(f"{API}/wheel/status", headers=auth_headers)
+        assert r.status_code == 200, r.text
+        d = r.json()
+        for k in ("available", "seconds_left", "streak", "segments", "next_multiplier"):
+            assert k in d, f"missing {k}"
+        assert isinstance(d["segments"], list) and len(d["segments"]) == 9
+        assert d["segments"][0] == 500 and d["segments"][-1] == 50000
+
+    def test_wheel_spin_fresh_user_and_cooldown(self):
+        # Fresh user to avoid admin cooldown
+        email = f"test_wh_{uuid.uuid4().hex[:8]}@wowtest.com"
+        r = requests.post(
+            f"{API}/auth/register",
+            json={"email": email, "password": "abc123", "name": "WH"},
+        )
+        assert r.status_code == 200
+        tok = r.json()["token"]
+        h = {"Authorization": f"Bearer {tok}"}
+        me1 = requests.get(f"{API}/auth/me", headers=h).json()
+        bal_before = me1["balance"]
+
+        st1 = requests.get(f"{API}/wheel/status", headers=h).json()
+        assert st1["available"] is True and st1["seconds_left"] == 0
+        assert st1["streak"] == 0
+
+        sp = requests.post(f"{API}/wheel/spin", headers=h)
+        assert sp.status_code == 200, sp.text
+        d = sp.json()
+        for k in ("amount", "segment_index", "multiplier", "streak", "balance"):
+            assert k in d
+        assert d["amount"] > 0
+        assert d["multiplier"] in (1, 2)
+        assert d["streak"] == 1
+        assert 0 <= d["segment_index"] <= 8
+        assert round(d["balance"] - bal_before, 2) == round(d["amount"], 2)
+
+        # Second immediate spin => 400 cooldown
+        sp2 = requests.post(f"{API}/wheel/spin", headers=h)
+        assert sp2.status_code == 400
+
+        # Status shows cooldown
+        st2 = requests.get(f"{API}/wheel/status", headers=h).json()
+        assert st2["available"] is False
+        assert st2["seconds_left"] > 0
+        assert st2["streak"] == 1
+
+
+# ---------------- TOURNAMENT ----------------
+class TestTournament:
+    def test_tournament_current_anon(self):
+        r = requests.get(f"{API}/tournament/current")
+        assert r.status_code == 200, r.text
+        d = r.json()
+        for k in ("id", "name", "prize_pool", "ends_at", "seconds_left", "leaderboard", "me"):
+            assert k in d, f"missing {k}"
+        assert d["prize_pool"] == 5_000_000
+        assert d["name"] == "OPERATION HIGH ROLLER"
+        assert 0 < d["seconds_left"] <= 24 * 3600 + 5
+        assert isinstance(d["leaderboard"], list)
+        assert d["me"] is None
+
+    def test_tournament_current_authed_new_user_me(self):
+        email = f"test_tn_{uuid.uuid4().hex[:8]}@wowtest.com"
+        r = requests.post(
+            f"{API}/auth/register",
+            json={"email": email, "password": "abc123", "name": "TN"},
+        )
+        tok = r.json()["token"]
+        h = {"Authorization": f"Bearer {tok}"}
+        d = requests.get(f"{API}/tournament/current", headers=h).json()
+        assert d["me"] is not None
+        assert d["me"]["rank"] in (None,) and d["me"]["score"] == 0
+
+    def test_tournament_score_updates_after_win(self):
+        # Register fresh user, run coinflips until at least one win, then check leaderboard
+        email = f"test_tw_{uuid.uuid4().hex[:8]}@wowtest.com"
+        r = requests.post(
+            f"{API}/auth/register",
+            json={"email": email, "password": "abc123", "name": "TW"},
+        )
+        tok = r.json()["token"]
+        h = {"Authorization": f"Bearer {tok}"}
+        total_win = 0.0
+        for _ in range(40):
+            cf = requests.post(
+                f"{API}/games/coinflip", json={"side": "heads", "bet": 20}, headers=h
+            )
+            if cf.status_code != 200:
+                break
+            w = cf.json().get("win", 0)
+            if w > 0:
+                total_win += w
+                if total_win > 0:
+                    break
+        if total_win <= 0:
+            pytest.skip("no coinflip win landed in 40 tries (probabilistic)")
+        d = requests.get(f"{API}/tournament/current", headers=h).json()
+        assert d["me"] is not None
+        assert d["me"]["score"] > 0
+        assert d["me"]["rank"] is not None and d["me"]["rank"] >= 1

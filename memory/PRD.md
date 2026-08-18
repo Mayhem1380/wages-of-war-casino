@@ -157,3 +157,11 @@ Structural real-money payment system wired with TEST/PLACEHOLDER keys, ready to 
 - Deployment-readiness scan: PASS, no blockers.
 - ACTION FOR USER: click Deploy in Emergent to push all preview changes live to wagesofwarcasin0.online.
 
+
+### 18 Aug 2026 (cont.) — 3 new engagement features (91/91 tests pass)
+- **Lobby Search & Category Filters** (frontend only): search bar + tabs All/Dragons/Fortune/Military/Egyptian/Ocean auto-derived from each slot's theme (THEME_CATEGORY map in Lobby.jsx), with counts + empty state.
+- **Daily Streak Wheel** (`/wheel`): once-per-24h free spin, weighted segments 500→50,000, streak grows on consecutive days, x2 on every 7th day. Endpoints `GET/POST /api/wheel/status|spin`. Separate from the existing Supply Drop. Fields on user: last_wheel_spin_at, wheel_streak.
+- **Live Tournament** (`/tournament`): one always-on 24h rolling event "OPERATION HIGH ROLLER", 5,000,000 credit pool, ranked by total WIN during window, top-10 auto-paid at reset. Endpoints `GET /api/tournament/current`; scoring via add_tournament_score() hooked into slots_spin/freespin/holdwin/keno_play/coinflip. Collections: tournaments, tournament_scores.
+- Code-review pass: env-ified test creds, added logging to empty catches; verified `is`-vs-`==`, casino.js "secret", and Python "undefined var" flags are all false positives. Large refactors intentionally deferred (regression risk, no user benefit).
+- ACTION FOR USER: click Deploy to push all of the above live to wagesofwarcasin0.online.
+

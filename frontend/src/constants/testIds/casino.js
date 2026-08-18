@@ -37,6 +37,27 @@ export const LOBBY = {
   slotCard: (id) => `lobby-slot-${id}`,
   kenoCard: "lobby-keno-card",
   coinflipCard: "lobby-coinflip-card",
+  search: "lobby-search",
+  tab: (name) => `lobby-tab-${name.toLowerCase()}`,
+  empty: "lobby-empty",
+  wheelCard: "lobby-wheel-card",
+  tournamentCard: "lobby-tournament-card",
+};
+
+export const WHEEL = {
+  root: "wheel-root",
+  spin: "wheel-spin-btn",
+  result: "wheel-result",
+  streak: "wheel-streak",
+  timer: "wheel-timer",
+};
+
+export const TOURNEY = {
+  root: "tournament-root",
+  timer: "tournament-timer",
+  pool: "tournament-pool",
+  myRank: "tournament-my-rank",
+  row: (r) => `tournament-row-${r}`,
 };
 
 export const SLOT = {
