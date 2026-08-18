@@ -17,6 +17,9 @@ export const CASHIER = {
   wdDestination: "cashier-wd-destination",
   wdSubmit: "cashier-wd-submit",
   history: "cashier-history",
+  kycCard: "cashier-kyc-card",
+  kycStatus: "cashier-kyc-status",
+  kycVerify: "cashier-kyc-verify",
 };
 
 export const ADMINPAY = {

@@ -1,0 +1,41 @@
+{
+  "summary": "Iteration 10: Verified new Stripe Identity KYC compliance flow + AAA slot backgrounds + Keno/CoinFlip celebration wiring. Backend: extended pytest suite to 85 tests, 84 passed + 1 probabilistic skip (hold&win trigger). Added TestKyc class with 6 tests covering: (a) POST /api/kyc/session unauth 401, (b) GET /api/kyc/status unauth 401, (c) fresh user status='not_started' + kyc_approved=false + error field present, (d) /api/auth/me public_user payload includes kyc_status and kyc_approved fields, (e) POST /api/kyc/session returns real https://verify.stripe.com/... URL + session_id starting 'vs_' from live Stripe TEST mode, and post-creation status transitions to requires_input, (f) CRITICAL COMPLIANCE GATE: user with seeded $100 real_balance_cents but kyc_approved=false gets HTTP 403 on /api/cashier/withdraw with 'identity verification' message. Also updated 3 legacy withdrawal regression tests to account for the new KYC gate (seed kyc_approved=true in _seed_real_balance helper; allow 400 OR 403 in test_withdraw_above_balance_rejected). Frontend: /cashier logged in — cashier-kyc-card renders with cashier-kyc-status 'Required before withdrawing (MGA 18+ identity compliance).' and cashier-kyc-verify 'VERIFY IDENTITY' button. Withdraw tab shows 'VERIFICATION REQUIRED. Complete identity & age (18+) verification before requesting a withdrawal.' notice and cashier-wd-submit is disabled with text 'VERIFY IDENTITY TO WITHDRAW'. Keno (/keno) and CoinFlip (/coinflip) load and play without any JS errors (celebration overlays are probabilistic — did not land a win in sample rounds but no errors thrown). Slots money_train_convoy, golden_dynasty, wild_west_recon all load their intro screens with new AAA landscape backgrounds (screenshot verified Wild West Recon).",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "Optional: expose keno/coinflip in a deterministic 'win-forced' test seam (e.g. accept a seeded RNG under a TEST flag) so the celebration overlay can be asserted deterministically in CI. Currently overlay only appears on a real probabilistic win.",
+    "Optional: cashier-kyc-verify button anchor uses trailing space in text ' VERIFY IDENTITY' — cosmetic, consider trimming.",
+    "Carry-over from iter 9: server.py is now ~2000 lines with the added KYC block (~90 lines); still recommend extracting /api/kyc/* and /api/cashier/* into dedicated routers.",
+    "Carry-over from iter 9: <span> hydration warning inside <option> on cashier selects — non-blocking."
+  ],
+  "critical_code_review_comments": [
+    "kyc_session() reuses stripe.error.StripeError catch and returns 502 on any Stripe failure — good defensive handling.",
+    "kyc_status() lazy-syncs by calling _sync_kyc_from_stripe when kyc_session_id exists but not yet approved — correct polling fallback for cases where the webhook is missed.",
+    "_sync_kyc_from_stripe correctly enforces age_ok (18+) check on verified_outputs.dob before setting kyc_approved=True — MGA compliance property is enforced in code (not just in Stripe metadata).",
+    "cashier_withdraw() checks kyc BEFORE balance decrement — the gate fires even if balance would otherwise be insufficient. Good ordering (403 KYC beats 400 balance).",
+    "kyc_session_id is persisted with kyc_status='requires_input' immediately on create — makes /kyc/status accurately reflect that a session exists before the user completes it.",
+    "public_user helper (server.py:134) now leaks kyc_status/kyc_approved to any /auth/me consumer — verified no PII leak (no session URL, no verification details).",
+    "Withdraw endpoint's 403 message clearly directs the user to complete KYC in the Cashier — good UX message shape.",
+    "Frontend Cashier.jsx correctly disables the withdraw submit button AND displays a prominent VERIFICATION REQUIRED banner — defense-in-depth (UI + backend both enforce)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/iteration_10.json",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "success_rate": { "backend": "100% (84/84, 1 probabilistic skip)", "frontend": "100% of KYC + cashier + slot-intro + keno/coinflip smoke flows" },
+  "test_credentials": "Admin admin@wagesofwarcasino.com / WagesOfWar2025!; ephemeral test_kyc_*/test_wd_*/uitest_* users via /api/auth/register; real_balance_cents + kyc_approved seeded directly in mongo for gated flows.",
+  "seed_data_creation": "Ephemeral test_kyc_* users (6 users, one per KYC test); one real Stripe Identity VerificationSession created against LIVE stripe TEST-mode account and stored on that user's kyc_session_id; ephemeral test_wd_*/test_wdr_* users with 10000 real_balance_cents and kyc_approved=true for withdrawal admin approve/reject flow; one uitest_* user for frontend cashier KYC card verification.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "KYC testids added on /cashier: cashier-kyc-card, cashier-kyc-status, cashier-kyc-verify. Withdraw tab: when !kycApproved, cashier-wd-submit is disabled with text 'VERIFY IDENTITY TO WITHDRAW' and 'VERIFICATION REQUIRED' notice shows. Backend KYC gate: POST /api/cashier/withdraw returns 403 with 'identity verification' detail BEFORE checking balance — must seed kyc_approved=true in mongo to test withdrawal-approval/reject flows. New helper: TestCashierWithdrawalAndAdmin._seed_real_balance(uid, cents, kyc_approved=True) now sets kyc_approved+kyc_status='approved' by default. Keno/CoinFlip win celebrations use data-testid keno-celebration / coinflip-celebration but only render on actual probabilistic wins — for deterministic UI assertion, main agent could add a TEST env flag to force-win. Stripe Identity is in TEST mode with live keys — do NOT try to complete the hosted flow in a browser; verifying that url startswith https://verify.stripe.com is the correct assertion. 3 AAA-background slots money_train_convoy/golden_dynasty/wild_west_recon load cleanly with no console errors.",
+  "rca of the issue": "N/A — no bugs found. All KYC compliance gates fire correctly (401 unauth, 403 without approval, real Stripe URL on session create, kyc fields on /auth/me). Legacy withdrawal regression tests were updated to bypass the new KYC gate by seeding kyc_approved=true — expected and correct behavior for those pre-existing admin approval flow tests."
+}

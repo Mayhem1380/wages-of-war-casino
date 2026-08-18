@@ -8,6 +8,7 @@ import { COINFLIP } from "@/constants/testIds";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { sfx } from "@/lib/sounds";
+import { WinCelebration } from "@/components/WinCelebration";
 import { Coins, ArrowLeft, Lightning } from "@phosphor-icons/react";
 
 export default function CoinFlipGame() {
@@ -18,6 +19,7 @@ export default function CoinFlipGame() {
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState(null);
   const [flip, setFlip] = useState(false);
+  const [celebrate, setCelebrate] = useState(false);
   const LBL = { heads: "GRENADE", tails: "KNIFE" };
 
   const play = async () => {
@@ -42,6 +44,7 @@ export default function CoinFlipGame() {
         refreshUser();
         if (data.win > 0) {
           sfx.win();
+          setCelebrate(true);
           toast.success(`${LBL[data.outcome]} — WIN +${fmt(data.win)}`);
         } else {
           sfx.lose();
@@ -86,6 +89,12 @@ export default function CoinFlipGame() {
         backgroundAttachment: "fixed",
       }}
     >
+      <WinCelebration
+        show={celebrate}
+        intensity="small"
+        onDone={() => setCelebrate(false)}
+        testId="coinflip-celebration"
+      />
       <div className="max-w-lg mx-auto px-4 sm:px-8 py-8">
         <button
           onClick={() => navigate("/lobby")}
