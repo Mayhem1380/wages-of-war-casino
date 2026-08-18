@@ -25,6 +25,8 @@ function GiveawayCountdown() {
   const hrs = Math.floor((s % 86400) / 3600);
   const mins = Math.floor((s % 3600) / 60);
   const secs = s % 60;
+  const near = diff > 0 && diff < 7 * 86400 * 1000;
+  const drawDate = new Date(GIVEAWAY_END).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
   const cell = (v, l) => (
     <div className="flex flex-col items-center">
       <span className="font-display text-3xl sm:text-4xl text-gold leading-none tabular-nums">{String(v).padStart(2, "0")}</span>
@@ -32,8 +34,8 @@ function GiveawayCountdown() {
     </div>
   );
   return (
-    <div data-testid="giveaway-countdown" className="mt-5 border border-gold/30 bg-black/50 p-4">
-      <p className="font-mono text-[10px] tracking-[0.4em] text-nvg animate-flicker mb-3">// DRAW CLOSES IN</p>
+    <div data-testid="giveaway-countdown" className={`mt-5 border bg-black/50 p-4 ${near ? "border-alert animate-pulse" : "border-gold/30"}`}>
+      <p className={`font-mono text-[10px] tracking-[0.4em] animate-flicker mb-3 ${near ? "text-alert" : "text-nvg"}`}>// DRAW CLOSES IN</p>
       <div className="flex items-center gap-3 sm:gap-5">
         {cell(months, "MONTHS")}<span className="text-gold/40 text-2xl">:</span>
         {cell(days, "DAYS")}<span className="text-gold/40 text-2xl">:</span>
@@ -41,6 +43,7 @@ function GiveawayCountdown() {
         {cell(mins, "MIN")}<span className="text-gold/40 text-2xl">:</span>
         {cell(secs, "SEC")}
       </div>
+      <p className="font-mono text-[10px] tracking-[0.25em] text-muted-foreground mt-3">DRAW DATE — {drawDate}</p>
     </div>
   );
 }
