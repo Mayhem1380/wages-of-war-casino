@@ -122,3 +122,38 @@ Structural real-money payment system wired with TEST/PLACEHOLDER keys, ready to 
 - SAFETY FIX: np_create_payment no longer returns a fake sandbox address on failure when a live key is set — it raises CryptoProviderError (HTTP 502) so players never see a dead deposit address. Sandbox mock only for placeholder keys. Added NP_CURRENCY_MAP (USDT->usdttrc20 etc).
 - /cashier/summary now returns crypto_live + vault_live flags; Cashier banner shows "DEPOSITS LIVE" and notes withdrawals use in-app admin approval until VAULT_API_KEY is live.
 - Still placeholder: VAULT_API_KEY (withdrawals stay pending for in-app admin approve/reject) and STRIPE_WEBHOOK_SECRET (deposit crediting covered by polling).
+
+---
+
+## Changelog — 18 Aug 2026 (Fork continuation)
+
+### KYC & Identity Verification (Stripe Identity) — DONE + TESTED (84/84)
+- `POST /api/kyc/session` creates a real Stripe Identity VerificationSession (document + selfie), stores `kyc_session_id` on user, returns hosted `verify.stripe.com` URL.
+- `GET /api/kyc/status` returns `{kyc_approved, status, error}` and lazy-syncs from Stripe as a webhook fallback (`_sync_kyc_from_stripe`).
+- `_is_18_or_older` enforces the MGA 18+ age gate against `verified_outputs.dob` before setting `kyc_approved=true`.
+- `POST /api/cashier/withdraw` is GATED: returns HTTP 403 if `kyc_approved` is false (checked BEFORE balance).
+- Stripe webhook (`/api/stripe/webhook`) now handles `identity.verification_session.*` events.
+- `public_user` (/auth/me) exposes `kyc_status` + `kyc_approved`.
+- Frontend Cashier: Identity Verification card (`cashier-kyc-card`), redirect polling on `?kyc=complete`, and withdraw tab locked with "VERIFICATION REQUIRED" until approved.
+
+### AAA slot landscapes — DONE + VERIFIED
+- Applied 3 user-uploaded painted landscapes: war-train → `money_train_convoy` (bg_train), golden emperor → `golden_dynasty` (bg_dynasty + new lobby thumb), mounted warriors → `wild_west_recon` (bg_west). Thumbnails regenerated to match.
+
+### Code-based AAA win celebrations — DONE
+- New reusable `WinCelebration.jsx`: gold coin-rain + confetti burst + one-shot screen shake (pure CSS/framer-motion, no image credits).
+- Wired into Keno (`keno-celebration`), Coin Flip (`coinflip-celebration`), and the slot `BigWinOverlay` (coin rain added).
+
+### Still pending / backlog
+- P1: Slot search bar & category filter tabs in Lobby.
+- P1: More game-specific animated polish (parallax layers, animated particle FX per game).
+- P2: Daily login streak wheel, live tournaments, admin player detail/ban.
+- NOTE: All changes are in PREVIEW only — user must click Deploy to push live to wagesofwarcasin0.online.
+
+
+### 18 Aug 2026 (cont.) — Cinematic FX pass + graphics audit
+- CombatBackground.jsx rewritten: intense muzzle flashes, recoil, tracer rounds, distant artillery explosions, gun-smoke (logged-in ambient backdrop). Soldiers repositioned below header (y=132) so flashes are visible.
+- SharkBite.jsx rewritten: removed old cartoon SVG shark; now layers gentle motion ON TOP of the untouched underwater footer photo — live diver-regulator bubble stream (left) + subtle great-white "lunge" glow (right) surging toward the centre emblem. Footer image NEVER replaced (per user instruction).
+- Graphics audit: Keno (warhead/blast number art + war-room bg) and Coin Flip (grenade/knife coins over armory-vault bg) both confirmed AAA in PREVIEW. User's live-site complaint ("no graphics on Keno numbers / coin flip") is a STALE PRODUCTION BUILD — resolved by republishing.
+- Deployment-readiness scan: PASS, no blockers.
+- ACTION FOR USER: click Deploy in Emergent to push all preview changes live to wagesofwarcasin0.online.
+

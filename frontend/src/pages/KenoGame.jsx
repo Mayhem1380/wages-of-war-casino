@@ -4,6 +4,7 @@ import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { fmt } from "@/data/gameMeta";
 import { AnimatedShowcase } from "@/components/AnimatedShowcase";
+import { WinCelebration } from "@/components/WinCelebration";
 import { KENO } from "@/constants/testIds";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -26,6 +27,7 @@ export default function KenoGame() {
   const [stake, setStake] = useState(50);
   const [result, setResult] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [celebrate, setCelebrate] = useState(null);
 
   const drawn = new Set(result?.drawn || []);
   const hits = new Set(result?.hits || []);
@@ -75,6 +77,7 @@ export default function KenoGame() {
       refreshUser();
       if (data.win > 0) {
         sfx.bigWin();
+        setCelebrate({ intensity: data.multiplier >= 10 ? "big" : "small" });
         toast.success(`${data.hit_count} hits — WIN +${fmt(data.win)}`);
       } else {
         sfx.lose();
@@ -98,6 +101,12 @@ export default function KenoGame() {
         backgroundAttachment: "fixed",
       }}
     >
+      <WinCelebration
+        show={!!celebrate}
+        intensity={celebrate?.intensity}
+        onDone={() => setCelebrate(null)}
+        testId="keno-celebration"
+      />
       <div className="max-w-5xl mx-auto px-4 sm:px-8 py-8">
         <button
           onClick={() => navigate("/lobby")}

@@ -1,7 +1,7 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { fmt } from "@/data/gameMeta";
 import { BIGWIN } from "@/constants/testIds";
-import { Sparkle, Star } from "@phosphor-icons/react";
+import { Sparkle, Star, Coin } from "@phosphor-icons/react";
 
 export function BigWinOverlay({ win, multiplier, onDone }) {
   useEffect(() => {
@@ -9,16 +9,47 @@ export function BigWinOverlay({ win, multiplier, onDone }) {
     return () => clearTimeout(t);
   }, [onDone]);
 
+  const coins = useMemo(
+    () =>
+      Array.from({ length: 34 }).map(() => ({
+        left: Math.random() * 100,
+        delay: Math.random() * 0.8,
+        dur: 1.5 + Math.random() * 1.4,
+        size: 20 + Math.random() * 24,
+      })),
+    [],
+  );
+
   return (
     <div
       data-testid={BIGWIN.overlay}
       onClick={onDone}
-      className="fixed inset-0 z-[10000] flex items-center justify-center cursor-pointer"
+      className="fixed inset-0 z-[10000] flex items-center justify-center cursor-pointer overflow-hidden"
       style={{
         background:
           "radial-gradient(circle at center, rgba(20,15,0,0.86), rgba(3,4,3,0.95))",
       }}
     >
+      {/* coin rain */}
+      {coins.map((c, i) => (
+        <div
+          key={`bwc-${i}`}
+          className="coin-fall absolute top-0 pointer-events-none"
+          style={{
+            left: `${c.left}%`,
+            animationDelay: `${c.delay}s`,
+            animationDuration: `${c.dur}s`,
+          }}
+        >
+          <Coin
+            size={c.size}
+            weight="fill"
+            className="text-gold"
+            style={{ filter: "drop-shadow(0 0 6px rgba(246,198,74,0.7))" }}
+          />
+        </div>
+      ))}
+
       {/* radar sweep */}
       <div
         className="absolute w-[120vmin] h-[120vmin] rounded-full opacity-40 bw-radar"

@@ -131,6 +131,8 @@ def public_user(u: dict) -> dict:
         "created_at": u.get("created_at"),
         "real_balance_cents": int(u.get("real_balance_cents", 0)),
         "real_balance_usd": round(int(u.get("real_balance_cents", 0)) / 100.0, 2),
+        "kyc_status": u.get("kyc_status", "not_started"),
+        "kyc_approved": bool(u.get("kyc_approved", False)),
     }
 
 
@@ -306,43 +308,111 @@ async def support_message(payload: SupportMessage, user: dict = Depends(resolve_
 
 
 # ---------------------------------------------------------------------------
-# KYC endpoints (placeholder pipeline)
+# KYC / Identity Verification via Stripe Identity (MGA compliance, 18+ gate)
+# Real-money withdrawals are blocked until kyc_approved=True.
 # ---------------------------------------------------------------------------
 
 
-@api.post("/kyc/submit")
-async def kyc_submit(request: Request, user: dict = Depends(require_user)):
-    form = await request.form()
-    files = []
-    storage_root = ROOT_DIR / "../frontend/public/uploads/kyc"
-    os.makedirs(storage_root, exist_ok=True)
-    for k, v in form.items():
-        if hasattr(v, "filename") and v.filename:
-            filename = f"{user['user_id']}_{k}_{uuid.uuid4().hex[:8]}_{v.filename}"
-            dest = os.path.join(storage_root, filename)
-            with open(dest, "wb") as f:
-                shutil.copyfileobj(v.file, f)
-            files.append(dest)
+def _is_18_or_older(dob) -> bool:
+    """dob is Stripe's {year, month, day} dict from verified_outputs."""
+    if not dob:
+        return False
+    try:
+        from datetime import date
 
-    rec = {
-        "id": str(uuid.uuid4()),
-        "user_id": user["user_id"],
-        "submitted_at": datetime.now(timezone.utc).isoformat(),
-        "files": files,
-        "status": "pending",
+        birth = date(int(dob["year"]), int(dob["month"]), int(dob["day"]))
+        today = date.today()
+        age = today.year - birth.year - (
+            (today.month, today.day) < (birth.month, birth.day)
+        )
+        return age >= 18
+    except (KeyError, TypeError, ValueError):
+        return False
+
+
+async def _sync_kyc_from_stripe(user_id: str, session_id: str) -> dict:
+    """Retrieve a Stripe Identity VerificationSession and persist the outcome.
+    Used both by the webhook and as a polling fallback from /kyc/status."""
+    try:
+        vs = stripe.identity.VerificationSession.retrieve(
+            session_id, expand=["verified_outputs"]
+        )
+    except Exception as e:
+        logger.warning("kyc retrieve failed: %s", e)
+        return {}
+    status = vs.get("status")  # requires_input | processing | verified | canceled
+    update = {
+        "kyc_stripe_status": status,
+        "kyc_updated_at": datetime.now(timezone.utc).isoformat(),
     }
-    await db.kyc.insert_one(rec)
-    return {"ok": True, "status": "pending"}
+    if status == "verified":
+        vo = vs.get("verified_outputs") or {}
+        age_ok = _is_18_or_older(vo.get("dob"))
+        update["kyc_approved"] = age_ok
+        update["kyc_status"] = "approved" if age_ok else "age_failed"
+        update["kyc_error"] = None if age_ok else "must_be_18_or_older"
+    elif status == "processing":
+        update["kyc_approved"] = False
+        update["kyc_status"] = "processing"
+    elif status == "requires_input":
+        le = vs.get("last_error") or {}
+        update["kyc_approved"] = False
+        update["kyc_status"] = "requires_input"
+        update["kyc_error"] = le.get("code") if le else None
+    else:
+        update["kyc_approved"] = False
+        update["kyc_status"] = status or "not_started"
+    await db.users.update_one({"user_id": user_id}, {"$set": update})
+    return update
+
+
+class KycSessionInput(BaseModel):
+    origin_url: Optional[str] = None
+
+
+@api.post("/kyc/session")
+async def kyc_session(payload: KycSessionInput, user: dict = Depends(require_user)):
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
+    if fresh.get("kyc_approved"):
+        return {"already_approved": True}
+    origin = (payload.origin_url or FRONTEND_URL).rstrip("/")
+    kwargs = {
+        "type": "document",
+        "options": {"document": {"require_matching_selfie": True}},
+        "metadata": {"user_id": user["user_id"]},
+        "return_url": f"{origin}/cashier?kyc=complete",
+    }
+    if user.get("email"):
+        kwargs["provided_details"] = {"email": user["email"]}
+    try:
+        session = stripe.identity.VerificationSession.create(**kwargs)
+    except stripe.error.StripeError as e:
+        raise HTTPException(status_code=502, detail=f"Stripe Identity error: {e}")
+    await db.users.update_one(
+        {"user_id": user["user_id"]},
+        {
+            "$set": {
+                "kyc_session_id": session.id,
+                "kyc_status": "requires_input",
+                "kyc_approved": False,
+                "kyc_updated_at": datetime.now(timezone.utc).isoformat(),
+            }
+        },
+    )
+    return {"url": session.url, "session_id": session.id}
 
 
 @api.get("/kyc/status")
 async def kyc_status(user: dict = Depends(require_user)):
-    rec = await db.kyc.find_one(
-        {"user_id": user["user_id"]}, {"_id": 0}, sort=[("submitted_at", -1)]
-    )
-    if not rec:
-        return {"status": "none"}
-    return {"status": rec.get("status", "pending")}
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
+    if not fresh.get("kyc_approved") and fresh.get("kyc_session_id"):
+        await _sync_kyc_from_stripe(user["user_id"], fresh["kyc_session_id"])
+        fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
+    return {
+        "kyc_approved": bool(fresh.get("kyc_approved")),
+        "status": fresh.get("kyc_status", "not_started"),
+        "error": fresh.get("kyc_error"),
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -1410,6 +1480,10 @@ async def stripe_webhook(request: Request):
         )
         if record:
             await _credit_if_paid(record)
+    elif t.startswith("identity.verification_session."):
+        user_id = (obj.get("metadata") or {}).get("user_id")
+        if user_id:
+            await _sync_kyc_from_stripe(user_id, obj["id"])
     return {"status": "ok"}
 
 
@@ -1668,6 +1742,11 @@ async def cashier_withdraw(payload: WithdrawInput, user: dict = Depends(require_
             detail=f"Minimum withdrawal is {cashier.MIN_WITHDRAW_AUD} AUD",
         )
     fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
+    if not fresh.get("kyc_approved"):
+        raise HTTPException(
+            status_code=403,
+            detail="Identity verification required before withdrawing. Please complete KYC in the Cashier.",
+        )
     if int(fresh.get("real_balance_cents", 0)) < usd_cents:
         raise HTTPException(status_code=400, detail="Insufficient cash balance")
     # hold funds immediately

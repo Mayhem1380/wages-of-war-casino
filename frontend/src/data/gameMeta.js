@@ -231,7 +231,7 @@ export const FLAGSHIP_ART = {
     ],
   },
   golden_dynasty: {
-    thumb: "/slots/thumb_dynasty_aaa.svg",
+    thumb: "/slots/thumb_dynasty.jpg",
     bg: "/slots/bg_dynasty.jpg",
     accent: "#FFC04A",
     frame: "#C23A2E",

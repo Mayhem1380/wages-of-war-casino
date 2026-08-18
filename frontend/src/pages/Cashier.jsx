@@ -21,6 +21,7 @@ import {
   CheckCircle,
   XCircle,
   Clock,
+  IdentificationCard,
 } from "@phosphor-icons/react";
 
 const STATUS_STYLE = {
@@ -37,6 +38,8 @@ export default function Cashier() {
   const [summary, setSummary] = useState(null);
   const [history, setHistory] = useState([]);
   const [tab, setTab] = useState("fiat");
+  const [kyc, setKyc] = useState(null);
+  const [kycBusy, setKycBusy] = useState(false);
 
   // fiat
   const [fiatAmt, setFiatAmt] = useState("50");
@@ -53,14 +56,16 @@ export default function Cashier() {
 
   const load = useCallback(async () => {
     try {
-      const [c, s, h] = await Promise.all([
+      const [c, s, h, k] = await Promise.all([
         api.get("/cashier/currencies"),
         api.get("/cashier/summary"),
         api.get("/cashier/transactions"),
+        api.get("/kyc/status"),
       ]);
       setMeta(c.data);
       setSummary(s.data);
       setHistory(h.data);
+      setKyc(k.data);
     } catch {
       /* ignore */
     }
@@ -69,6 +74,38 @@ export default function Cashier() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // handle Stripe Identity redirect (returns with ?kyc=complete)
+  useEffect(() => {
+    if (params.get("kyc") !== "complete") return;
+    toast.message("Verifying your identity…");
+    let tries = 0;
+    const poll = setInterval(async () => {
+      tries += 1;
+      try {
+        const { data } = await api.get("/kyc/status");
+        setKyc(data);
+        if (data.kyc_approved) {
+          clearInterval(poll);
+          toast.success("Identity verified — withdrawals unlocked.");
+          await refreshUser();
+          setParams({}, { replace: true });
+        } else if (data.status === "age_failed") {
+          clearInterval(poll);
+          toast.error("Verification failed: you must be 18 or older.");
+          setParams({}, { replace: true });
+        }
+      } catch {
+        /* keep polling */
+      }
+      if (tries > 25) {
+        clearInterval(poll);
+        setParams({}, { replace: true });
+      }
+    }, 2000);
+    return () => clearInterval(poll);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params]);
 
   // handle Stripe redirect confirmation
   useEffect(() => {
@@ -177,6 +214,38 @@ export default function Cashier() {
     toast.success("Copied");
   };
 
+  const startKyc = async () => {
+    setKycBusy(true);
+    try {
+      const { data } = await api.post("/kyc/session", {
+        origin_url: window.location.origin,
+      });
+      if (data.already_approved) {
+        toast.success("Identity already verified.");
+        const { data: k } = await api.get("/kyc/status");
+        setKyc(k);
+        setKycBusy(false);
+        return;
+      }
+      window.location.href = data.url;
+    } catch (e) {
+      toast.error(e.response?.data?.detail || "Could not start verification");
+      setKycBusy(false);
+    }
+  };
+
+  const kycApproved = !!kyc?.kyc_approved;
+  const kycState = kyc?.status || "not_started";
+  const kycMessage = kycApproved
+    ? "Verified — real-money withdrawals unlocked."
+    : kycState === "processing"
+      ? "Processing your documents — this can take a moment."
+      : kycState === "age_failed"
+        ? "Verification failed: you must be 18 or older to withdraw."
+        : kycState === "requires_input"
+          ? "Additional input needed — please retry verification."
+          : "Required before withdrawing (MGA 18+ identity compliance).";
+
   const tabBtn = (id, label, Icon, testId) => (
     <button
       data-testid={testId}
@@ -274,6 +343,62 @@ export default function Cashier() {
             {meta?.min_withdraw_usd}
           </div>
         </div>
+      </div>
+
+      {/* KYC / Identity Verification */}
+      <div
+        data-testid={CASHIER.kycCard}
+        className={`hud p-5 mb-8 flex flex-wrap items-center justify-between gap-4 ${
+          kycApproved
+            ? "border-nvg/50 bg-nvg/5"
+            : kycState === "age_failed"
+              ? "border-alert/50 bg-alert/5"
+              : "border-gold/40 bg-gold/5"
+        }`}
+      >
+        <div className="flex items-center gap-3">
+          <IdentificationCard
+            size={30}
+            weight="fill"
+            className={
+              kycApproved
+                ? "text-nvg"
+                : kycState === "age_failed"
+                  ? "text-alert"
+                  : "text-gold"
+            }
+          />
+          <div>
+            <p className="font-stencil tracking-widest uppercase text-sm text-foreground">
+              Identity Verification (KYC)
+            </p>
+            <p
+              data-testid={CASHIER.kycStatus}
+              className="font-mono text-xs text-muted-foreground max-w-md"
+            >
+              {kycMessage}
+            </p>
+          </div>
+        </div>
+        {kycApproved ? (
+          <div className="flex items-center gap-2 text-nvg font-mono text-sm">
+            <CheckCircle size={18} weight="fill" /> VERIFIED
+          </div>
+        ) : (
+          <Button
+            data-testid={CASHIER.kycVerify}
+            onClick={startKyc}
+            disabled={kycBusy || kycState === "processing"}
+            className="bg-gold hover:bg-gold/90 text-black font-display tracking-widest gap-2"
+          >
+            <ShieldCheck size={18} weight="fill" />{" "}
+            {kycBusy
+              ? "OPENING…"
+              : kycState === "requires_input"
+                ? "RETRY VERIFICATION"
+                : "VERIFY IDENTITY"}
+          </Button>
+        )}
       </div>
 
       {/* Tabs */}
@@ -419,6 +544,33 @@ export default function Cashier() {
 
           {tab === "withdraw" && (
             <div className="max-w-md space-y-4">
+              {!kycApproved && (
+                <div className="hud border-gold/40 bg-gold/5 p-4 flex items-start gap-3">
+                  <ShieldCheck
+                    size={22}
+                    weight="fill"
+                    className="text-gold shrink-0 mt-0.5"
+                  />
+                  <div className="space-y-2">
+                    <p className="text-sm text-foreground/80">
+                      <span className="text-gold font-semibold">
+                        VERIFICATION REQUIRED.
+                      </span>{" "}
+                      Complete identity &amp; age (18+) verification before
+                      requesting a withdrawal.
+                    </p>
+                    <Button
+                      data-testid="cashier-wd-kyc-verify"
+                      onClick={startKyc}
+                      disabled={kycBusy || kycState === "processing"}
+                      className="bg-gold hover:bg-gold/90 text-black font-display tracking-widest gap-2"
+                    >
+                      <ShieldCheck size={16} weight="fill" />{" "}
+                      {kycBusy ? "OPENING…" : "VERIFY IDENTITY"}
+                    </Button>
+                  </div>
+                </div>
+              )}
               <p className="text-sm text-muted-foreground">
                 Withdrawals route through the approval vault. Funds release
                 after approval.
@@ -469,11 +621,15 @@ export default function Cashier() {
               <Button
                 data-testid={CASHIER.wdSubmit}
                 onClick={withdraw}
-                disabled={busy}
-                className="w-full bg-alert hover:bg-alert/90 text-black font-display text-lg tracking-widest gap-2"
+                disabled={busy || !kycApproved}
+                className="w-full bg-alert hover:bg-alert/90 text-black font-display text-lg tracking-widest gap-2 disabled:opacity-50"
               >
                 <ArrowUp size={18} weight="fill" />{" "}
-                {busy ? "SUBMITTING..." : "REQUEST WITHDRAWAL"}
+                {busy
+                  ? "SUBMITTING..."
+                  : !kycApproved
+                    ? "VERIFY IDENTITY TO WITHDRAW"
+                    : "REQUEST WITHDRAWAL"}
               </Button>
             </div>
           )}
