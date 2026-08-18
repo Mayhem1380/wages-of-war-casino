@@ -135,6 +135,12 @@ export function Layout({ children }) {
 
   return (
     <div className="App tactical-bg scanlines min-h-screen flex flex-col">
+      {/* Site-wide holographic war-map backdrop behind all tiles */}
+      <div
+        aria-hidden="true"
+        className="fixed inset-0 z-0 pointer-events-none bg-cover bg-center opacity-[0.18]"
+        style={{ backgroundImage: "url(/brand/warmap_bg.jpg)" }}
+      />
       {user && <CombatBackground />}
       <header className="sticky top-0 z-50 border-b-2 border-gold/25 bg-black/85 backdrop-blur-md">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-8 h-16 flex items-center justify-between gap-4">
@@ -266,9 +272,9 @@ export function Layout({ children }) {
         </div>
       </div>
 
-      <main className="flex-1">{children}</main>
+      <main className="flex-1 relative z-10">{children}</main>
 
-      <footer className="relative border-t-2 border-gold/20 bg-black/70 mt-16 overflow-hidden">
+      <footer className="relative z-10 border-t-2 border-gold/20 bg-black/70 mt-16 overflow-hidden">
         <div
           className="absolute inset-0 pointer-events-none opacity-[0.6]"
           style={{
