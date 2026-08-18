@@ -1,0 +1,41 @@
+{
+  "summary": "Iteration 11: Tested 3 new features (Lobby search+category tabs, Daily Streak Wheel, Live Tournament). BACKEND: extended pytest suite to 91 tests (was 85); 6 new tests all pass covering wheel_status shape+401, wheel_spin fresh-user (amount>0, streak=1, balance increases by amount) + 400 cooldown on 2nd spin + status shows seconds_left>0, tournament_current anon/authed shape (prize_pool=5,000,000, name='OPERATION HIGH ROLLER', seconds_left<=86400, empty leaderboard, me=null for anon, me.rank=null/score=0 for new authed user), and tournament scoring hook (played coinflips on a fresh user until a win landed, then me.rank>=1 and me.score>0 on /tournament/current). Full regression: 91/91 pass, no 500s from add_tournament_score() hooks in slots/keno/coinflip. FRONTEND: /lobby renders search bar + 6 category tabs (all/dragons/fortune/military/egyptian/ocean) + 24 slot cards + LobbyHype + wheel/tournament live-ops cards. Clicking Dragons tab filters to EXACTLY 2 cards (lobby-slot-dragons_riches + lobby-slot-five_dragons) — verified. Typing 'zxqwerty12345' shows lobby-empty. Clicking lobby-wheel-card navigates to /wheel; wheel-spin-btn visible+clickable; after clicking, animation runs and wheel-result renders '+2,000'. On reload, wheel-timer visible and spin button is removed (cooldown state renders correctly). Balance in nav updated from 10,000 -> 12,000 confirming end-to-end integration. /tournament shows prize pool 5,000,000, resets-in countdown 23:52:44, YOUR POSITION card, and 3 leaderboard rows (from previous test users). No console errors — only benign AudioContext autoplay + Canvas2D willReadFrequently warnings.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "None blocking. Optional: tournament-pool testid text_content returned '0' from Playwright evaluate (visual shows 5,000,000 correctly — likely wrapped in an animated number-tick component whose outer testid element only owns a spacer digit). If external scrapers/tests rely on innerText, consider placing data-testid on the container that includes the full number.",
+    "Carry-over: server.py is now ~2200 lines — the newly added wheel + tournament blocks (~200 lines total) push size further; still recommend extracting /api/wheel/* and /api/tournament/* into dedicated routers alongside kyc/cashier."
+  ],
+  "critical_code_review_comments": [
+    "wheel_spin correctly increments balance via $inc, records a wheel_spin transaction, and persists last_wheel_spin_at + wheel_streak atomically in one update — no race between transaction and balance.",
+    "WHEEL_WEIGHTS heavily skew toward small segments (28+22+16 = 66% chance of <=2000, only 1/100 for 50000) — good economy; verified segments length=9 matches WHEEL_SEGMENTS.",
+    "Streak-continue logic: uses <48h since last spin to keep streak (i.e., yesterday's spin still counts); 24h cooldown means the earliest re-spin at 24h will always keep the streak alive — behavior matches product intent.",
+    "x2 multiplier fires when new_streak % 7 == 0 — correct 'every 7th day' semantics; wheel_status.next_multiplier previews it correctly.",
+    "_ensure_tournament uses a conditional update_one({status:'active'}, {$set:{status:'finalized'}}) claim to atomically transition finished tournaments — safe against concurrent finalize races.",
+    "add_tournament_score early-returns when amount<=0 — matches spec 'scoring only counts positive wins' and prevents negative scores from net-loss spins.",
+    "tournament_current excludes _id via projection {_id:0} — no ObjectId leak in leaderboard.",
+    "tournament_current works for both anon (user=None => me=None) and authed (returns me with rank/score) — correct optional-auth handling via resolve_user.",
+    "Lobby.jsx catOf falls back to 'Military' for unknown themes — safe default but any new theme should be added to THEME_CATEGORY to avoid misclassification.",
+    "Lobby search matches on name/tagline/theme (all lowercased) — good UX; empty state message correctly includes both query and category context."
+  ],
+  "updated_files": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/iteration_11.json",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "success_rate": { "backend": "100% (91/91)", "frontend": "100% of lobby/wheel/tournament flows" },
+  "test_credentials": "Admin admin@wagesofwarcasino.com / WagesOfWar2025! (already on wheel cooldown per prior manual testing); ephemeral test_wh_*, test_tn_*, test_tw_*, uitest_* users via POST /api/auth/register (10,000 signup credits).",
+  "seed_data_creation": "Ephemeral registered users only. No mongo seeding required for wheel/tournament tests (wheel: fresh user is always available; tournament scoring: coinflip win up to 40 attempts on fresh user).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "New testids added: LOBBY.search='lobby-search', LOBBY.tab(name)='lobby-tab-<lower>', LOBBY.empty='lobby-empty', LOBBY.wheelCard='lobby-wheel-card', LOBBY.tournamentCard='lobby-tournament-card'. WHEEL.spin='wheel-spin-btn', WHEEL.result='wheel-result', WHEEL.timer='wheel-timer', WHEEL.streak='wheel-streak'. TOURNEY.pool='tournament-pool', TOURNEY.timer='tournament-timer', TOURNEY.myRank='tournament-my-rank', TOURNEY.row(r)='tournament-row-<r>'. Wheel cooldown is 24h — always REGISTER A FRESH user before testing a clean wheel spin flow; admin will be on cooldown. Tournament is a rolling 24h active tournament: /api/tournament/current auto-creates one if none active. add_tournament_score is called from slots_spin/slots_freespin/slots_holdwin/keno_play/coinflip — regression run shows no 500s. Dragons category has exactly 2 slots (dragons_riches, five_dragons); if new dragon-themed slots are added, THEME_CATEGORY['dragon']='Dragons' will auto-classify them. tournament-pool testid may return sparse text via .text_content() due to a number-tick animation — verify visually via screenshot or check the numeric backend response.",
+  "rca of the issue": "N/A — no bugs found. All 3 new features (Lobby search+tabs, Daily Streak Wheel, Live Tournament) fully functional end-to-end. Backend regression clean (91/91). Frontend integration verified (wheel spin credits balance, tournament shows correct prize pool + countdown + leaderboard, category filter shows exact expected slot set)."
+}

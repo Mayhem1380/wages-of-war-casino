@@ -19,6 +19,7 @@ import urllib.request
 import json
 from datetime import datetime, timezone, timedelta
 import asyncio
+import random
 import shutil
 
 import stripe
@@ -832,6 +833,7 @@ async def slots_spin(payload: SpinInput, user: dict = Depends(require_user)):
         net,
         {"machine": payload.machine_id, "bet": payload.bet, "win": result["total_win"]},
     )
+    await add_tournament_score(user, result["total_win"])
 
     # Hold & Win trigger (flagship machines) -> open a bonus session
     holdwin_session = None
@@ -928,6 +930,7 @@ async def slots_freespin(payload: FreeSpinInput, user: dict = Depends(require_us
             win,
             {"machine": sess["machine_id"], "multiplier": multiplier},
         )
+        await add_tournament_score(user, win)
 
     result["base_win"] = round(base_win, 2)
     result["multiplier"] = multiplier
@@ -973,6 +976,7 @@ async def slots_holdwin(payload: HoldWinInput, user: dict = Depends(require_user
             "full_grid": result["full_grid"],
         },
     )
+    await add_tournament_score(user, result["total_win"])
 
     result["balance"] = round(updated["balance"], 2)
     return result
@@ -980,7 +984,6 @@ async def slots_holdwin(payload: HoldWinInput, user: dict = Depends(require_user
 
 # ---------------------------------------------------------------------------
 # Keno
-# ---------------------------------------------------------------------------
 @api.get("/games/keno/paytable")
 async def keno_paytable():
     return {"paytable": {str(k): v for k, v in KENO_PAYTABLE.items()}}
@@ -1011,6 +1014,7 @@ async def keno_play(payload: KenoInput, user: dict = Depends(require_user)):
         net,
         {"picks": result["picks"], "stake": payload.stake, "win": result["win"]},
     )
+    await add_tournament_score(user, result["win"])
     result["balance"] = round(updated["balance"], 2)
     result["net"] = round(net, 2)
     return result
@@ -1044,6 +1048,7 @@ async def coinflip(payload: CoinFlipInput, user: dict = Depends(require_user)):
         net,
         {"side": payload.side, "outcome": outcome, "bet": payload.bet, "win": win},
     )
+    await add_tournament_score(user, win)
     return {
         "outcome": outcome,
         "win": round(win, 2),
@@ -1106,6 +1111,229 @@ async def bonus_claim(user: dict = Depends(require_user)):
         "claimed": amount,
         "balance": round(updated["balance"], 2),
         "tier": tier["name"],
+    }
+
+
+# ---------------------------------------------------------------------------
+# Daily Streak Wheel (additional daily reward, separate from Supply Drop)
+# ---------------------------------------------------------------------------
+WHEEL_SEGMENTS = [500, 1000, 2000, 3000, 5000, 8000, 12000, 20000, 50000]
+WHEEL_WEIGHTS = [28, 22, 16, 12, 9, 6, 4, 2, 1]
+WHEEL_COOLDOWN_HOURS = 24
+
+
+def _wheel_seconds_left(user: dict) -> int:
+    last = user.get("last_wheel_spin_at")
+    if not last:
+        return 0
+    ld = datetime.fromisoformat(last) if isinstance(last, str) else last
+    if ld.tzinfo is None:
+        ld = ld.replace(tzinfo=timezone.utc)
+    elapsed = datetime.now(timezone.utc) - ld
+    cd = timedelta(hours=WHEEL_COOLDOWN_HOURS)
+    return int((cd - elapsed).total_seconds()) if elapsed < cd else 0
+
+
+@api.get("/wheel/status")
+async def wheel_status(user: dict = Depends(require_user)):
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
+    streak = int(fresh.get("wheel_streak", 0))
+    seconds_left = _wheel_seconds_left(fresh)
+    return {
+        "available": seconds_left == 0,
+        "seconds_left": seconds_left,
+        "streak": streak,
+        "segments": WHEEL_SEGMENTS,
+        "next_streak": streak + 1,
+        "next_multiplier": 2 if (streak + 1) % 7 == 0 else 1,
+    }
+
+
+@api.post("/wheel/spin")
+async def wheel_spin(user: dict = Depends(require_user)):
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
+    if _wheel_seconds_left(fresh) > 0:
+        raise HTTPException(status_code=400, detail="Wheel not ready yet")
+    # streak: continue if last spin was within 48h (i.e., yesterday), else reset
+    last = fresh.get("last_wheel_spin_at")
+    new_streak = 1
+    if last:
+        ld = datetime.fromisoformat(last) if isinstance(last, str) else last
+        if ld.tzinfo is None:
+            ld = ld.replace(tzinfo=timezone.utc)
+        if datetime.now(timezone.utc) - ld < timedelta(hours=48):
+            new_streak = int(fresh.get("wheel_streak", 0)) + 1
+    idx = random.choices(range(len(WHEEL_SEGMENTS)), weights=WHEEL_WEIGHTS, k=1)[0]
+    base = WHEEL_SEGMENTS[idx]
+    mult = 2 if new_streak % 7 == 0 else 1
+    amount = base * mult
+    now_iso = datetime.now(timezone.utc).isoformat()
+    await db.users.update_one(
+        {"user_id": user["user_id"]},
+        {
+            "$inc": {"balance": amount},
+            "$set": {"last_wheel_spin_at": now_iso, "wheel_streak": new_streak},
+        },
+    )
+    await record_transaction(
+        user["user_id"],
+        "wheel_spin",
+        amount,
+        {"streak": new_streak, "multiplier": mult, "base": base},
+    )
+    updated = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
+    return {
+        "amount": amount,
+        "base": base,
+        "segment_index": idx,
+        "multiplier": mult,
+        "streak": new_streak,
+        "balance": round(updated["balance"], 2),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Live Tournaments (one always-on 24h rolling event; top 10 share prize pool)
+# ---------------------------------------------------------------------------
+TOURNAMENT_PRIZE_POOL = 5_000_000  # play credits
+TOURNAMENT_SPLIT = [0.30, 0.20, 0.14, 0.10, 0.08, 0.06, 0.045, 0.03, 0.02, 0.015]
+TOURNAMENT_DURATION_HOURS = 24
+TOURNAMENT_NAME = "OPERATION HIGH ROLLER"
+
+
+async def _finalize_tournament(t: dict):
+    scores = (
+        await db.tournament_scores.find({"tournament_id": t["id"]})
+        .sort("score", -1)
+        .to_list(10)
+    )
+    winners = []
+    for i, s in enumerate(scores):
+        if i >= len(TOURNAMENT_SPLIT) or s.get("score", 0) <= 0:
+            continue
+        share = int(t["prize_pool"] * TOURNAMENT_SPLIT[i])
+        if share <= 0:
+            continue
+        await db.users.update_one(
+            {"user_id": s["user_id"]}, {"$inc": {"balance": share}}
+        )
+        await record_transaction(
+            s["user_id"],
+            "tournament_prize",
+            share,
+            {"tournament": t.get("name"), "rank": i + 1},
+        )
+        winners.append(
+            {
+                "user_id": s["user_id"],
+                "name": s.get("name"),
+                "rank": i + 1,
+                "prize": share,
+                "score": round(s.get("score", 0), 2),
+            }
+        )
+    await db.tournaments.update_one(
+        {"id": t["id"]},
+        {
+            "$set": {
+                "status": "finalized",
+                "winners": winners,
+                "finalized_at": datetime.now(timezone.utc).isoformat(),
+            }
+        },
+    )
+
+
+async def _ensure_tournament() -> dict:
+    now = datetime.now(timezone.utc)
+    t = await db.tournaments.find_one({"status": "active"})
+    if t:
+        ends = datetime.fromisoformat(t["ends_at"])
+        if ends.tzinfo is None:
+            ends = ends.replace(tzinfo=timezone.utc)
+        if now < ends:
+            return t
+        # expired -> claim finalization atomically so only one worker pays out
+        claim = await db.tournaments.update_one(
+            {"id": t["id"], "status": "active"}, {"$set": {"status": "finalizing"}}
+        )
+        if claim.modified_count == 1:
+            t["status"] = "finalizing"
+            await _finalize_tournament(t)
+    # create a fresh tournament
+    new = {
+        "id": str(uuid.uuid4()),
+        "name": TOURNAMENT_NAME,
+        "status": "active",
+        "prize_pool": TOURNAMENT_PRIZE_POOL,
+        "started_at": now.isoformat(),
+        "ends_at": (now + timedelta(hours=TOURNAMENT_DURATION_HOURS)).isoformat(),
+    }
+    await db.tournaments.insert_one(dict(new))
+    return new
+
+
+async def add_tournament_score(user: dict, amount: float):
+    """Add a player's win to the active tournament leaderboard."""
+    if not amount or amount <= 0:
+        return
+    t = await db.tournaments.find_one({"status": "active"})
+    if not t:
+        return
+    await db.tournament_scores.update_one(
+        {"tournament_id": t["id"], "user_id": user["user_id"]},
+        {
+            "$inc": {"score": round(amount, 2)},
+            "$set": {"name": user.get("name", "Operative")},
+        },
+        upsert=True,
+    )
+
+
+@api.get("/tournament/current")
+async def tournament_current(request: Request):
+    t = await _ensure_tournament()
+    user = await resolve_user(request)
+    now = datetime.now(timezone.utc)
+    ends = datetime.fromisoformat(t["ends_at"])
+    if ends.tzinfo is None:
+        ends = ends.replace(tzinfo=timezone.utc)
+    top = (
+        await db.tournament_scores.find({"tournament_id": t["id"]}, {"_id": 0})
+        .sort("score", -1)
+        .to_list(10)
+    )
+    leaderboard = [
+        {
+            "rank": i + 1,
+            "name": s.get("name", "Operative"),
+            "score": round(s.get("score", 0), 2),
+            "prize": int(t["prize_pool"] * TOURNAMENT_SPLIT[i])
+            if i < len(TOURNAMENT_SPLIT)
+            else 0,
+        }
+        for i, s in enumerate(top)
+    ]
+    me = None
+    if user:
+        ms = await db.tournament_scores.find_one(
+            {"tournament_id": t["id"], "user_id": user["user_id"]}
+        )
+        if ms:
+            higher = await db.tournament_scores.count_documents(
+                {"tournament_id": t["id"], "score": {"$gt": ms.get("score", 0)}}
+            )
+            me = {"rank": higher + 1, "score": round(ms.get("score", 0), 2)}
+        else:
+            me = {"rank": None, "score": 0}
+    return {
+        "id": t["id"],
+        "name": t["name"],
+        "prize_pool": t["prize_pool"],
+        "ends_at": t["ends_at"],
+        "seconds_left": max(0, int((ends - now).total_seconds())),
+        "leaderboard": leaderboard,
+        "me": me,
     }
 
 

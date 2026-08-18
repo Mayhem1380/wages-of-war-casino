@@ -29,6 +29,8 @@ import AdminDashboard from "@/pages/AdminDashboard";
 import PaymentSuccess from "@/pages/PaymentSuccess";
 import AuthCallback from "@/pages/AuthCallback";
 import KycPage from "@/pages/Kyc";
+import DailyWheel from "@/pages/DailyWheel";
+import Tournament from "@/pages/Tournament";
 import { useParams } from "react-router-dom";
 import { FLAGSHIP_IDS } from "@/data/gameMeta";
 
@@ -69,6 +71,8 @@ function AppRouter() {
         <Route path="/slots/:id" element={<SlotRoute />} />
         <Route path="/keno" element={<KenoGame />} />
         <Route path="/coinflip" element={<CoinFlipGame />} />
+        <Route path="/wheel" element={<DailyWheel />} />
+        <Route path="/tournament" element={<Tournament />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
         <Route path="/vip" element={<Vip />} />
         <Route path="/responsible-gaming" element={<ResponsibleGaming />} />

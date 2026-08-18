@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "@/lib/api";
 import { MACHINE_ART, FLAGSHIP_ART } from "@/data/gameMeta";
@@ -13,7 +13,36 @@ import {
   GameController,
   Skull,
   RocketLaunch,
+  MagnifyingGlass,
+  Trophy,
+  Sparkle,
 } from "@phosphor-icons/react";
+
+// Map each slot theme to a player-facing category tab.
+const THEME_CATEGORY = {
+  dragon: "Dragons",
+  fortune: "Fortune",
+  dynasty: "Fortune",
+  goldrush: "Fortune",
+  zodiac: "Fortune",
+  panda: "Fortune",
+  sun: "Fortune",
+  olympus: "Fortune",
+  egypt: "Egyptian",
+  adventure: "Egyptian",
+  naval: "Ocean",
+  fishing: "Ocean",
+  pirate: "Ocean",
+  heist: "Military",
+  inferno: "Military",
+  western: "Military",
+  candy: "Military",
+  voodoo: "Military",
+  tribal: "Military",
+  bushido: "Military",
+};
+const CATEGORIES = ["All", "Dragons", "Fortune", "Military", "Egyptian", "Ocean"];
+const catOf = (s) => THEME_CATEGORY[s.theme] || "Military";
 
 function CornerCard({
   children,
@@ -53,6 +82,8 @@ function CornerCard({
 export default function Lobby() {
   const navigate = useNavigate();
   const [slots, setSlots] = useState([]);
+  const [query, setQuery] = useState("");
+  const [cat, setCat] = useState("All");
 
   useEffect(() => {
     api
@@ -67,6 +98,22 @@ export default function Lobby() {
       })
       .catch(() => {});
   }, []);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return slots.filter((s) => {
+      const okCat = cat === "All" || catOf(s) === cat;
+      const okQ =
+        !q ||
+        s.name.toLowerCase().includes(q) ||
+        (s.tagline || "").toLowerCase().includes(q) ||
+        (s.theme || "").toLowerCase().includes(q);
+      return okCat && okQ;
+    });
+  }, [slots, query, cat]);
+
+  const catCount = (c) =>
+    c === "All" ? slots.length : slots.filter((s) => catOf(s) === c).length;
 
   const symbolPreview = {
     gates_of_glory: ["crown", "gem_red", "orb"],
@@ -108,8 +155,109 @@ export default function Lobby() {
         <AnimatedShowcase testId="lobby-preview-video" variant="game-preview" />
       </div>
 
-      {/* SLOTS GRID (asymmetric) */}
+      {/* LIVE OPS — Wheel + Tournament */}
       <LobbyHype />
+      <div className="grid sm:grid-cols-2 gap-5 mb-10 mt-6">
+        <button
+          data-testid={LOBBY.wheelCard}
+          onClick={() => navigate("/wheel")}
+          className="relative text-left overflow-hidden group border border-gold/40 hover:-translate-y-1 transition-transform duration-300"
+          style={{
+            background:
+              "radial-gradient(130% 130% at 0% 0%, #2a1e05 0%, #0a0d0a 68%)",
+          }}
+        >
+          <div className="p-6 min-h-[140px] flex items-center gap-5">
+            <div className="shrink-0 w-16 h-16 rounded-full border-2 border-gold/60 flex items-center justify-center glow-gold animate-spin-slow">
+              <Sparkle size={32} weight="fill" className="text-gold" />
+            </div>
+            <div>
+              <p className="font-mono text-[10px] tracking-[0.3em] text-gold/70">
+                // DAILY REWARD
+              </p>
+              <h3 className="font-display text-3xl tracking-wide gold-gradient leading-none">
+                STREAK WHEEL
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Free daily spin — up to 50,000 credits. Keep your streak for a
+                x2 payout.
+              </p>
+            </div>
+            <CaretRight
+              size={22}
+              className="ml-auto text-gold/60 group-hover:translate-x-1 transition-transform"
+            />
+          </div>
+        </button>
+
+        <button
+          data-testid={LOBBY.tournamentCard}
+          onClick={() => navigate("/tournament")}
+          className="relative text-left overflow-hidden group border border-nvg/40 hover:-translate-y-1 transition-transform duration-300"
+          style={{
+            background:
+              "radial-gradient(130% 130% at 100% 0%, #05231a 0%, #0a0d0a 68%)",
+          }}
+        >
+          <div className="p-6 min-h-[140px] flex items-center gap-5">
+            <div className="shrink-0 w-16 h-16 rounded-full border-2 border-nvg/60 flex items-center justify-center glow-nvg">
+              <Trophy size={32} weight="fill" className="text-nvg" />
+            </div>
+            <div>
+              <p className="font-mono text-[10px] tracking-[0.3em] text-nvg/70">
+                // LIVE TOURNAMENT
+              </p>
+              <h3 className="font-display text-3xl tracking-wide nvg-text leading-none">
+                OPERATION HIGH ROLLER
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                5,000,000 credit prize pool. Rack up wins, climb the board, cash
+                out at reset.
+              </p>
+            </div>
+            <CaretRight
+              size={22}
+              className="ml-auto text-nvg/60 group-hover:translate-x-1 transition-transform"
+            />
+          </div>
+        </button>
+      </div>
+
+      {/* SEARCH + CATEGORY FILTERS */}
+      <div className="mb-6 space-y-4">
+        <div className="relative max-w-md">
+          <MagnifyingGlass
+            size={18}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+          />
+          <input
+            data-testid={LOBBY.search}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search missions by name or theme…"
+            className="w-full bg-black/50 border border-border focus:border-nvg text-foreground font-mono text-sm pl-10 pr-4 py-2.5 outline-none transition-colors"
+          />
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {CATEGORIES.map((c) => (
+            <button
+              key={c}
+              data-testid={LOBBY.tab(c)}
+              onClick={() => setCat(c)}
+              className={`font-stencil text-xs tracking-widest uppercase px-4 py-2 border transition-all ${
+                cat === c
+                  ? "border-nvg bg-nvg/15 text-nvg glow-nvg"
+                  : "border-border text-muted-foreground hover:border-nvg/50 hover:text-foreground"
+              }`}
+            >
+              {c}{" "}
+              <span className="opacity-60">({catCount(c)})</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* SLOTS GRID (asymmetric) */}
       <div className="flex items-center gap-3 mb-5">
         <span className="font-display text-2xl gold-gradient tracking-widest">
           ★ AAA FLAGSHIPS
@@ -120,7 +268,7 @@ export default function Lobby() {
         <div className="flex-1 h-px bg-gold/20" />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 auto-rows-fr">
-        {slots.map((s, i) => {
+        {filtered.map((s, i) => {
           const art = MACHINE_ART[s.id] || {
             accent: "#4EE44E",
             from: "#0a1f0a",
@@ -270,6 +418,16 @@ export default function Lobby() {
           );
         })}
       </div>
+
+      {filtered.length === 0 && (
+        <div
+          data-testid={LOBBY.empty}
+          className="hud p-10 text-center text-muted-foreground font-mono text-sm mt-2"
+        >
+          No missions match “{query}”{cat !== "All" ? ` in ${cat}` : ""}. Try a
+          different search or category.
+        </div>
+      )}
 
       {/* REINFORCEMENTS INBOUND — 100+ slots coming soon */}
       <div
