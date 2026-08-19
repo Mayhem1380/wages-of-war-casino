@@ -9,8 +9,8 @@ import { FLEET } from "@/constants/testIds";
 import api, { apiError } from "@/lib/api";
 import { toast } from "sonner";
 
-// Platform giveaway draw ~15 months out
-const GIVEAWAY_END = new Date("2027-09-15T00:00:00Z").getTime();
+// Platform giveaway draw locked to 12+ months out to keep the timer visible and seasonal.
+const GIVEAWAY_END = new Date(Date.now() + 395 * 24 * 60 * 60 * 1000).getTime();
 
 function GiveawayCountdown() {
   const [now, setNow] = useState(Date.now());

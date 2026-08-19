@@ -37,6 +37,24 @@
   border-color: hsl(var(--border));
 }
 
+button,
+a,
+input,
+select,
+textarea {
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease, background-color 180ms ease, opacity 180ms ease;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(78, 228, 78, 0.46), 0 0 0 5px rgba(78, 228, 78, 0.14);
+  border-color: rgba(78, 228, 78, 0.8);
+}
+
 body {
   margin: 0;
   background-color: #050605;

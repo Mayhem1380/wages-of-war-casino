@@ -40,19 +40,26 @@ function ensure() {
 export const soundManager = {
   isMuted: () => muted,
   setMuted: (v) => {
-    muted = v;
+    muted = Boolean(v);
     try {
-      localStorage.setItem("wow_muted", v ? "1" : "0");
+      localStorage.setItem("wow_muted", muted ? "1" : "0");
     } catch (e) {
       console.warn("sound pref persist failed", e);
     }
-    if (masterGain) masterGain.gain.value = v ? 0 : 0.5;
-  },
-  toggle: () => {
-    soundManager.setMuted(!muted);
+    if (masterGain) masterGain.gain.value = muted ? 0 : 0.52;
     return muted;
   },
+  toggle: () => {
+    const next = !muted;
+    soundManager.setMuted(next);
+    return next;
+  },
   prime: () => ensure(),
+  unlock: () => {
+    const c = ensure();
+    if (c && c.state === "suspended") c.resume();
+    return c;
+  },
 };
 
 function tone({

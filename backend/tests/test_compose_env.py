@@ -41,6 +41,28 @@ def test_public_slot_catalog_has_aaa_grade_roster():
     assert not missing, f"missing popular slots: {sorted(missing)}"
 
 
+def test_public_slot_catalog_has_global_popular_titles():
+    required = {
+        "book_of_dead",
+        "starburst",
+        "mega_moolah",
+        "wolf_gold",
+        "sweet_bonanza",
+        "gonzo_quest",
+        "thunderstruck_ii",
+        "buffalo",
+        "black_wolf",
+        "dead_or_alive_ii",
+        "reactoonz",
+        "divine_fortune",
+        "gold_party",
+        "cleopatra",
+        "legacy_of_dinosaurs",
+    }
+    missing = required - set(PUBLIC_SLOT_IDS)
+    assert not missing, f"missing global popular slot titles: {sorted(missing)}"
+
+
 def test_house_bankroll_ledger_and_coverage_are_defined():
     try:
         import server  # noqa: F401

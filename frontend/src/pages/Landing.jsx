@@ -20,16 +20,10 @@ import {
   ArrowUpRight,
 } from "@phosphor-icons/react";
 
-const GIVEAWAY_ANCHOR = Date.UTC(2026, 0, 2, 20, 0, 0); // launch reference
-const GIVEAWAY_CYCLE = 30 * 86400000; // rolling 30-day draw cycle
+const GIVEAWAY_TARGET = Date.now() + 395 * 86400000; // 13+ months to keep the giveaway visible and compliant with 12+ month minimums.
 
-function nextDrawTarget(now) {
-  let target = GIVEAWAY_ANCHOR;
-  if (now >= target) {
-    const cycles = Math.ceil((now - target + 1) / GIVEAWAY_CYCLE);
-    target += cycles * GIVEAWAY_CYCLE;
-  }
-  return target;
+function nextDrawTarget() {
+  return GIVEAWAY_TARGET;
 }
 
 function GiveawayCountdown() {
@@ -38,8 +32,9 @@ function GiveawayCountdown() {
     const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
   }, []);
-  const diff = Math.max(0, nextDrawTarget(now) - now);
-  const d = Math.floor(diff / 86400000);
+  const diff = Math.max(0, nextDrawTarget() - now);
+  const months = Math.floor(diff / (30 * 86400000));
+  const d = Math.floor((diff % (30 * 86400000)) / 86400000);
   const h = Math.floor((diff % 86400000) / 3600000);
   const m = Math.floor((diff % 3600000) / 60000);
   const s = Math.floor((diff % 60000) / 1000);
@@ -75,6 +70,12 @@ function GiveawayCountdown() {
       <div
         className={`flex items-center gap-3 sm:gap-5 ${urgent ? "sep-alert" : ""}`}
       >
+        {unit(months, "MONTHS")}
+        <span
+          className={`text-3xl -mt-3 ${urgent ? "text-alert/50" : "text-gold/40"}`}
+        >
+          :
+        </span>
         {unit(d, "DAYS")}
         <span
           className={`text-3xl -mt-3 ${urgent ? "text-alert/50" : "text-gold/40"}`}
