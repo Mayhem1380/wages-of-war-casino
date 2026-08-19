@@ -40,6 +40,11 @@ from games import (
 )
 import cashier
 
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger("wagesofwar")
+
 # ---------------------------------------------------------------------------
 # Setup
 # ---------------------------------------------------------------------------
@@ -168,11 +173,6 @@ CASHBACK_COOLDOWN_HOURS = 168  # weekly
 
 app = FastAPI(title="Wages of War Casino API")
 api = APIRouter(prefix="/api")
-
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger("wagesofwar")
 
 
 async def record_house_cashflow(
