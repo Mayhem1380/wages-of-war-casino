@@ -14,9 +14,13 @@ import hmac
 import json
 import uuid
 import logging
+from pathlib import Path
 from typing import Any, Optional
 
 import httpx
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).resolve().parent / ".env")
 
 logger = logging.getLogger("wagesofwar.cashier")
 
