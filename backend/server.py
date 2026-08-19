@@ -48,9 +48,21 @@ logger = logging.getLogger("wagesofwar")
 # ---------------------------------------------------------------------------
 # Setup
 # ---------------------------------------------------------------------------
-mongo_url = os.environ["MONGO_URL"]
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ["DB_NAME"]]
+mongo_url = os.environ.get("MONGO_URL")
+db_name = os.environ.get("DB_NAME")
+client = None
+db = None
+
+
+def _ensure_db():
+    global client, db
+    if client is None or db is None:
+        if not mongo_url or not db_name:
+            raise RuntimeError("MONGO_URL and DB_NAME must be configured before initializing the database.")
+        client = AsyncIOMotorClient(mongo_url)
+        db = client[db_name]
+    return db
+
 
 JWT_SECRET = os.environ["JWT_SECRET"]
 JWT_ALGORITHM = "HS256"
@@ -77,78 +89,93 @@ STRIPE_WEBHOOK_SECRETS = [
 TAX_MODE = "full"  # US + digital credits -> Stripe managed payments
 
 if STRIPE_USE_MOCK:
+    class _MockListResult(dict):
+        def __init__(self, data=None):
+            self.data = list(data or [])
+            super().__init__(data=self.data)
+
+        def auto_paging_iter(self):
+            return iter(self.data)
+
+    class _MockSession(dict):
+        def __getattr__(self, name):
+            return self.get(name)
+
+    class _MockVerification(dict):
+        def __getattr__(self, name):
+            return self.get(name)
+
     class _MockStripeSession:
         @staticmethod
         def create(**kwargs):
             sid = "cs_" + uuid.uuid4().hex[:16]
             metadata = kwargs.get("metadata") or {}
-            return type(
-                "MockSession",
-                (),
-                {
-                    "id": sid,
-                    "url": f"https://checkout.stripe.com/pay/{sid}",
-                    "status": "complete" if metadata.get("kind") == "cashier_deposit" else "open",
-                    "payment_status": "paid" if metadata.get("kind") == "cashier_deposit" else "unpaid",
-                },
-            )()
+            obj = _MockSession(
+                id=sid,
+                url=f"https://checkout.stripe.com/pay/{sid}",
+                status="complete" if metadata.get("kind") == "cashier_deposit" else "open",
+                payment_status="paid" if metadata.get("kind") == "cashier_deposit" else "unpaid",
+            )
+            obj.id = sid
+            obj.url = f"https://checkout.stripe.com/pay/{sid}"
+            obj.status = "complete" if metadata.get("kind") == "cashier_deposit" else "open"
+            obj.payment_status = "paid" if metadata.get("kind") == "cashier_deposit" else "unpaid"
+            return obj
 
         @staticmethod
         def retrieve(session_id):
-            return type(
-                "MockSession",
-                (),
-                {
-                    "id": session_id,
-                    "status": "complete",
-                    "payment_status": "paid",
-                },
-            )()
+            obj = _MockSession(id=session_id, status="complete", payment_status="paid")
+            obj.id = session_id
+            obj.status = "complete"
+            obj.payment_status = "paid"
+            return obj
 
     class _MockVerificationSession:
         @staticmethod
         def create(**kwargs):
             sid = "vs_" + uuid.uuid4().hex[:16]
-            return type(
-                "MockVerification",
-                (),
-                {
-                    "id": sid,
-                    "url": f"https://verify.stripe.com/{sid}",
-                    "status": "requires_input",
-                },
-            )()
+            obj = _MockVerification(id=sid, url=f"https://verify.stripe.com/{sid}", status="requires_input")
+            obj.id = sid
+            obj.url = f"https://verify.stripe.com/{sid}"
+            obj.status = "requires_input"
+            return obj
 
         @staticmethod
         def retrieve(session_id, expand=None):
-            return type(
-                "MockVerification",
-                (),
-                {
-                    "id": session_id,
-                    "status": "requires_input",
-                    "verified_outputs": {},
-                    "last_error": None,
-                },
-            )()
+            obj = _MockVerification(
+                id=session_id,
+                status="requires_input",
+                verified_outputs={},
+                last_error=None,
+            )
+            obj.id = session_id
+            obj.status = "requires_input"
+            obj.verified_outputs = {}
+            obj.last_error = None
+            return obj
 
     class _MockProduct:
         @staticmethod
         def list(active=True, limit=100):
-            return type("ListResult", (), {"data": []})()
+            return _MockListResult([])
 
         @staticmethod
         def create(**kwargs):
-            return type("Product", (), {"id": "prod_mock_" + uuid.uuid4().hex[:12]})()
+            obj = type("Product", (), {})()
+            obj.id = "prod_mock_" + uuid.uuid4().hex[:12]
+            obj.metadata = kwargs.get("metadata") or {}
+            return obj
 
     class _MockPrice:
         @staticmethod
         def list(lookup_keys=None, active=True, limit=1):
-            return type("ListResult", (), {"data": []})()
+            return _MockListResult([])
 
         @staticmethod
         def create(**kwargs):
-            return type("Price", (), {"id": "price_mock_" + uuid.uuid4().hex[:12]})()
+            obj = type("Price", (), {})()
+            obj.id = "price_mock_" + uuid.uuid4().hex[:12]
+            return obj
 
     class _MockWebhook:
         @staticmethod
@@ -210,11 +237,7 @@ async def record_house_cashflow(
         {
             "$setOnInsert": {
                 "starting_bankroll_cents": 0,
-                "bankroll_cents": 0,
-                "cash_in_cents": 0,
-                "cash_out_cents": 0,
                 "pending_payout_cents": 0,
-                "updated_at": now_iso,
             },
             "$inc": {
                 "bankroll_cents": delta_cents,
@@ -2647,6 +2670,8 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup():
     validate_runtime_config()
+    global db
+    db = _ensure_db()
     await db.users.create_index("email", unique=True)
     await db.users.create_index("user_id", unique=True)
     await db.user_sessions.create_index("session_token")
@@ -2700,4 +2725,8 @@ async def startup():
 
 @app.on_event("shutdown")
 async def shutdown():
-    client.close()
+    global client, db
+    if client is not None:
+        client.close()
+        client = None
+        db = None
