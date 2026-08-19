@@ -2,7 +2,7 @@ name: Build and Deploy Frontend via SCP
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, chore/ci-lint-fixes ]
   workflow_dispatch: {}
 
 jobs:
