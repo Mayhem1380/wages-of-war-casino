@@ -339,8 +339,7 @@ export default function Cashier() {
           </div>
           <div>Wages of War Operations Ltd.</div>
           <div>
-            Min deposit ${meta?.min_deposit_usd} · Min withdraw $
-            {meta?.min_withdraw_usd}
+            Min deposit ${meta?.min_deposit_usd} · Max deposit ${meta?.max_deposit_usd} · Min withdraw ${meta?.min_withdraw_usd ? `$${meta.min_withdraw_usd}` : "$0"} · Max withdraw ${meta?.max_withdraw_usd ? `$${meta.max_withdraw_usd}` : "$0"}
           </div>
         </div>
       </div>

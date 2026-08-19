@@ -51,12 +51,18 @@ JWT_SECRET = os.environ["JWT_SECRET"]
 JWT_ALGORITHM = "HS256"
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:3000")
 
-stripe.api_key = os.environ.get("STRIPE_SECRET_KEY") or "sk_test_emergent"
+STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "").strip()
+if not STRIPE_SECRET_KEY:
+    raise RuntimeError("STRIPE_SECRET_KEY is required")
+stripe.api_key = STRIPE_SECRET_KEY
 STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
 STRIPE_WEBHOOK_SECRETS = [
     s.strip() for s in STRIPE_WEBHOOK_SECRET.split(",") if s.strip()
 ]
 TAX_MODE = "full"  # US + digital credits -> Stripe managed payments
+
+MAX_DEPOSIT_AUD = cashier.MAX_DEPOSIT_AUD
+MAX_WITHDRAW_AUD = cashier.MAX_WITHDRAW_AUD
 
 STARTING_BALANCE = 10000.0
 DAILY_BONUS_COOLDOWN_HOURS = 24
@@ -69,6 +75,126 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger("wagesofwar")
+
+
+async def record_house_cashflow(
+    amount_usd: float,
+    kind: str,
+    reason: str,
+    metadata: Optional[dict] = None,
+):
+    """Track the house bankroll ledger for inflow/outflow events.
+
+    Positive cashflow means money comes into the house. Negative cashflow means
+    the house pays out or credits a player. This keeps the platform solvent and
+    provides automatic payout coverage reporting.
+    """
+    amount = float(amount_usd or 0.0)
+    signed_amount = abs(amount)
+    cents = int(round(signed_amount * 100.0))
+    inward_kinds = {"house_win", "player_loss", "deposit", "inflow"}
+    delta_cents = cents if kind in inward_kinds else -cents
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    await db.house_ledger.insert_one(
+        {
+            "kind": kind,
+            "reason": reason,
+            "amount_usd": round(signed_amount, 2),
+            "delta_cents": delta_cents,
+            "metadata": metadata or {},
+            "created_at": now_iso,
+        }
+    )
+
+    await db.house_bankroll.update_one(
+        {"_id": "house"},
+        {
+            "$setOnInsert": {
+                "starting_bankroll_cents": 0,
+                "bankroll_cents": 0,
+                "cash_in_cents": 0,
+                "cash_out_cents": 0,
+                "pending_payout_cents": 0,
+                "updated_at": now_iso,
+            },
+            "$inc": {
+                "bankroll_cents": delta_cents,
+                "cash_in_cents": max(delta_cents, 0),
+                "cash_out_cents": max(-delta_cents, 0),
+            },
+            "$set": {"updated_at": now_iso},
+        },
+        upsert=True,
+    )
+    return await get_house_bankroll_summary()
+
+
+async def get_house_bankroll_summary():
+    summary = await db.house_bankroll.find_one({"_id": "house"}, {"_id": 0})
+    if not summary:
+        summary = {
+            "starting_bankroll_cents": 0,
+            "bankroll_cents": 0,
+            "cash_in_cents": 0,
+            "cash_out_cents": 0,
+            "pending_payout_cents": 0,
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }
+    available = max(summary.get("bankroll_cents", 0), 0)
+    coverage = 0.0
+    if summary.get("cash_in_cents", 0):
+        coverage = round(available / max(summary["cash_in_cents"], 1), 4)
+    return {
+        "starting_bankroll_cents": int(summary.get("starting_bankroll_cents", 0)),
+        "bankroll_cents": int(summary.get("bankroll_cents", 0)),
+        "bankroll_usd": round(int(summary.get("bankroll_cents", 0)) / 100.0, 2),
+        "cash_in_cents": int(summary.get("cash_in_cents", 0)),
+        "cash_out_cents": int(summary.get("cash_out_cents", 0)),
+        "pending_payout_cents": int(summary.get("pending_payout_cents", 0)),
+        "available_cents": available,
+        "available_usd": round(available / 100.0, 2),
+        "coverage_ratio": coverage,
+        "updated_at": summary.get("updated_at"),
+    }
+
+
+def validate_runtime_config() -> None:
+    """Log high-impact config issues so production misconfigurations are obvious."""
+    env_name = os.environ.get("ENVIRONMENT", os.environ.get("APP_ENV", "")).lower()
+    is_prod = env_name in {"prod", "production", "live"}
+
+    issues = []
+    warnings = []
+
+    if STRIPE_SECRET_KEY.startswith("sk_test_"):
+        warnings.append("STRIPE_SECRET_KEY is a test key (sk_test_*)")
+
+    if not STRIPE_WEBHOOK_SECRETS:
+        issues.append("STRIPE_WEBHOOK_SECRET is missing")
+
+    if not os.environ.get("FRONTEND_URL", "").strip():
+        issues.append("FRONTEND_URL is missing")
+
+    if cashier._is_placeholder_np():
+        warnings.append("NOWPAYMENTS_API_KEY is placeholder/missing; crypto deposits run in sandbox")
+
+    if "sandbox" in cashier.NOWPAYMENTS_BASE_URL.lower():
+        warnings.append("NOWPAYMENTS_BASE_URL points to sandbox")
+
+    if cashier.is_placeholder_vault():
+        warnings.append("VAULT_API_KEY is placeholder/test; withdrawals stay in local pending flow")
+
+    for msg in warnings:
+        logger.warning("CONFIG WARNING: %s", msg)
+
+    if issues:
+        for msg in issues:
+            logger.error("CONFIG ERROR: %s", msg)
+        if is_prod:
+            raise RuntimeError(
+                "Invalid production configuration. Resolve CONFIG ERROR entries and redeploy."
+            )
 
 
 # ---------------------------------------------------------------------------
@@ -133,6 +259,10 @@ def public_user(u: dict) -> dict:
         "real_balance_usd": round(int(u.get("real_balance_cents", 0)) / 100.0, 2),
         "kyc_status": u.get("kyc_status", "not_started"),
         "kyc_approved": bool(u.get("kyc_approved", False)),
+        "signup_verification_bonus_claimed": bool(
+            u.get("signup_verification_bonus_claimed", False)
+        ),
+        "signup_verification_bonus_amount": 10.0,
     }
 
 
@@ -370,6 +500,73 @@ class KycSessionInput(BaseModel):
     origin_url: Optional[str] = None
 
 
+class KycBankingDetailsInput(BaseModel):
+    account_holder: str = Field(min_length=2)
+    bank_name: str = Field(min_length=2)
+    bank_country: str = Field(min_length=2)
+    account_number: str = Field(min_length=4)
+    bsb_code: Optional[str] = None
+    routing_number: Optional[str] = None
+    iban: Optional[str] = None
+    swift_code: Optional[str] = None
+    address_line1: Optional[str] = None
+
+    @classmethod
+    def validate_details(cls, details: "KycBankingDetailsInput") -> None:
+        if details.iban:
+            if len(details.iban.replace(" ", "")) < 8:
+                raise ValueError("IBAN is invalid")
+            return
+        country = (details.bank_country or "").upper()
+        if country in {"AU", "AUS", "AUSTRALIA"}:
+            if not details.bsb_code:
+                raise ValueError("BSB code is required for Australian bank accounts")
+        elif country in {"US", "USA", "UNITED STATES"}:
+            if not details.routing_number:
+                raise ValueError("Routing number is required for US bank accounts")
+        elif country in {"GB", "UK", "GBR", "UNITED KINGDOM"}:
+            if not details.swift_code and not details.account_number:
+                raise ValueError("Bank details are incomplete for UK accounts")
+        if not details.account_number:
+            raise ValueError("Account number is required")
+
+
+@api.post("/kyc/banking")
+async def kyc_banking(payload: KycBankingDetailsInput, user: dict = Depends(require_user)):
+    try:
+        KycBankingDetailsInput.validate_details(payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    cleaned = {
+        "account_holder": payload.account_holder.strip(),
+        "bank_name": payload.bank_name.strip(),
+        "bank_country": payload.bank_country.strip(),
+        "account_number": payload.account_number.strip(),
+        "bsb_code": (payload.bsb_code or "").strip(),
+        "routing_number": (payload.routing_number or "").strip(),
+        "iban": (payload.iban or "").strip(),
+        "swift_code": (payload.swift_code or "").strip(),
+        "address_line1": (payload.address_line1 or "").strip(),
+        "verified_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.users.update_one(
+        {"user_id": user["user_id"]},
+        {"$set": {"kyc_banking_details": cleaned, "kyc_banking_verified": True, "kyc_banking_status": "verified"}},
+    )
+    return {"ok": True, "banking_verified": True}
+
+
+@api.get("/kyc/banking")
+async def kyc_banking_get(user: dict = Depends(require_user)):
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
+    details = fresh.get("kyc_banking_details") or {}
+    return {
+        "banking_verified": bool(fresh.get("kyc_banking_verified")),
+        "banking_status": fresh.get("kyc_banking_status", "not_started"),
+        "details": details,
+    }
+
+
 @api.post("/kyc/session")
 async def kyc_session(payload: KycSessionInput, user: dict = Depends(require_user)):
     fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
@@ -412,6 +609,8 @@ async def kyc_status(user: dict = Depends(require_user)):
         "kyc_approved": bool(fresh.get("kyc_approved")),
         "status": fresh.get("kyc_status", "not_started"),
         "error": fresh.get("kyc_error"),
+        "banking_verified": bool(fresh.get("kyc_banking_verified")),
+        "banking_status": fresh.get("kyc_banking_status", "not_started"),
     }
 
 
@@ -459,6 +658,12 @@ async def games_gamble(payload: GambleInput, user: dict = Depends(require_user))
 
     if payout > 0:
         await adjust_balance(user["user_id"], payout)
+        await record_house_cashflow(
+            payout,
+            "player_payout",
+            "gamble_win",
+            {"user_id": user["user_id"], "mode": payload.mode, "choice": payload.choice},
+        )
         await record_transaction(
             user["user_id"],
             "gamble_win",
@@ -466,6 +671,12 @@ async def games_gamble(payload: GambleInput, user: dict = Depends(require_user))
             {"mode": payload.mode, "choice": payload.choice},
         )
     else:
+        await record_house_cashflow(
+            amt,
+            "house_win",
+            "gamble_loss",
+            {"user_id": user["user_id"], "mode": payload.mode, "choice": payload.choice},
+        )
         await record_transaction(
             user["user_id"],
             "gamble_loss",
@@ -596,6 +807,7 @@ async def register(payload: RegisterInput, response: Response):
         "biggest_win": 0.0,
         "games_played": 0,
         "last_bonus_claim": None,
+        "signup_verification_bonus_claimed": False,
         "last_cashback_at": datetime.now(timezone.utc).isoformat(),
         "cashback_wagered_snapshot": 0.0,
         "cashback_won_snapshot": 0.0,
@@ -715,6 +927,7 @@ async def google_session(request: Request, response: Response):
             "biggest_win": 0.0,
             "games_played": 0,
             "last_bonus_claim": None,
+            "signup_verification_bonus_claimed": False,
             "last_cashback_at": datetime.now(timezone.utc).isoformat(),
             "cashback_wagered_snapshot": 0.0,
             "cashback_won_snapshot": 0.0,
@@ -1005,6 +1218,20 @@ async def keno_play(payload: KenoInput, user: dict = Depends(require_user)):
         biggest=result["win"],
         played=1,
     )
+    if result["win"] > payload.stake:
+        await record_house_cashflow(
+            result["win"] - payload.stake,
+            "player_payout",
+            "keno_win",
+            {"user_id": user["user_id"], "picks": result["picks"], "stake": payload.stake},
+        )
+    elif payload.stake > 0:
+        await record_house_cashflow(
+            payload.stake,
+            "house_win",
+            "keno_loss",
+            {"user_id": user["user_id"], "picks": result["picks"], "stake": payload.stake},
+        )
     await record_transaction(
         user["user_id"],
         "keno",
@@ -1039,6 +1266,20 @@ async def coinflip(payload: CoinFlipInput, user: dict = Depends(require_user)):
         biggest=win,
         played=1,
     )
+    if win > 0:
+        await record_house_cashflow(
+            win,
+            "player_payout",
+            "coinflip_win",
+            {"user_id": user["user_id"], "side": payload.side, "outcome": outcome},
+        )
+    else:
+        await record_house_cashflow(
+            payload.bet,
+            "house_win",
+            "coinflip_loss",
+            {"user_id": user["user_id"], "side": payload.side, "outcome": outcome},
+        )
     await record_transaction(
         user["user_id"],
         "coinflip",
@@ -1051,6 +1292,70 @@ async def coinflip(payload: CoinFlipInput, user: dict = Depends(require_user)):
         "win": round(win, 2),
         "net": round(net, 2),
         "balance": round(updated["balance"], 2),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Signup + verify bonus (casino-safe terms)
+# ---------------------------------------------------------------------------
+SIGNUP_VERIFY_BONUS_AMOUNT = 10.0
+
+@api.get("/bonus/verify-status")
+async def signup_verify_bonus_status(user: dict = Depends(require_user)):
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
+    claimed = bool(fresh.get("signup_verification_bonus_claimed", False))
+    eligible = bool(fresh.get("kyc_approved", False)) and not claimed
+    return {
+        "amount": SIGNUP_VERIFY_BONUS_AMOUNT,
+        "claimed": claimed,
+        "eligible": eligible,
+        "kyc_approved": bool(fresh.get("kyc_approved", False)),
+        "terms": {
+            "wagering": "10x slots only within 30 days",
+            "min_kyc_required": True,
+            "max_cashout": 10.0,
+            "bonus_is_promotional_credit": True,
+            "non_withdrawable_as_cash": True,
+            "one_claim_per_account": True,
+            "no_stack_with_other_bonus_offers": True,
+        },
+    }
+
+
+@api.post("/bonus/verify")
+async def signup_verify_bonus_claim(user: dict = Depends(require_user)):
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
+    if fresh.get("signup_verification_bonus_claimed", False):
+        raise HTTPException(status_code=400, detail="Signup verification bonus already claimed")
+    if not fresh.get("kyc_approved", False):
+        raise HTTPException(
+            status_code=403,
+            detail="Complete identity verification to unlock the $10 signup bonus.",
+        )
+
+    await db.users.update_one(
+        {"user_id": user["user_id"]},
+        {"$inc": {"balance": SIGNUP_VERIFY_BONUS_AMOUNT}, "$set": {"signup_verification_bonus_claimed": True}},
+    )
+    await record_transaction(
+        user["user_id"],
+        "signup_verify_bonus",
+        SIGNUP_VERIFY_BONUS_AMOUNT,
+        {"note": "Verified signup bonus; 10x slots-only wagering, max cashout $10"},
+    )
+    updated = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
+    return {
+        "claimed": SIGNUP_VERIFY_BONUS_AMOUNT,
+        "balance": round(updated["balance"], 2),
+        "terms": {
+            "wagering": "10x slots only within 30 days",
+            "min_kyc_required": True,
+            "max_cashout": 10.0,
+            "bonus_is_promotional_credit": True,
+            "non_withdrawable_as_cash": True,
+            "one_claim_per_account": True,
+            "no_stack_with_other_bonus_offers": True,
+        },
     }
 
 
@@ -1418,6 +1723,7 @@ async def admin_stats(admin: dict = Depends(require_admin)):
         ]
     ).to_list(1)
     totals = agg[0] if agg else {}
+    bankroll = await get_house_bankroll_summary()
     return {
         "players": totals.get("players", 0),
         "total_balance": round(totals.get("total_balance", 0.0) or 0.0, 2),
@@ -1428,6 +1734,9 @@ async def admin_stats(admin: dict = Depends(require_admin)):
         "deposits": await db.payment_transactions.count_documents(
             {"payment_status": "paid"}
         ),
+        "house_bankroll_usd": bankroll["bankroll_usd"],
+        "house_payout_coverage_usd": bankroll["available_usd"],
+        "house_coverage_ratio": bankroll["coverage_ratio"],
     }
 
 
@@ -1620,6 +1929,12 @@ async def _credit_if_paid(record):
                     }
                 },
             )
+            await record_house_cashflow(
+                usd_cents / 100.0,
+                "deposit",
+                "cashier_deposit",
+                {"user_id": record["user_id"], "session_id": record["session_id"]},
+            )
             await record_transaction(
                 record["user_id"],
                 "deposit_fiat",
@@ -1766,9 +2081,13 @@ async def cashier_currencies():
     return {
         "currencies": cashier.currency_list(),
         "min_deposit_aud": cashier.MIN_DEPOSIT_AUD,
+        "max_deposit_aud": cashier.MAX_DEPOSIT_AUD,
         "min_withdraw_aud": cashier.MIN_WITHDRAW_AUD,
+        "max_withdraw_aud": cashier.MAX_WITHDRAW_AUD,
         "min_deposit_usd": round(cashier.MIN_DEPOSIT_USD_CENTS / 100.0, 2),
+        "max_deposit_usd": round(cashier.MAX_DEPOSIT_USD_CENTS / 100.0, 2),
         "min_withdraw_usd": round(cashier.MIN_WITHDRAW_USD_CENTS / 100.0, 2),
+        "max_withdraw_usd": round(cashier.MAX_WITHDRAW_USD_CENTS / 100.0, 2),
     }
 
 
@@ -1798,6 +2117,11 @@ async def cashier_deposit_stripe(
     if usd_cents < cashier.MIN_DEPOSIT_USD_CENTS:
         raise HTTPException(
             status_code=400, detail=f"Minimum deposit is {cashier.MIN_DEPOSIT_AUD} AUD"
+        )
+    if usd_cents > cashier.MAX_DEPOSIT_USD_CENTS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Maximum deposit is {cashier.MAX_DEPOSIT_AUD} AUD per transaction",
         )
     minor = cashier.to_minor_unit(payload.amount, code)
     try:
@@ -1975,6 +2299,11 @@ async def cashier_withdraw(payload: WithdrawInput, user: dict = Depends(require_
             status_code=400,
             detail=f"Minimum withdrawal is {cashier.MIN_WITHDRAW_AUD} AUD",
         )
+    if usd_cents > cashier.MAX_WITHDRAW_USD_CENTS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Maximum withdrawal is {cashier.MAX_WITHDRAW_AUD} AUD per transaction",
+        )
     fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
     if not fresh.get("kyc_approved"):
         raise HTTPException(
@@ -2014,6 +2343,14 @@ async def cashier_withdraw(payload: WithdrawInput, user: dict = Depends(require_
             "updated_at": now_iso,
         }
     )
+    await db.house_bankroll.update_one(
+        {"_id": "house"},
+        {
+            "$inc": {"pending_payout_cents": usd_cents},
+            "$set": {"updated_at": now_iso},
+        },
+        upsert=True,
+    )
     await record_transaction(
         user["user_id"],
         "withdrawal_request",
@@ -2041,6 +2378,19 @@ async def cashier_transactions(user: dict = Depends(require_user)):
 
 
 # ---- Admin cashier controls ----
+@api.get("/admin/bankroll")
+async def admin_bankroll(admin: dict = Depends(require_admin)):
+    bankroll = await get_house_bankroll_summary()
+    return {
+        "house_bankroll_usd": bankroll["bankroll_usd"],
+        "available_usd": bankroll["available_usd"],
+        "coverage_ratio": bankroll["coverage_ratio"],
+        "cash_in_usd": round(bankroll["cash_in_cents"] / 100.0, 2),
+        "cash_out_usd": round(bankroll["cash_out_cents"] / 100.0, 2),
+        "pending_payout_usd": round(bankroll["pending_payout_cents"] / 100.0, 2),
+    }
+
+
 @api.get("/admin/cashier/summary")
 async def admin_cashier_summary(admin: dict = Depends(require_admin)):
     agg = await db.cashier_transactions.aggregate(
@@ -2072,11 +2422,15 @@ async def admin_cashier_summary(admin: dict = Depends(require_admin)):
     bal = await db.users.aggregate(
         [{"$group": {"_id": None, "t": {"$sum": "$real_balance_cents"}}}]
     ).to_list(1)
+    bankroll = await get_house_bankroll_summary()
     return {
         "total_deposits_usd": round(deposits / 100.0, 2),
         "total_withdrawals_usd": round(withdrawals / 100.0, 2),
         "total_player_balances_usd": round((bal[0]["t"] if bal else 0) / 100.0, 2),
         "pending_withdrawals": pending_wd,
+        "house_bankroll_usd": bankroll["bankroll_usd"],
+        "house_payout_coverage_usd": bankroll["available_usd"],
+        "house_coverage_ratio": bankroll["coverage_ratio"],
     }
 
 
@@ -2135,6 +2489,17 @@ async def admin_cashier_withdrawal_action(
         await db.cashier_transactions.update_one(
             {"id": txn_id}, {"$set": {"status": "completed", "updated_at": now_iso}}
         )
+        await db.house_bankroll.update_one(
+            {"_id": "house"},
+            {"$inc": {"pending_payout_cents": -int(t["amount_usd_cents"])}, "$set": {"updated_at": now_iso}},
+            upsert=True,
+        )
+        await record_house_cashflow(
+            t["amount_usd_cents"] / 100.0,
+            "player_payout",
+            "cashier_withdrawal_approved",
+            {"user_id": t["user_id"], "txn_id": txn_id, "by": admin["email"]},
+        )
         await record_transaction(
             t["user_id"],
             "withdrawal_approved",
@@ -2183,10 +2548,27 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup():
+    validate_runtime_config()
     await db.users.create_index("email", unique=True)
     await db.users.create_index("user_id", unique=True)
     await db.user_sessions.create_index("session_token")
     await db.payment_transactions.create_index("session_id")
+    await db.house_ledger.create_index("created_at")
+    await db.house_bankroll.create_index("_id")
+    await db.house_bankroll.update_one(
+        {"_id": "house"},
+        {
+            "$setOnInsert": {
+                "starting_bankroll_cents": 0,
+                "bankroll_cents": 0,
+                "cash_in_cents": 0,
+                "cash_out_cents": 0,
+                "pending_payout_cents": 0,
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+            }
+        },
+        upsert=True,
+    )
     # seed admin
     admin_email = os.environ.get("ADMIN_EMAIL")
     admin_password = os.environ.get("ADMIN_PASSWORD")

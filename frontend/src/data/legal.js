@@ -437,51 +437,58 @@ export const LEGAL = {
       {
         h: "1. General",
         body: [
-          "These apply to all bonuses, promotions, free spins, cashback. Supplement general T&Cs. Intended for recreational players.",
+          "These apply to all bonuses, promotions, free spins, cashback. These terms are designed to protect the casino's operating margin while still offering a modest, regulated on-platform welcome offer.",
         ],
       },
       {
-        h: "2. Eligibility",
+        h: "2. Signup + Verify Bonus",
         body: [
-          "One bonus per player/household/IP/device. Verified account required.",
+          "New players may claim a single $10 signup and verification bonus once their account has passed identity verification (KYC). The bonus is credited only after KYC approval and is not available for unverified accounts.",
+          "This bonus is a promotional credit and not withdrawable as cash. It is subject to a 10x wagering requirement on slot games only and a maximum cashout cap of $10 from bonus winnings.",
+          "The bonus cannot be stacked with any other offer, promo or cashback credit. One claim per player/account, household, device and IP address.",
         ],
       },
       {
-        h: "3. Wagering Requirements",
+        h: "3. Eligibility",
         body: [
-          "35x bonus amount (unless stated otherwise). Must complete within 30 days.",
-          "Game contributions: Slots 100%, Table Games 10%, Video Poker 10%, Live Casino 10%, Keno & Scratch 100%, Others 0%.",
-          "Max bet while wagering: €5 per spin/round.",
+          "Accounts must be 18+ and verified. Bonus is only valid on accounts with a matching KYC record, valid contact details, and no active fraud or AML flags. The casino may reject or reverse bonus credit if eligibility fails or if abuse is detected.",
         ],
       },
       {
-        h: "4. Maximum Withdrawal",
+        h: "4. Wagering Requirements",
         body: [
-          "No-deposit bonus: €100 max withdrawal. Deposit match: 10x bonus amount. Free spin winnings: €500 cap.",
+          "The signup bonus carries a 10x wagering requirement on slot games only. Wagering must be completed within 30 days of credit. Table games, live casino, sports, jackpots and other non-slot content do not contribute to the requirement.",
+          "Maximum stake while wagering is capped at $2 per spin unless the casino expressly approves a higher limit in writing. The casino may refuse any wager deemed to exploit the promo.",
         ],
       },
       {
-        h: "5. Free Spins",
+        h: "5. Maximum Withdrawal",
         body: [
-          "Valid 7 days. Winnings credited as bonus funds subject to wagering.",
+          "Bonus funds and winnings from the bonus are capped at a maximum cashout of $10. The initial $10 bonus itself is a liability offset and is not withdrawable as cash. Withdrawal requests are only processed after identity verification and compliance checks are complete.",
         ],
       },
       {
-        h: "6. Cashback & VIP",
+        h: "6. Free Spins",
         body: [
-          "Calculated on net losses. Credited as real money (no wagering). Weekly auto-credit for active players.",
+          "Valid 7 days. Winnings credited as bonus funds subject to wagering. Eligible only on approved slot titles in the operations lobby.",
         ],
       },
       {
-        h: "7. Bonus Abuse",
+        h: "7. Cashback & VIP",
         body: [
-          "Multi-accounting, coordinated play, exploiting errors, bots, hedging = revocation of bonus + winnings.",
+          "Calculated on net losses and credited as a separate promotional credit. Cashback availability does not increase any promotional bonus entitlement and is subject to account standing and compliance review.",
         ],
       },
       {
-        h: "8. Amendments",
+        h: "8. Bonus Abuse",
         body: [
-          "Changes take effect immediately for new bonuses; active bonuses honour original terms.",
+          "Multi-accounting, coordinated play, exploiting errors, bot use, chip-dumping, hedging, abuse of KYC or account manipulation, and any attempt to create artificial loss or gain will result in bonus forfeiture, account review, and confiscation of winnings derived from the abuse.",
+        ],
+      },
+      {
+        h: "9. Amendments",
+        body: [
+          "The casino may update or withdraw bonus offers at any time. Existing claims remain subject to the terms in effect at the time of award, unless the casino provides a written superseding notice.",
         ],
       },
       { h: "Contact", body: ["support@wagesofwarcasino.com"] },

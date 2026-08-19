@@ -115,11 +115,11 @@ class TestAuth:
 
 # ---------------- SLOTS ----------------
 class TestSlots:
-    def test_list_slots_twenty_four_sorted(self):
+    def test_list_slots_extended_catalog_sorted(self):
         r = requests.get(f"{API}/games/slots")
         assert r.status_code == 200
         arr = r.json()
-        assert len(arr) == 24, f"expected 24 slots, got {len(arr)}"
+        assert len(arr) >= 32, f"expected at least 32 slots, got {len(arr)}"
         pops = [m["popularity"] for m in arr]
         assert pops == sorted(pops, reverse=True)
 
@@ -157,12 +157,24 @@ class TestSlots:
             "samurai_strike",
             "voodoo_vengeance",
             "corsair_cannons",
+            "ironclad_jackpots",
+            "blackout_royal",
+            "stormfront_seven",
+            "thunder_titans",
+            "wild_bandito",
+            "brigade_of_gold",
+            "night_ops_kingpin",
+            "midnight_vanguard",
+            "diamond_commando",
+            "vortex_vanguard",
+            "redline_reign",
+            "crimson_circuit",
         }
         ids = {m["id"] for m in arr}
         assert expected_flagship_ids.issubset(
             ids
         ), f"missing flagship ids: {expected_flagship_ids - ids}"
-        assert len(expected_flagship_ids) == 22
+        assert len(expected_flagship_ids) == 36
 
     def test_list_slots_recent_upgrades_present(self):
         """Verify the 4 recently-upgraded flagship slots are exposed."""
