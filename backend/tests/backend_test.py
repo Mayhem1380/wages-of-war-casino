@@ -169,6 +169,8 @@ class TestSlots:
             "vortex_vanguard",
             "redline_reign",
             "crimson_circuit",
+            "warpath_legends",
+            "bull_rush",
         }
         ids = {m["id"] for m in arr}
         assert expected_flagship_ids.issubset(

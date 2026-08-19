@@ -816,26 +816,21 @@ export const FLAGSHIP_IDS = [
   "samurai_strike",
   "voodoo_vengeance",
   "corsair_cannons",
+  "ironclad_jackpots",
+  "blackout_royal",
+  "stormfront_seven",
+  "thunder_titans",
+  "wild_bandito",
+  "brigade_of_gold",
+  "night_ops_kingpin",
+  "midnight_vanguard",
+  "diamond_commando",
+  "vortex_vanguard",
+  "redline_reign",
+  "crimson_circuit",
+  "warpath_legends",
   "bull_rush",
-  "buffalo_blast",
-  "prairie_royale",
-  "stampede_skyline",
-  "golden_bull_run",
 ];
-
-// newly added AAA flagship ids
-FLAGSHIP_IDS.push(
-  "aurora_strike",
-  "nebula_fortune",
-  "titan_city",
-  "valley_of_echoes",
-  "neon_reserve",
-  "celestial_forge",
-  "forge_of_the_lost",
-  "oasis_relics",
-  "stormbreaker",
-  "midnight_harvest",
-);
 
 export const BRAND = {
   hero: "/brand/hero.jpeg",
