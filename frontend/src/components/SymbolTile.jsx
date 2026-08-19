@@ -8,7 +8,7 @@ export function SymbolTile({
   className = "",
 }) {
   const meta = SYMBOL_META[id] || { text: "?", color: "#888" };
-  const Icon = meta.Icon;
+  const Icon = meta.Icon || (() => null);
   return (
     <div
       className={`relative flex items-center justify-center transition-transform duration-200 ${highlighted ? "scale-105" : ""} ${className}`}

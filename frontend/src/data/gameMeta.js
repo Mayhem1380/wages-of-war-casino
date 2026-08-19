@@ -122,25 +122,25 @@ export const SYMBOL_META = {
   lantern: { Icon: Fire, color: "#FF7A2E", img: "/slots/sym_lantern.png" },
   fan: { Icon: Feather, color: "#F6E27A", img: "/slots/sym_fan.png" },
 
-  shogun: { Icon: Shield, color: "#F6E27A" },
-  katana: { Icon: Sword, color: "#B8C4B8" },
-  moon_jp: { Icon: Moon, color: "#9FD0FF" },
-  crane: { Icon: Bird, color: "#EDEDED" },
+  shogun: { Icon: Shield, color: "#F6E27A", img: "/slots/sym_emperor.png" },
+  katana: { Icon: Sword, color: "#B8C4B8", img: "/slots/sym_rod.png" },
+  moon_jp: { Icon: Moon, color: "#9FD0FF", img: "/slots/sym_sundisc.png" },
+  crane: { Icon: Bird, color: "#EDEDED", img: "/slots/sym_suneagle.png" },
 
-  witchdoctor: { Icon: Skull, color: "#C07BFF" },
-  totem: { Icon: Campfire, color: "#FF7A2E" },
-  charm: { Icon: Nut, color: "#57E6C6" },
-  spirit: { Icon: Spiral, color: "#4EE44E" },
+  witchdoctor: { Icon: Skull, color: "#C07BFF", img: "/slots/sym_eye_ra.png" },
+  totem: { Icon: Campfire, color: "#FF7A2E", img: "/slots/sym_peak.png" },
+  charm: { Icon: Nut, color: "#57E6C6", img: "/slots/sym_blossom.png" },
+  spirit: { Icon: Spiral, color: "#4EE44E", img: "/slots/sym_firecoin.png" },
 
-  corsair: { Icon: Sailboat, color: "#7FE3FF" },
-  saber: { Icon: Sword, color: "#C9A06A" },
-  compass_sym: { Icon: Compass, color: "#F6E27A" },
-  doubloon: { Icon: Coins, color: "#FFD84E" },
+  corsair: { Icon: Sailboat, color: "#7FE3FF", img: "/slots/sym_boat.png" },
+  saber: { Icon: Sword, color: "#C9A06A", img: "/slots/sym_rod.png" },
+  compass_sym: { Icon: Compass, color: "#F6E27A", img: "/slots/sym_explorer.png" },
+  doubloon: { Icon: Coins, color: "#FFD84E", img: "/slots/sym_coin2.png" },
 
-  warchief: { Icon: Star, color: "#FF5A5A" },
-  tomahawk: { Icon: Knife, color: "#C9A06A" },
-  buffalo: { Icon: Horse, color: "#C9A06A" },
-  eagle: { Icon: Bird, color: "#F6E27A" },
+  warchief: { Icon: Star, color: "#FF5A5A", img: "/slots/sym_sheriff.png" },
+  tomahawk: { Icon: Knife, color: "#C9A06A", img: "/slots/sym_rod.png" },
+  buffalo: { Icon: Horse, color: "#C9A06A", img: "/slots/sym_horseshoe.png" },
+  eagle: { Icon: Bird, color: "#F6E27A", img: "/slots/sym_suneagle.png" },
 
   ace: { text: "A", color: "#EDEDED" },
   king: { text: "K", color: "#D8D8D8" },
@@ -531,6 +531,46 @@ export const FLAGSHIP_ART = {
 };
 
 // Lobby card theming per machine
+const BASE_MACHINE_ART = {
+  gates_of_glory: { bg: "/slots/bg_gatesglory.jpg", thumb: "/slots/thumb_gatesglory.jpg", panel: "#F6E27A" },
+  book_of_ops: { bg: "/slots/bg_book.jpg", thumb: "/slots/thumb_book.jpg", panel: "#E0B24A" },
+  big_bass_bombardment: { bg: "/slots/bg_bass.jpg", thumb: "/slots/thumb_bass.jpg", panel: "#5AA6FF" },
+  wild_west_recon: { bg: "/slots/bg_west.jpg", thumb: "/slots/thumb_west.jpg", panel: "#C9A06A" },
+  money_train_convoy: { bg: "/slots/bg_train.jpg", thumb: "/slots/thumb_train.jpg", panel: "#4EE44E" },
+  pharaohs_arsenal: { bg: "/slots/bg_pharaoh.jpg", thumb: "/slots/thumb_pharaoh_aaa.svg", panel: "#E0B24A" },
+  kraken_depths: { bg: "/slots/bg_kraken.jpg", thumb: "/slots/thumb_kraken.jpg", panel: "#57E6C6" },
+  inferno_airstrike: { bg: "/slots/bg_inferno.jpg", thumb: "/slots/thumb_inferno_aaa.svg", panel: "#FF7A2E" },
+  frozen_front: { bg: "/slots/bg_frozen.jpg", thumb: "/slots/thumb_frozen.jpg", panel: "#9FD0FF" },
+  golden_dynasty: { bg: "/slots/bg_dynasty.jpg", thumb: "/slots/thumb_dynasty_aaa.svg", panel: "#FF5A5A" },
+  samurai_strike: { bg: "/slots/bg_samurai.jpg", thumb: "/slots/thumb_samurai.jpg", panel: "#F6E27A" },
+  voodoo_vengeance: { bg: "/slots/bg_voodoo.jpg", thumb: "/slots/thumb_voodoo.jpg", panel: "#C07BFF" },
+  corsair_cannons: { bg: "/slots/bg_corsair.jpg", thumb: "/slots/thumb_corsair.jpg", panel: "#7FE3FF" },
+  bull_rush: { bg: "/slots/bg_west.jpg", thumb: "/slots/thumb_west.jpg", panel: "#C9A06A" },
+  buffalo_blast: { bg: "/slots/bg_west.jpg", thumb: "/slots/thumb_west.jpg", panel: "#F6C64A" },
+  prairie_royale: { bg: "/slots/bg_west.jpg", thumb: "/slots/thumb_west.jpg", panel: "#FFD84E" },
+  stampede_skyline: { bg: "/slots/bg_west.jpg", thumb: "/slots/thumb_west.jpg", panel: "#C8F274" },
+  golden_bull_run: { bg: "/slots/bg_west.jpg", thumb: "/slots/thumb_west.jpg", panel: "#D4AF37" },
+  aurora_strike: { bg: "/slots/bg_aurora.jpg", thumb: "/slots/thumb_aurora.jpg", panel: "#7FFFD4" },
+  nebula_fortune: { bg: "/slots/bg_nebula.jpg", thumb: "/slots/thumb_nebula.jpg", panel: "#9B7BFF" },
+  titan_city: { bg: "/slots/bg_titan.jpg", thumb: "/slots/thumb_titan.jpg", panel: "#FFC04A" },
+  valley_of_echoes: { bg: "/slots/bg_valley.jpg", thumb: "/slots/thumb_valley.jpg", panel: "#5EE07A" },
+  neon_reserve: { bg: "/slots/bg_neon.jpg", thumb: "/slots/thumb_neon.jpg", panel: "#FF5A5A" },
+  celestial_forge: { bg: "/slots/bg_celestial.jpg", thumb: "/slots/thumb_celestial.jpg", panel: "#FFD84E" },
+  forge_of_the_lost: { bg: "/slots/bg_forge.jpg", thumb: "/slots/thumb_forge.jpg", panel: "#FF7A2E" },
+  oasis_relics: { bg: "/slots/bg_oasis.jpg", thumb: "/slots/thumb_oasis.jpg", panel: "#7FE3FF" },
+  stormbreaker: { bg: "/slots/bg_storm.jpg", thumb: "/slots/thumb_storm.jpg", panel: "#9FD0FF" },
+  midnight_harvest: { bg: "/slots/bg_midnight.jpg", thumb: "/slots/thumb_midnight.jpg", panel: "#C07BFF" },
+  happy_prosperity: { bg: "/slots/bg_prosperity.jpg", thumb: "/slots/thumb_prosperity.jpg", panel: "#FFD84E" },
+  panda_magic: { bg: "/slots/bg_panda.jpg", thumb: "/slots/thumb_panda.jpg", panel: "#EDEDED" },
+  gold_bonanza: { bg: "/slots/bg_gold.jpg", thumb: "/slots/thumb_gold.jpg", panel: "#FFD84E" },
+  dragons_riches: { bg: "/slots/bg_dragon.jpg", thumb: "/slots/thumb_dragon.jpg", panel: "#FF5A5A" },
+  five_dragons: { bg: "/slots/bg_fivedragon.jpg", thumb: "/slots/thumb_fivedragon.jpg", panel: "#FF5A5A" },
+  god_of_sun: { bg: "/slots/bg_sun.jpg", thumb: "/slots/thumb_sun.jpg", panel: "#FFD84E" },
+  gates_of_olympus: { bg: "/slots/bg_olympus.jpg", thumb: "/slots/thumb_olympus.jpg", panel: "#F6E27A" },
+  fortune_coins: { bg: "/slots/bg_fortune.jpg", thumb: "/slots/thumb_fortune.jpg", panel: "#FFD84E" },
+  year_of_ox: { bg: "/slots/bg_ox.jpg", thumb: "/slots/thumb_ox.jpg", panel: "#FFC04A" },
+};
+
 export const MACHINE_ART = {
   gates_of_glory: {
     accent: "#F6E27A",
@@ -712,6 +752,24 @@ export const MACHINE_ART = {
     to: "#00010a",
     tag: "MIDNITE",
   },
+};
+
+export const resolveMachineArt = (id, fallback = {}) => {
+  const base = BASE_MACHINE_ART[id] || {
+    bg: "",
+    thumb: "",
+    panel: "#4EE44E",
+  };
+  const current = MACHINE_ART[id] || {};
+  return {
+    ...base,
+    ...current,
+    ...fallback,
+    accent: fallback.accent || current.accent || base.panel || "#4EE44E",
+    panel: fallback.panel || current.panel || base.panel || current.accent || "#4EE44E",
+    bg: fallback.bg || current.bg || base.bg || "",
+    thumb: fallback.thumb || current.thumb || base.thumb || "",
+  };
 };
 
 export const fmt = (n) =>

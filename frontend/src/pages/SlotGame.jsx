@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { SymbolTile } from "@/components/SymbolTile";
-import { MACHINE_ART, fmt } from "@/data/gameMeta";
+import { MACHINE_ART, resolveMachineArt, fmt } from "@/data/gameMeta";
 import { SLOT } from "@/constants/testIds";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -40,7 +40,7 @@ export default function SlotGame() {
   const spinRef = useRef();
   const machineRef = useRef(null);
 
-  const art = MACHINE_ART[id] || { accent: "#4EE44E" };
+  const art = resolveMachineArt(id);
   const randSym = useCallback(
     (syms) => syms[Math.floor(Math.random() * syms.length)],
     [],
@@ -223,6 +223,11 @@ export default function SlotGame() {
     <div
       data-testid={SLOT.root}
       className="max-w-6xl mx-auto px-4 sm:px-8 py-8"
+      style={{
+        background: art.bg
+          ? `linear-gradient(rgba(6, 10, 8, 0.78), rgba(6, 10, 8, 0.94)), url(${art.bg}) center/cover no-repeat fixed`
+          : "#070b07",
+      }}
     >
       {bigWin && (
         <BigWinOverlay
@@ -452,14 +457,41 @@ export default function SlotGame() {
             </Button>
           )}
 
-          <div className="hud p-4">
+          <div
+            className="hud p-4"
+            style={{
+              borderColor: `${art.accent}88`,
+              background: art.bg
+                ? `linear-gradient(rgba(10,13,10,0.88), rgba(10,13,10,0.96)), url(${art.bg}) center/cover no-repeat`
+                : undefined,
+            }}
+          >
             <p className="font-mono text-[10px] tracking-widest text-nvg/70 flex items-center gap-1 mb-3">
               <Info size={12} /> PAYTABLE (×line bet)
             </p>
             <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
               {Object.entries(machine.paytable).map(([sym, pt]) => (
-                <div key={sym} className="flex items-center justify-between">
-                  <SymbolTile id={sym} size={24} />
+                <div
+                  key={sym}
+                  className="flex items-center justify-between rounded-md border px-2 py-1.5"
+                  style={{
+                    borderColor: `${art.accent}22`,
+                    background: "rgba(10,13,10,0.6)",
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="flex items-center justify-center rounded-md border"
+                      style={{
+                        borderColor: `${art.accent}66`,
+                        background: `linear-gradient(180deg, ${art.accent}22, rgba(0,0,0,0.15))`,
+                        width: 32,
+                        height: 32,
+                      }}
+                    >
+                      <SymbolTile id={sym} size={20} />
+                    </div>
+                  </div>
                   <span className="font-mono text-xs text-muted-foreground">
                     3:<span className="text-foreground">{pt["3"]}</span> · 4:
                     <span className="text-foreground">{pt["4"]}</span> · 5:

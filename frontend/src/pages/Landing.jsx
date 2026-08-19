@@ -129,9 +129,9 @@ export default function Landing() {
           className="absolute top-4 right-4 sm:top-8 sm:right-8 w-24 sm:w-36 md:w-48 lg:w-56 z-20 animate-coin-intro pointer-events-none select-none"
           style={{ filter: "drop-shadow(0 0 34px rgba(212,175,55,0.5))" }}
         />
-        <div className="relative max-w-[1400px] mx-auto px-4 sm:px-8 pt-24 pb-28 md:pt-32 md:pb-40">
-          <div className="max-w-3xl">
-            <div className="flex flex-wrap items-center gap-2 mb-6 animate-pop">
+        <div className="relative max-w-[1400px] mx-auto px-4 sm:px-8 pt-16 pb-20 sm:pt-24 sm:pb-28 md:pt-32 md:pb-40">
+          <div className="mx-auto max-w-3xl text-center sm:text-left sm:mx-0 sm:max-w-[38rem] md:max-w-[42rem]">
+            <div className="flex flex-wrap items-center justify-center gap-2 mb-6 animate-pop sm:justify-start">
               <span className="border border-nvg/50 text-nvg font-mono text-xs px-3 py-1 tracking-widest">
                 MGA/B2C/912/2025
               </span>
@@ -146,17 +146,17 @@ export default function Landing() {
               </span>
             </div>
             <h1
-              className="font-display text-6xl sm:text-7xl lg:text-8xl leading-[0.85] tracking-tight animate-pop"
+              className="font-display text-5xl sm:text-7xl lg:text-8xl leading-[0.85] tracking-tight animate-pop"
               style={{ animationDelay: "0.05s" }}
             >
               <span className="gold-gradient">WAGES OF WAR</span>
               <br />
-              <span className="text-foreground/90 text-4xl sm:text-5xl lg:text-6xl tracking-[0.2em]">
+              <span className="text-foreground/90 text-3xl sm:text-5xl lg:text-6xl tracking-[0.2em]">
                 CASINO
               </span>
             </h1>
             <p
-              className="mt-6 text-base sm:text-lg text-foreground/80 max-w-xl leading-relaxed animate-pop"
+              className="mx-auto mt-6 max-w-xl text-base text-foreground/80 leading-relaxed animate-pop sm:mx-0 sm:text-lg"
               style={{ animationDelay: "0.1s" }}
             >
               Deploy into the most elite military-themed slot floor ever
@@ -164,13 +164,13 @@ export default function Landing() {
               gold-tier rewards — powered by pure play-money credits.
             </p>
             <div
-              className="mt-9 flex flex-wrap items-center gap-4 animate-pop"
+              className="mt-9 flex flex-col items-center gap-4 animate-pop sm:flex-row sm:items-center sm:justify-start"
               style={{ animationDelay: "0.15s" }}
             >
               <Button
                 data-testid={LANDING.enlistCta}
                 onClick={primaryCta}
-                className="bg-gold hover:bg-gold/90 text-black font-display text-xl tracking-widest px-8 h-14 glow-gold gap-2"
+                className="w-full bg-gold hover:bg-gold/90 text-black font-display text-xl tracking-widest px-8 h-14 glow-gold gap-2 sm:w-auto"
               >
                 <Lightning size={22} weight="fill" />
                 {user ? "RESUME OPS" : "ENLIST — GET 10,000 FREE"}
@@ -181,7 +181,7 @@ export default function Landing() {
                   user ? navigate("/cashier") : openAuth("register")
                 }
                 variant="outline"
-                className="border-gold/40 text-gold hover:bg-gold/10 font-display text-xl tracking-widest px-8 h-14 gap-2"
+                className="w-full border-gold/40 text-gold hover:bg-gold/10 font-display text-xl tracking-widest px-8 h-14 gap-2 sm:w-auto"
               >
                 <Gift size={22} weight="fill" /> CLAIM $10 VERIFY BONUS
               </Button>
@@ -189,7 +189,7 @@ export default function Landing() {
                 data-testid={LANDING.enterLobby}
                 onClick={() => navigate("/lobby")}
                 variant="outline"
-                className="border-nvg/40 text-nvg hover:bg-nvg/10 font-display text-xl tracking-widest px-8 h-14 gap-2"
+                className="w-full border-nvg/40 text-nvg hover:bg-nvg/10 font-display text-xl tracking-widest px-8 h-14 gap-2 sm:w-auto"
               >
                 <GameController size={22} weight="fill" /> ENTER LOBBY
               </Button>
