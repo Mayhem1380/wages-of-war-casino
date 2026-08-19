@@ -176,6 +176,16 @@ export default function Landing() {
                 {user ? "RESUME OPS" : "ENLIST — GET 10,000 FREE"}
               </Button>
               <Button
+                data-testid="home-verify-bonus-btn"
+                onClick={() =>
+                  user ? navigate("/cashier") : openAuth("register")
+                }
+                variant="outline"
+                className="border-gold/40 text-gold hover:bg-gold/10 font-display text-xl tracking-widest px-8 h-14 gap-2"
+              >
+                <Gift size={22} weight="fill" /> CLAIM $10 VERIFY BONUS
+              </Button>
+              <Button
                 data-testid={LANDING.enterLobby}
                 onClick={() => navigate("/lobby")}
                 variant="outline"

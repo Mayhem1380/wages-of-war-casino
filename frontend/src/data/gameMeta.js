@@ -622,6 +622,36 @@ export const MACHINE_ART = {
     to: "#0a0d0a",
     tag: "STAMPEDE",
   },
+  bull_rush: {
+    accent: "#C9A06A",
+    from: "#1d1208",
+    to: "#0a0d0a",
+    tag: "PRAIRIE GOLD",
+  },
+  buffalo_blast: {
+    accent: "#F6C64A",
+    from: "#1a1208",
+    to: "#0a0d0a",
+    tag: "BLAST",
+  },
+  prairie_royale: {
+    accent: "#FFD84E",
+    from: "#1d170a",
+    to: "#0a0d0a",
+    tag: "ROYAL",
+  },
+  stampede_skyline: {
+    accent: "#C8F274",
+    from: "#0a140d",
+    to: "#0a0d0a",
+    tag: "AURORA",
+  },
+  golden_bull_run: {
+    accent: "#D4AF37",
+    from: "#20140a",
+    to: "#0a0d0a",
+    tag: "GOLD RUN",
+  },
   aurora_strike: {
     accent: "#7FFFD4",
     from: "#071018",
@@ -713,6 +743,11 @@ export const FLAGSHIP_IDS = [
   "samurai_strike",
   "voodoo_vengeance",
   "corsair_cannons",
+  "bull_rush",
+  "buffalo_blast",
+  "prairie_royale",
+  "stampede_skyline",
+  "golden_bull_run",
 ];
 
 // newly added AAA flagship ids

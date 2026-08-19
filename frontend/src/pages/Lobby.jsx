@@ -40,6 +40,7 @@ const THEME_CATEGORY = {
   voodoo: "Military",
   tribal: "Military",
   bushido: "Military",
+  prairie: "Fortune",
 };
 const CATEGORIES = ["All", "Dragons", "Fortune", "Military", "Egyptian", "Ocean"];
 const catOf = (s) => THEME_CATEGORY[s.theme] || "Military";
@@ -131,6 +132,11 @@ export default function Lobby() {
     voodoo_vengeance: ["witchdoctor", "totem", "scatter"],
     corsair_cannons: ["corsair", "doubloon", "compass_sym"],
     warpath_legends: ["warchief", "buffalo", "eagle"],
+    bull_rush: ["warchief", "buffalo", "eagle"],
+    buffalo_blast: ["warchief", "buffalo", "eagle"],
+    prairie_royale: ["warchief", "buffalo", "eagle"],
+    stampede_skyline: ["warchief", "buffalo", "eagle"],
+    golden_bull_run: ["warchief", "buffalo", "eagle"],
   };
 
   return (

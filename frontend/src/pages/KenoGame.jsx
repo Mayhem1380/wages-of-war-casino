@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
@@ -16,6 +16,7 @@ import {
   Shuffle,
   Trash,
   Lightning,
+  Play,
 } from "@phosphor-icons/react";
 
 const NUMS = Array.from({ length: 80 }, (_, i) => i + 1);
@@ -28,9 +29,19 @@ export default function KenoGame() {
   const [result, setResult] = useState(null);
   const [busy, setBusy] = useState(false);
   const [celebrate, setCelebrate] = useState(null);
+  const [autoPlay, setAutoPlay] = useState(true);
 
   const drawn = new Set(result?.drawn || []);
   const hits = new Set(result?.hits || []);
+
+  const buildQuickPicks = () => {
+    const pool = [...NUMS];
+    const out = [];
+    const count = 6 + Math.floor(Math.random() * 3);
+    for (let i = 0; i < count; i++)
+      out.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+    return out.sort((a, b) => a - b);
+  };
 
   const toggle = (n) => {
     if (busy) return;
@@ -54,40 +65,64 @@ export default function KenoGame() {
     setPicks(out);
   };
 
-  const play = async () => {
-    if (!user) {
-      openAuth("register");
-      return;
-    }
-    if (picks.length < 1) {
-      toast.error("Mark at least 1 target");
-      return;
-    }
-    if (user.balance < stake) {
-      toast.error("Insufficient credits");
-      return;
-    }
-    setBusy(true);
-    setResult(null);
-    sfx.prime();
-    sfx.spin();
-    try {
-      const { data } = await api.post("/games/keno/play", { picks, stake });
-      setResult(data);
-      refreshUser();
-      if (data.win > 0) {
-        sfx.bigWin();
-        setCelebrate({ intensity: data.multiplier >= 10 ? "big" : "small" });
-        toast.success(`${data.hit_count} hits — WIN +${fmt(data.win)}`);
-      } else {
-        sfx.lose();
-        toast(`${data.hit_count} hits. No payout this drop.`);
+  const play = useCallback(
+    async (customPicks = picks, customStake = stake) => {
+      if (busy) return;
+      if (!user) {
+        openAuth("register");
+        return;
       }
-    } catch (e) {
-      toast.error(e.response?.data?.detail || "Play failed");
-    }
-    setBusy(false);
-  };
+      const activePicks = customPicks?.length ? customPicks : picks;
+      if (activePicks.length < 1) {
+        if (autoPlay) {
+          const seeded = buildQuickPicks();
+          setPicks(seeded);
+          return;
+        }
+        toast.error("Mark at least 1 target");
+        return;
+      }
+      if (user.balance < customStake) {
+        toast.error("Insufficient credits");
+        return;
+      }
+      setBusy(true);
+      setResult(null);
+      sfx.prime();
+      sfx.spin();
+      try {
+        const { data } = await api.post("/games/keno/play", {
+          picks: activePicks,
+          stake: customStake,
+        });
+        setResult(data);
+        refreshUser();
+        if (data.win > 0) {
+          sfx.bigWin();
+          setCelebrate({ intensity: data.multiplier >= 10 ? "big" : "small" });
+          toast.success(`${data.hit_count} hits — WIN +${fmt(data.win)}`);
+        } else {
+          sfx.lose();
+          toast(`${data.hit_count} hits. No payout this drop.`);
+        }
+      } catch (e) {
+        toast.error(e.response?.data?.detail || "Play failed");
+      }
+      setBusy(false);
+    },
+    [autoPlay, busy, picks, stake, user, openAuth, refreshUser]
+  );
+
+  useEffect(() => {
+    if (!autoPlay || !user) return;
+    const timer = setInterval(() => {
+      if (busy) return;
+      const nextPicks = picks.length ? picks : buildQuickPicks();
+      if (picks.length === 0) setPicks(nextPicks);
+      void play(nextPicks, stake);
+    }, 2600);
+    return () => clearInterval(timer);
+  }, [autoPlay, user, busy, picks, stake, play]);
 
   return (
     <div
@@ -191,7 +226,7 @@ export default function KenoGame() {
                 <span className="text-muted-foreground">TARGETS</span>
                 <span className="text-nvg">{picks.length}/10</span>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 mb-3">
                 <button
                   data-testid={KENO.quick}
                   onClick={quick}
@@ -210,6 +245,16 @@ export default function KenoGame() {
                   <Trash size={14} /> CLEAR
                 </button>
               </div>
+              <button
+                onClick={() => setAutoPlay((v) => !v)}
+                className={`w-full flex items-center justify-center gap-2 border py-2 font-mono text-xs transition ${
+                  autoPlay
+                    ? "border-nvg bg-nvg/15 text-nvg"
+                    : "border-border text-muted-foreground hover:border-gold hover:text-gold"
+                }`}
+              >
+                <Play size={14} /> {autoPlay ? "LIVE MODE ON" : "LIVE MODE OFF"}
+              </button>
             </div>
 
             <div className="hud p-5">

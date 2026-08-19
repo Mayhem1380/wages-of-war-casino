@@ -112,6 +112,67 @@ function DailyBonus() {
   );
 }
 
+function VerifyBonusButton() {
+  const { user, refreshUser } = useAuth();
+  const [status, setStatus] = useState(null);
+  const [busy, setBusy] = useState(false);
+
+  const load = useCallback(async () => {
+    if (!user) return;
+    try {
+      const { data } = await api.get("/bonus/verify-status");
+      setStatus(data);
+    } catch (e) {
+      console.warn("verify bonus status failed", e);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user) load();
+  }, [user, load]);
+
+  if (!user) return null;
+
+  const claim = async () => {
+    setBusy(true);
+    try {
+      const { data } = await api.post("/bonus/verify");
+      toast.success(
+        `+${fmt(data.claimed)} credits — verified bonus credited. Terms apply.`,
+      );
+      await refreshUser();
+      await load();
+    } catch (e) {
+      toast.error(e.response?.data?.detail || "Verification bonus unavailable");
+    }
+    setBusy(false);
+  };
+
+  const eligible = !!status?.eligible && !status?.claimed;
+  return (
+    <button
+      data-testid="bonus-signup-verify-btn"
+      onClick={claim}
+      disabled={busy || !eligible}
+      title={
+        eligible
+          ? "Claim $10 signup + verify bonus"
+          : status?.claimed
+            ? "Verification bonus already claimed"
+            : "Complete KYC to unlock the $10 bonus"
+      }
+      className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 border font-mono text-xs tracking-wide transition-colors ${
+        eligible
+          ? "border-nvg/60 text-nvg hover:bg-nvg/10 animate-flicker"
+          : "border-border text-muted-foreground"
+      }`}
+    >
+      <Gift size={16} weight="fill" />
+      {status?.claimed ? "BONUS CLAIMED" : "VERIFY BONUS"}
+    </button>
+  );
+}
+
 export function Layout({ children }) {
   const { user, logout, openAuth } = useAuth();
   const navigate = useNavigate();
@@ -158,6 +219,7 @@ export function Layout({ children }) {
             <MuteToggle />
             {user ? (
               <>
+                <VerifyBonusButton />
                 <DailyBonus />
                 <Link
                   to="/wallet"

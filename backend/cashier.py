@@ -104,7 +104,9 @@ CRYPTO_CODES = [c for c, m in CURRENCIES.items() if m["type"] == "CRYPTO"]
 
 # Limits are defined in AUD per spec, converted to USD cents internally.
 MIN_DEPOSIT_AUD = 10.0
+MAX_DEPOSIT_AUD = 5000.0
 MIN_WITHDRAW_AUD = 20.0
+MAX_WITHDRAW_AUD = 25000.0
 
 
 def _aud_to_usd_cents(aud: float) -> int:
@@ -112,7 +114,9 @@ def _aud_to_usd_cents(aud: float) -> int:
 
 
 MIN_DEPOSIT_USD_CENTS = _aud_to_usd_cents(MIN_DEPOSIT_AUD)
+MAX_DEPOSIT_USD_CENTS = _aud_to_usd_cents(MAX_DEPOSIT_AUD)
 MIN_WITHDRAW_USD_CENTS = _aud_to_usd_cents(MIN_WITHDRAW_AUD)
+MAX_WITHDRAW_USD_CENTS = _aud_to_usd_cents(MAX_WITHDRAW_AUD)
 
 
 def currency_list():
@@ -289,11 +293,14 @@ VAULT_PLATFORM = os.environ.get("VAULT_PLATFORM", "wages_of_war")
 
 
 def _vault_headers() -> dict:
-    return {
-        "Authorization": f"Bearer {VAULT_API_KEY}",
+    headers = {
         "X-Platform": VAULT_PLATFORM,
         "Content-Type": "application/json",
     }
+    if VAULT_API_KEY:
+        headers["Authorization"] = f"Bearer {VAULT_API_KEY}"
+        headers["X-API-Key"] = VAULT_API_KEY
+    return headers
 
 
 async def vault_crypto_address(currency_code: str) -> Optional[str]:
@@ -338,11 +345,19 @@ async def vault_submit_withdrawal(
                 },
             )
         if r.status_code < 400:
-            data = r.json()
+            data = r.json() if hasattr(r, "json") else {}
+            vault_id = (
+                data.get("vault_id")
+                or data.get("id")
+                or data.get("withdrawal_id")
+                or data.get("reference")
+                or ""
+            )
+            status = data.get("status") or data.get("state") or "pending"
             return {
                 "ok": True,
-                "vault_id": str(data.get("id") or data.get("withdrawal_id") or ""),
-                "status": data.get("status", "pending"),
+                "vault_id": str(vault_id),
+                "status": status,
                 "detail": "",
             }
         return {
