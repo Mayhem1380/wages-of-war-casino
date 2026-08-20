@@ -165,3 +165,12 @@ Structural real-money payment system wired with TEST/PLACEHOLDER keys, ready to 
 - Code-review pass: env-ified test creds, added logging to empty catches; verified `is`-vs-`==`, casino.js "secret", and Python "undefined var" flags are all false positives. Large refactors intentionally deferred (regression risk, no user benefit).
 - ACTION FOR USER: click Deploy to push all of the above live to wagesofwarcasin0.online.
 
+
+### 18 Aug 2026 — GO-LIVE READINESS CERTIFIED
+- Services running (backend+frontend), frontend compiled clean, /health=200, key /api routes 200.
+- Deployment health check = PASS (no blockers). Build is COMPLETE — nothing left to build.
+- Payments remain in Stripe TEST mode (STRIPE_MODE=test); switching to live requires user's live sk_live/whsec keys + STRIPE_MODE=live (user must provide).
+- Protected vars (REACT_APP_BACKEND_URL, FRONTEND_URL) intentionally NOT modified — Emergent auto-manages them at deploy.
+- OUTSTANDING (user/support only, not code): (1) production domain wagesofwarcasin0.online appears mapped to an OLD/duplicate deployment — support email drafted at /app/memory/SUPPORT_EMAIL.md (Job ID 7785fc6b-5e92-4d8d-955a-7e7fe7ea9ac5); (2) user clicks Republish from the night-vision-gold job; (3) optional live payment keys.
+- Reference: /app/memory/DEPLOYMENT_MANIFEST.md lists every page/graphic/feature that must appear live.
+
