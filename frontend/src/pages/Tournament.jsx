@@ -27,6 +27,7 @@ export default function Tournament() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [data, setData] = useState(null);
+  const [champs, setChamps] = useState(null);
   const [countdown, setCountdown] = useState(0);
 
   const load = useCallback(async () => {
@@ -41,6 +42,10 @@ export default function Tournament() {
 
   useEffect(() => {
     load();
+    api
+      .get("/tournament/champions")
+      .then(({ data }) => setChamps(data))
+      .catch((e) => console.warn("champions load failed", e));
     const poll = setInterval(load, 12000);
     return () => clearInterval(poll);
   }, [load]);
@@ -193,6 +198,65 @@ export default function Tournament() {
           Prizes are play-money credits, auto-paid to the top 10 when the timer
           resets.
         </p>
+
+        {/* HALL OF FAME — last round's champions */}
+        <div className="mt-10" data-testid="tournament-hall-of-fame">
+          <div className="flex items-center gap-3 mb-4">
+            <Crown size={22} weight="fill" className="text-gold" />
+            <span className="font-display text-2xl gold-gradient tracking-widest">
+              HALL OF FAME
+            </span>
+            <div className="flex-1 h-px bg-gold/20" />
+            <span className="font-mono text-[10px] tracking-widest text-gold/60">
+              LAST ROUND&apos;S CHAMPIONS
+            </span>
+          </div>
+
+          {champs && champs.has_history ? (
+            <div className="grid sm:grid-cols-3 gap-4">
+              {champs.champions.slice(0, 3).map((c) => (
+                <div
+                  key={c.rank}
+                  data-testid={`hof-rank-${c.rank}`}
+                  className="hud p-5 text-center relative overflow-hidden"
+                  style={{
+                    borderColor: `${RANK_COLOR[c.rank - 1] || "#8a9"}55`,
+                    background: `radial-gradient(120% 120% at 50% 0%, ${
+                      RANK_COLOR[c.rank - 1] || "#8a9"
+                    }14 0%, transparent 60%)`,
+                  }}
+                >
+                  <Crown
+                    size={28}
+                    weight="fill"
+                    style={{ color: RANK_COLOR[c.rank - 1] || "#8a9" }}
+                    className="mx-auto"
+                  />
+                  <p
+                    className="font-display text-3xl leading-none mt-1"
+                    style={{ color: RANK_COLOR[c.rank - 1] || "#8a9" }}
+                  >
+                    #{c.rank}
+                  </p>
+                  <p className="font-mono text-sm text-foreground mt-2 truncate">
+                    {c.name}
+                  </p>
+                  <p className="font-mono text-xs text-nvg mt-1">
+                    {fmt(c.score)} won
+                  </p>
+                  <p className="font-display text-lg text-gold mt-1">
+                    +{fmt(c.prize)}
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="hud p-8 text-center text-muted-foreground font-mono text-sm">
+              No champions crowned yet — win this round and your name goes up in
+              lights when the timer resets.
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
