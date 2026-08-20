@@ -42,6 +42,8 @@ export const LOBBY = {
   empty: "lobby-empty",
   wheelCard: "lobby-wheel-card",
   tournamentCard: "lobby-tournament-card",
+  championSpotlight: "lobby-champion-spotlight",
+  wheelReady: "lobby-wheel-ready",
 };
 
 export const WHEEL = {

@@ -180,3 +180,9 @@ Structural real-money payment system wired with TEST/PLACEHOLDER keys, ready to 
 - Mega Wheel: wheel now adds a 250,000 "MEGA" jackpot segment ONLY on 7-day streak milestones (_wheel_next_streak/_wheel_pool). /wheel/status returns mega_unlocked+mega_value+segments; /wheel/spin returns mega flag. DailyWheel.jsx renders red MEGA segment + pulsing "MEGA JACKPOT LIVE" banner. Backend + UI verified (day-6 user shows 10-segment wheel, x2 applied on day-7 spin).
 - Payments still TEST mode — user attempted to supply live Stripe secret but the value provided was NOT a valid sk_live_ key (started with bare sk_+hex). Advised: get real sk_live_51U2Kx8... from Stripe live mode, roll the exposed one, and enter live keys in the Emergent production Custom Keys panel (never preview .env). Publishable pk_live_51U2Kx8... was valid.
 
+
+### 20 Aug 2026 (cont.) — Lobby Champion Spotlight + Streak Reminder (verified)
+- Champion Spotlight: Lobby banner (testid lobby-champion-spotlight) fetches /tournament/champions, rotates top-3 reigning champions every 4s, links to /tournament. Renders only when a finalized tournament exists.
+- Streak Reminder: Lobby nudge (testid lobby-wheel-ready) fetches /wheel/status for logged-in users; shows "YOUR DAILY WHEEL IS READY" when off cooldown, upgrades to a red MEGA-jackpot alert when mega_unlocked. Links to /wheel. animate-pulse-soft added to index.css.
+- Both verified present + styled via screenshots. Frontend compiles clean.
+
