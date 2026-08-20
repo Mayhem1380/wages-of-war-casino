@@ -9,7 +9,7 @@ App / environment details:
 - App (preview) slug: night-vision-gold
 - Preview URL: https://night-vision-gold.preview.emergentagent.com
 - Production domain: https://wagesofwarcasin0.online
-- Job ID: <PASTE YOUR JOB ID HERE — the "i" button, top-right of the chat>
+- Job ID: 7785fc6b-5e92-4d8d-955a-7e7fe7ea9ac5
 
 What I believe is happening:
 It looks like there may be TWO deployments / instances, and the WRONG one is active on my production domain — it's only serving "half" the app. I want the "night-vision-gold" build to be the ACTIVE deployment for wagesofwarcasin0.online, and any duplicate/old deployment removed.
@@ -37,7 +37,7 @@ Please can you:
 3. Delete/remove the wrong/duplicate deployment.
 4. Force a clean rebuild if a stale build cache is involved.
 
-I've attached screenshots of the missing sections. Happy to trigger a fresh republish on request.
+I can share screenshots of the missing sections on request. Happy to trigger a fresh republish on request.
 
 Thank you,
 <YOUR NAME>
