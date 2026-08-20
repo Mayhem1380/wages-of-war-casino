@@ -1541,6 +1541,8 @@ async def bonus_claim(user: dict = Depends(require_user)):
 WHEEL_SEGMENTS = [500, 1000, 2000, 3000, 5000, 8000, 12000, 20000, 50000]
 WHEEL_WEIGHTS = [28, 22, 16, 12, 9, 6, 4, 2, 1]
 WHEEL_COOLDOWN_HOURS = 24
+WHEEL_MEGA = 250000  # Weekend Mega jackpot — only on 7-day streak milestones
+WHEEL_MEGA_WEIGHT = 3
 
 
 def _wheel_seconds_left(user: dict) -> int:
@@ -1555,18 +1557,46 @@ def _wheel_seconds_left(user: dict) -> int:
     return int((cd - elapsed).total_seconds()) if elapsed < cd else 0
 
 
+def _wheel_next_streak(user: dict) -> int:
+    """The streak the NEXT spin will land on (continue if within 48h else reset)."""
+    last = user.get("last_wheel_spin_at")
+    if not last:
+        return 1
+    ld = datetime.fromisoformat(last) if isinstance(last, str) else last
+    if ld.tzinfo is None:
+        ld = ld.replace(tzinfo=timezone.utc)
+    if datetime.now(timezone.utc) - ld < timedelta(hours=48):
+        return int(user.get("wheel_streak", 0)) + 1
+    return 1
+
+
+def _wheel_pool(next_streak: int):
+    """Return (segments, weights, mega_unlocked). Mega only on 7-day milestones."""
+    segs = list(WHEEL_SEGMENTS)
+    wts = list(WHEEL_WEIGHTS)
+    mega = next_streak % 7 == 0
+    if mega:
+        segs.append(WHEEL_MEGA)
+        wts.append(WHEEL_MEGA_WEIGHT)
+    return segs, wts, mega
+
+
 @api.get("/wheel/status")
 async def wheel_status(user: dict = Depends(require_user)):
     fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
     streak = int(fresh.get("wheel_streak", 0))
     seconds_left = _wheel_seconds_left(fresh)
+    next_streak = _wheel_next_streak(fresh)
+    segs, _wts, mega = _wheel_pool(next_streak)
     return {
         "available": seconds_left == 0,
         "seconds_left": seconds_left,
         "streak": streak,
-        "segments": WHEEL_SEGMENTS,
-        "next_streak": streak + 1,
-        "next_multiplier": 2 if (streak + 1) % 7 == 0 else 1,
+        "segments": segs,
+        "next_streak": next_streak,
+        "next_multiplier": 2 if next_streak % 7 == 0 else 1,
+        "mega_unlocked": mega,
+        "mega_value": WHEEL_MEGA,
     }
 
 
@@ -1575,28 +1605,26 @@ async def wheel_spin(user: dict = Depends(require_user)):
     fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
     if _wheel_seconds_left(fresh) > 0:
         raise HTTPException(status_code=400, detail="Wheel not ready yet")
-    # streak: continue if last spin was within 48h (i.e., yesterday), else reset
-    last = fresh.get("last_wheel_spin_at")
-    new_streak = 1
-    if last:
-        ld = datetime.fromisoformat(last) if isinstance(last, str) else last
-        if ld.tzinfo is None:
-            ld = ld.replace(tzinfo=timezone.utc)
-        if datetime.now(timezone.utc) - ld < timedelta(hours=48):
-            new_streak = int(fresh.get("wheel_streak", 0)) + 1
+    new_streak = _wheel_next_streak(fresh)
+    segs, wts, mega = _wheel_pool(new_streak)
     # cryptographically-secure weighted segment pick
-    _total = sum(WHEEL_WEIGHTS)
+    _total = sum(wts)
     _r = secrets.randbelow(_total)
     _acc = 0
-    idx = len(WHEEL_SEGMENTS) - 1
-    for _j, _w in enumerate(WHEEL_WEIGHTS):
+    idx = len(segs) - 1
+    for _j, _w in enumerate(wts):
         _acc += _w
         if _r < _acc:
             idx = _j
             break
-    base = WHEEL_SEGMENTS[idx]
-    mult = 2 if new_streak % 7 == 0 else 1
-    amount = base * mult
+    base = segs[idx]
+    is_mega = mega and idx == len(segs) - 1
+    if is_mega:
+        mult = 1
+        amount = WHEEL_MEGA
+    else:
+        mult = 2 if new_streak % 7 == 0 else 1
+        amount = base * mult
     now_iso = datetime.now(timezone.utc).isoformat()
     await db.users.update_one(
         {"user_id": user["user_id"]},
@@ -1609,7 +1637,7 @@ async def wheel_spin(user: dict = Depends(require_user)):
         user["user_id"],
         "wheel_spin",
         amount,
-        {"streak": new_streak, "multiplier": mult, "base": base},
+        {"streak": new_streak, "multiplier": mult, "base": base, "mega": is_mega},
     )
     updated = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
     return {
@@ -1618,6 +1646,7 @@ async def wheel_spin(user: dict = Depends(require_user)):
         "segment_index": idx,
         "multiplier": mult,
         "streak": new_streak,
+        "mega": is_mega,
         "balance": round(updated["balance"], 2),
     }
 
@@ -1764,6 +1793,33 @@ async def tournament_current(request: Request):
         "seconds_left": max(0, int((ends - now).total_seconds())),
         "leaderboard": leaderboard,
         "me": me,
+    }
+
+
+@api.get("/tournament/champions")
+async def tournament_champions():
+    """Hall of Fame — winners of the most recently finalized tournament."""
+    last = await db.tournaments.find_one(
+        {"status": "finalized", "winners": {"$exists": True, "$ne": []}},
+        {"_id": 0},
+        sort=[("finalized_at", -1)],
+    )
+    if not last:
+        return {"has_history": False, "champions": []}
+    return {
+        "has_history": True,
+        "name": last.get("name"),
+        "finalized_at": last.get("finalized_at"),
+        "prize_pool": last.get("prize_pool"),
+        "champions": [
+            {
+                "rank": w.get("rank"),
+                "name": w.get("name", "Operative"),
+                "prize": w.get("prize", 0),
+                "score": w.get("score", 0),
+            }
+            for w in (last.get("winners") or [])
+        ],
     }
 
 

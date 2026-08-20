@@ -54,6 +54,10 @@ export default function DailyWheel() {
   const segments = status?.segments || [500, 1000, 2000, 3000, 5000, 8000, 12000, 20000, 50000];
   const segCount = segments.length;
   const segAngle = 360 / segCount;
+  const megaUnlocked = !!status?.mega_unlocked;
+  const megaIdx = megaUnlocked ? segCount - 1 : -1;
+  const segColor = (i) =>
+    i === megaIdx ? "#ff2d2d" : SEG_COLORS[i % SEG_COLORS.length];
 
   const doSpin = async () => {
     if (!user) return openAuth("register");
@@ -111,7 +115,7 @@ export default function DailyWheel() {
     >
       <WinCelebration
         show={celebrate}
-        intensity={win?.multiplier > 1 ? "big" : "small"}
+        intensity={win?.mega || win?.multiplier > 1 ? "big" : "small"}
         onDone={() => setCelebrate(false)}
         testId="wheel-celebration"
       />
@@ -158,6 +162,15 @@ export default function DailyWheel() {
           </span>
         </div>
 
+        {megaUnlocked && (
+          <div className="text-center mb-6">
+            <span className="inline-flex items-center gap-2 px-5 py-2 border border-alert bg-alert/15 text-alert font-display tracking-widest animate-pulse">
+              <Flame size={18} weight="fill" /> MEGA JACKPOT LIVE —{" "}
+              {fmt(status.mega_value)} ON THE WHEEL
+            </span>
+          </div>
+        )}
+
         {/* Wheel */}
         <div className="relative mx-auto w-[320px] h-[320px] sm:w-[380px] sm:h-[380px]">
           {/* pointer */}
@@ -180,7 +193,7 @@ export default function DailyWheel() {
               background: `conic-gradient(${segments
                 .map(
                   (_, i) =>
-                    `${SEG_COLORS[i % SEG_COLORS.length]} ${i * segAngle}deg ${(i + 1) * segAngle}deg`,
+                    `${segColor(i)} ${i * segAngle}deg ${(i + 1) * segAngle}deg`,
                 )
                 .join(", ")})`,
               transform: `rotate(${rotation}deg)`,
@@ -195,10 +208,16 @@ export default function DailyWheel() {
                 className="absolute left-1/2 top-1/2 origin-left font-display text-sm sm:text-base tracking-wide"
                 style={{
                   transform: `rotate(${i * segAngle + segAngle / 2}deg) translateX(70px)`,
-                  color: i % 2 === 0 ? "#150c02" : "#FFD84E",
+                  color:
+                    i === megaIdx
+                      ? "#fff"
+                      : i % 2 === 0
+                        ? "#150c02"
+                        : "#FFD84E",
+                  fontWeight: i === megaIdx ? 800 : undefined,
                 }}
               >
-                {v >= 1000 ? `${v / 1000}K` : v}
+                {i === megaIdx ? "MEGA" : v >= 1000 ? `${v / 1000}K` : v}
               </div>
             ))}
           </div>
@@ -213,8 +232,9 @@ export default function DailyWheel() {
           <div data-testid={WHEEL.result} className="h-10">
             {win && !spinning && (
               <p className="font-display text-3xl tracking-wide gold-gradient animate-pop">
+                {win.mega && <span className="text-alert">MEGA JACKPOT · </span>}
                 +{fmt(win.amount)}{" "}
-                {win.multiplier > 1 && (
+                {win.multiplier > 1 && !win.mega && (
                   <span className="text-gold">· x{win.multiplier} STREAK</span>
                 )}
               </p>
