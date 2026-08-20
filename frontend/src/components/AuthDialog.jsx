@@ -12,6 +12,7 @@ import { useAuth } from "@/context/AuthContext";
 import { AUTHD } from "@/constants/testIds";
 import { GoogleLogo, Fingerprint } from "@phosphor-icons/react";
 import { toast } from "sonner";
+import { getAppOriginUrl } from "@/lib/runtime";
 
 export function AuthDialog() {
   const { authOpen, setAuthOpen, authMode, setAuthMode, login, register } =
@@ -45,7 +46,7 @@ export function AuthDialog() {
 
   const google = () => {
     // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
-    const redirectUrl = window.location.origin;
+    const redirectUrl = getAppOriginUrl();
     window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
   };
 

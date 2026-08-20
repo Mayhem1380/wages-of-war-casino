@@ -83,8 +83,7 @@ agenthub/agents/youtube/db
 .cache/
 
 # Generated package manager files
-package-lock.json
-yarn.lock
+# Keep lockfiles tracked so CI installs are reproducible.
 
 memory/test_credentials.md
 

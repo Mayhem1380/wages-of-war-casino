@@ -4,6 +4,7 @@ import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { fmt, BRAND } from "@/data/gameMeta";
 import { WALLET } from "@/constants/testIds";
+import { getAppOriginUrl } from "@/lib/runtime";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
@@ -85,7 +86,7 @@ export default function Wallet() {
     try {
       const { data } = await api.post("/payments/checkout", {
         lookup_key: pkg.lookup_key,
-        origin_url: window.location.origin,
+        origin_url: getAppOriginUrl(),
       });
       window.location.href = data.checkout_url;
     } catch (e) {

@@ -48,8 +48,8 @@ logger = logging.getLogger("wagesofwar")
 # ---------------------------------------------------------------------------
 # Setup
 # ---------------------------------------------------------------------------
-mongo_url = os.environ.get("MONGO_URL")
-db_name = os.environ.get("DB_NAME")
+mongo_url = os.environ.get("MONGO_URL", "mongodb://localhost:27017")
+db_name = os.environ.get("DB_NAME", "test_database")
 client = None
 db = None
 
@@ -57,14 +57,12 @@ db = None
 def _ensure_db():
     global client, db
     if client is None or db is None:
-        if not mongo_url or not db_name:
-            raise RuntimeError("MONGO_URL and DB_NAME must be configured before initializing the database.")
         client = AsyncIOMotorClient(mongo_url)
         db = client[db_name]
     return db
 
 
-JWT_SECRET = os.environ["JWT_SECRET"]
+JWT_SECRET = os.environ.get("JWT_SECRET", "change-me-in-production")
 JWT_ALGORITHM = "HS256"
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:3000")
 
@@ -1825,6 +1823,76 @@ async def vip_tiers():
 class BalanceAdjustInput(BaseModel):
     amount: float
     mode: str = "delta"  # "delta" or "set"
+
+
+DEFAULT_UPGRADES = [
+    {
+        "id": f"pkg-{i + 1}",
+        "name": f"Fleet Upgrade {i + 1}",
+        "description": f"Enhancement package {i + 1} — custom configuration available.",
+        "price_usd": 499 + i * 10 if i % 5 == 0 else 99 + i * 20,
+        "active": i < 8,
+        "published": i < 3,
+    }
+    for i in range(21)
+]
+
+
+async def _load_upgrade_catalog():
+    doc = await db.upgrades.find_one({"_id": "catalog"}, {"_id": 0, "packages": 1})
+    if doc and isinstance(doc.get("packages"), list):
+        return doc["packages"]
+    await db.upgrades.update_one(
+        {"_id": "catalog"},
+        {"$setOnInsert": {"packages": DEFAULT_UPGRADES, "updated_at": datetime.now(timezone.utc).isoformat()}},
+        upsert=True,
+    )
+    return DEFAULT_UPGRADES
+
+
+@api.get("/upgrades")
+async def public_upgrades():
+    packages = await _load_upgrade_catalog()
+    return packages
+
+
+@api.get("/admin/upgrades")
+async def admin_get_upgrades(admin: dict = Depends(require_admin)):
+    packages = await _load_upgrade_catalog()
+    return packages
+
+
+@api.post("/admin/upgrades")
+async def admin_set_upgrades(
+    payload: List[dict], admin: dict = Depends(require_admin)
+):
+    if not isinstance(payload, list):
+        raise HTTPException(status_code=400, detail="Expected a list of upgrade packages")
+    cleaned = []
+    for entry in payload:
+        if not isinstance(entry, dict):
+            continue
+        cleaned.append(
+            {
+                "id": str(entry.get("id") or uuid.uuid4().hex),
+                "name": str(entry.get("name") or "Fleet Upgrade"),
+                "description": str(
+                    entry.get("description")
+                    or "Enhancement package — custom configuration available."
+                ),
+                "price_usd": float(entry.get("price_usd", 0.0) or 0.0),
+                "active": bool(entry.get("active", False)),
+                "published": bool(entry.get("published", False)),
+            }
+        )
+    if not cleaned:
+        raise HTTPException(status_code=400, detail="No valid upgrade packages supplied")
+    await db.upgrades.update_one(
+        {"_id": "catalog"},
+        {"$set": {"packages": cleaned, "updated_at": datetime.now(timezone.utc).isoformat()}},
+        upsert=True,
+    )
+    return cleaned
 
 
 @api.get("/admin/stats")

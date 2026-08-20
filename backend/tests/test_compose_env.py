@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 import sys
 
@@ -21,6 +22,19 @@ def test_backend_service_allows_runtime_secret_overrides():
     assert "STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}" in compose_text
     assert "STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}" in compose_text
     assert "STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY:-}" in compose_text
+
+
+def test_backend_uses_safe_default_mongo_settings_when_env_is_missing(monkeypatch):
+    import server
+
+    monkeypatch.delenv("MONGO_URL", raising=False)
+    monkeypatch.delenv("DB_NAME", raising=False)
+    server.mongo_url = os.environ.get("MONGO_URL", "mongodb://localhost:27017")
+    server.db_name = os.environ.get("DB_NAME", "test_database")
+
+    assert server.mongo_url == "mongodb://localhost:27017"
+    assert server.db_name == "test_database"
+    assert server._ensure_db() is not None
 
 
 def test_public_slot_catalog_has_aaa_grade_roster():

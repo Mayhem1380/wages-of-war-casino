@@ -33,6 +33,7 @@ import DailyWheel from "@/pages/DailyWheel";
 import Tournament from "@/pages/Tournament";
 import { useParams } from "react-router-dom";
 import { FLAGSHIP_IDS } from "@/data/gameMeta";
+import { getAppBasePath } from "@/lib/runtime";
 
 function SlotRoute() {
   const { id } = useParams();
@@ -144,10 +145,12 @@ const TOAST_OPTIONS = {
 };
 
 function App() {
+  const basename = getAppBasePath() || undefined;
+
   return (
     <AuthProvider>
       <SoundProvider>
-        <BrowserRouter>
+        <BrowserRouter basename={basename}>
           <AppRouter />
           <Toaster position="top-right" toastOptions={TOAST_OPTIONS} />
         </BrowserRouter>

@@ -4,6 +4,7 @@ import { QRCodeSVG } from "qrcode.react";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { CASHIER } from "@/constants/testIds";
+import { getAppOriginUrl } from "@/lib/runtime";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -152,7 +153,7 @@ export default function Cashier() {
       const { data } = await api.post("/cashier/deposit/stripe", {
         currency: fiatCur,
         amount: amt,
-        origin_url: window.location.origin,
+        origin_url: getAppOriginUrl(),
       });
       window.location.href = data.checkout_url;
     } catch (e) {
@@ -218,7 +219,7 @@ export default function Cashier() {
     setKycBusy(true);
     try {
       const { data } = await api.post("/kyc/session", {
-        origin_url: window.location.origin,
+        origin_url: getAppOriginUrl(),
       });
       if (data.already_approved) {
         toast.success("Identity already verified.");
