@@ -174,3 +174,9 @@ Structural real-money payment system wired with TEST/PLACEHOLDER keys, ready to 
 - OUTSTANDING (user/support only, not code): (1) production domain wagesofwarcasin0.online appears mapped to an OLD/duplicate deployment — support email drafted at /app/memory/SUPPORT_EMAIL.md (Job ID 7785fc6b-5e92-4d8d-955a-7e7fe7ea9ac5); (2) user clicks Republish from the night-vision-gold job; (3) optional live payment keys.
 - Reference: /app/memory/DEPLOYMENT_MANIFEST.md lists every page/graphic/feature that must appear live.
 
+
+### 20 Aug 2026 — Tournament Hall of Fame + Weekend Mega Wheel (verified)
+- Tournament Hall of Fame: new GET /api/tournament/champions returns last finalized tournament's winners; Tournament.jsx shows gold/silver/bronze champion cards with prizes (testids tournament-hall-of-fame, hof-rank-N). Verified with real finalized data.
+- Mega Wheel: wheel now adds a 250,000 "MEGA" jackpot segment ONLY on 7-day streak milestones (_wheel_next_streak/_wheel_pool). /wheel/status returns mega_unlocked+mega_value+segments; /wheel/spin returns mega flag. DailyWheel.jsx renders red MEGA segment + pulsing "MEGA JACKPOT LIVE" banner. Backend + UI verified (day-6 user shows 10-segment wheel, x2 applied on day-7 spin).
+- Payments still TEST mode — user attempted to supply live Stripe secret but the value provided was NOT a valid sk_live_ key (started with bare sk_+hex). Advised: get real sk_live_51U2Kx8... from Stripe live mode, roll the exposed one, and enter live keys in the Emergent production Custom Keys panel (never preview .env). Publishable pk_live_51U2Kx8... was valid.
+
