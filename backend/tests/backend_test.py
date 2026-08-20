@@ -779,6 +779,31 @@ class TestAdmin:
         )
         assert r.status_code == 403
 
+    def test_public_upgrades_catalog(self):
+        r = requests.get(f"{API}/upgrades")
+        assert r.status_code == 200, r.text
+        packages = r.json()
+        assert isinstance(packages, list) and len(packages) >= 1
+        assert all("id" in p and "name" in p for p in packages)
+
+    def test_admin_upgrades_roundtrip(self, admin_headers):
+        r = requests.get(f"{API}/admin/upgrades", headers=admin_headers)
+        assert r.status_code == 200, r.text
+        packages = r.json()
+        assert isinstance(packages, list) and len(packages) >= 1
+        assert all("id" in p and "name" in p for p in packages)
+
+        updated = [
+            {**packages[0], "active": not packages[0].get("active", False), "published": True}
+        ]
+        r2 = requests.post(
+            f"{API}/admin/upgrades",
+            headers=admin_headers,
+            json=updated,
+        )
+        assert r2.status_code == 200, r2.text
+        assert r2.json()[0]["active"] is updated[0]["active"]
+
 
 # ---------------- FLAGSHIP SLOT / HOLD&WIN ----------------
 class TestFlagshipSlots:
