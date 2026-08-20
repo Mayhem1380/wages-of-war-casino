@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "@/lib/api";
-import { MACHINE_ART, FLAGSHIP_ART } from "@/data/gameMeta";
+import { useAuth } from "@/context/AuthContext";
+import { MACHINE_ART, FLAGSHIP_ART, fmt } from "@/data/gameMeta";
 import { LOBBY } from "@/constants/testIds";
 import { SymbolTile } from "@/components/SymbolTile";
 import { AnimatedShowcase } from "@/components/AnimatedShowcase";
@@ -16,6 +17,8 @@ import {
   MagnifyingGlass,
   Trophy,
   Sparkle,
+  Crown,
+  Flame,
 } from "@phosphor-icons/react";
 
 // Map each slot theme to a player-facing category tab.
@@ -82,9 +85,13 @@ function CornerCard({
 
 export default function Lobby() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [slots, setSlots] = useState([]);
   const [query, setQuery] = useState("");
   const [cat, setCat] = useState("All");
+  const [champions, setChampions] = useState([]);
+  const [champIdx, setChampIdx] = useState(0);
+  const [wheel, setWheel] = useState(null);
 
   useEffect(() => {
     api
@@ -98,7 +105,32 @@ export default function Lobby() {
         setSlots(sorted);
       })
       .catch(() => {});
+    api
+      .get("/tournament/champions")
+      .then(({ data }) => {
+        if (data.has_history) setChampions(data.champions.slice(0, 3));
+      })
+      .catch(() => {});
   }, []);
+
+  // Streak Reminder — only when logged in
+  useEffect(() => {
+    if (!user) return;
+    api
+      .get("/wheel/status")
+      .then(({ data }) => setWheel(data))
+      .catch(() => {});
+  }, [user]);
+
+  // rotate champion spotlight
+  useEffect(() => {
+    if (champions.length < 2) return;
+    const t = setInterval(
+      () => setChampIdx((i) => (i + 1) % champions.length),
+      4000,
+    );
+    return () => clearInterval(t);
+  }, [champions]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -163,6 +195,73 @@ export default function Lobby() {
 
       {/* LIVE OPS — Wheel + Tournament */}
       <LobbyHype />
+
+      {/* Champion Spotlight — rotating reigning champions */}
+      {champions.length > 0 && (
+        <div
+          data-testid={LOBBY.championSpotlight}
+          onClick={() => navigate("/tournament")}
+          className="mt-6 cursor-pointer border border-gold/40 bg-gradient-to-r from-gold/10 via-black/40 to-transparent px-5 py-3 flex items-center gap-4 overflow-hidden hover:border-gold/70 transition-colors"
+        >
+          <Crown size={26} weight="fill" className="text-gold shrink-0" />
+          <p className="font-mono text-[10px] tracking-[0.3em] text-gold/70 shrink-0 hidden sm:block">
+            REIGNING CHAMPION
+          </p>
+          <div key={champIdx} className="min-w-0 flex-1 animate-pop">
+            <span className="font-display text-lg sm:text-xl tracking-wide text-foreground">
+              #{champions[champIdx].rank}{" "}
+              <span className="gold-gradient">
+                {champions[champIdx].name}
+              </span>
+            </span>
+            <span className="font-mono text-xs text-muted-foreground ml-2">
+              banked{" "}
+              <span className="text-gold">
+                +{fmt(champions[champIdx].prize)}
+              </span>{" "}
+              · {fmt(champions[champIdx].score)} won
+            </span>
+          </div>
+          <span className="font-mono text-[10px] tracking-widest text-nvg shrink-0 hidden md:inline">
+            CLAIM THE TOP SPOT →
+          </span>
+        </div>
+      )}
+
+      {/* Streak Reminder — wheel is ready nudge */}
+      {user && wheel?.available && (
+        <div
+          data-testid={LOBBY.wheelReady}
+          onClick={() => navigate("/wheel")}
+          className="mt-4 cursor-pointer border border-nvg/50 bg-nvg/10 px-5 py-3 flex items-center gap-3 hover:bg-nvg/15 transition-colors animate-pulse-soft"
+        >
+          {wheel.mega_unlocked ? (
+            <Flame size={24} weight="fill" className="text-alert shrink-0" />
+          ) : (
+            <Sparkle size={24} weight="fill" className="text-nvg shrink-0" />
+          )}
+          <p className="flex-1 text-sm text-foreground">
+            <span className="font-display tracking-wide text-nvg">
+              YOUR DAILY WHEEL IS READY.
+            </span>{" "}
+            {wheel.mega_unlocked ? (
+              <span className="text-alert font-semibold">
+                MEGA JACKPOT (250,000) is live on day {wheel.next_streak} — spin
+                now!
+              </span>
+            ) : (
+              <span className="text-muted-foreground">
+                Spin your free daily reward and keep your{" "}
+                {wheel.streak > 0 ? `${wheel.streak}-day ` : ""}streak alive.
+              </span>
+            )}
+          </p>
+          <span className="font-display text-sm tracking-widest text-nvg shrink-0">
+            SPIN →
+          </span>
+        </div>
+      )}
+
       <div className="grid sm:grid-cols-2 gap-5 mb-10 mt-6">
         <button
           data-testid={LOBBY.wheelCard}
