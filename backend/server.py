@@ -2046,6 +2046,66 @@ async def fleet_enquiry(payload: FleetEnquiryInput):
     return {"ok": True, "id": doc["id"]}
 
 
+# ---------------------------------------------------------------------------
+# Support tickets ("Contact Management") + PIN-protected HQ Inbox
+# ---------------------------------------------------------------------------
+HQ_PIN = os.environ.get("HQ_PIN", "")
+
+
+class SupportTicketInput(BaseModel):
+    name: str
+    email: str
+    subject: Optional[str] = None
+    message: str
+
+
+def _check_hq_pin(request: Request):
+    pin = request.headers.get("X-HQ-Pin", "")
+    if not HQ_PIN or pin != HQ_PIN:
+        raise HTTPException(status_code=403, detail="Invalid HQ PIN")
+
+
+@api.post("/support/ticket")
+async def support_ticket(payload: SupportTicketInput, request: Request):
+    user = await resolve_user(request)
+    doc = {
+        "id": str(uuid.uuid4()),
+        "name": payload.name.strip(),
+        "email": payload.email.lower().strip(),
+        "subject": (payload.subject or "General enquiry").strip(),
+        "message": payload.message.strip(),
+        "user_id": user["user_id"] if user else None,
+        "status": "open",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.support_tickets.insert_one(doc)
+    return {"ok": True, "id": doc["id"]}
+
+
+@api.get("/support/tickets")
+async def support_tickets(request: Request, admin: dict = Depends(require_admin)):
+    _check_hq_pin(request)
+    return (
+        await db.support_tickets.find({}, {"_id": 0})
+        .sort("created_at", -1)
+        .to_list(300)
+    )
+
+
+@api.post("/support/tickets/{ticket_id}/resolve")
+async def support_resolve(
+    ticket_id: str, request: Request, admin: dict = Depends(require_admin)
+):
+    _check_hq_pin(request)
+    res = await db.support_tickets.update_one(
+        {"id": ticket_id},
+        {"$set": {"status": "resolved", "resolved_at": datetime.now(timezone.utc).isoformat()}},
+    )
+    if res.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+    return {"ok": True}
+
+
 @api.get("/cashback/history")
 async def cashback_history(user: dict = Depends(require_user)):
     rows = (

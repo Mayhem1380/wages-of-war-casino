@@ -21,6 +21,7 @@ import { NAV } from "@/constants/testIds";
 import { fmt, BRAND } from "@/data/gameMeta";
 import api from "@/lib/api";
 import { toast } from "sonner";
+import { SupportDialog } from "@/components/SupportDialog";
 import {
   Coins,
   Gift,
@@ -398,6 +399,9 @@ export function Layout({ children }) {
                 virtual credits for entertainment only. No real-money wagering
                 or payouts.
               </p>
+              <div className="mt-5 max-w-md">
+                <SupportDialog />
+              </div>
               <div className="mt-5 flex items-center gap-4">
                 <img
                   src={BRAND.coin}
