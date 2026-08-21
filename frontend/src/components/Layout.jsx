@@ -22,6 +22,7 @@ import { fmt, BRAND } from "@/data/gameMeta";
 import api from "@/lib/api";
 import { toast } from "sonner";
 import { SupportDialog } from "@/components/SupportDialog";
+import { NexusStudioPromo } from "@/components/NexusStudioPromo";
 import {
   Coins,
   Gift,
@@ -402,6 +403,7 @@ export function Layout({ children }) {
               <div className="mt-5 max-w-md">
                 <SupportDialog />
               </div>
+              <NexusStudioPromo />
               <div className="mt-5 flex items-center gap-4">
                 <img
                   src={BRAND.coin}

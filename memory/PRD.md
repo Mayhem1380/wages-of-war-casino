@@ -193,3 +193,7 @@ Structural real-money payment system wired with TEST/PLACEHOLDER keys, ready to 
 - Verified: ticket creation, wrong PIN=403, correct PIN returns tickets, UI unlock + resolve all work.
 - NOTE: preview backend/.env now has STRIPE_MODE="live" (was test) — flagged to user; production Stripe live keys still pending (user's sk_live_ key was invalid).
 
+
+### 21 Aug 2026 — Nexus Studio pricing/packages advertisement
+- New NexusStudioPromo.jsx in footer (testid nexus-studio-promo): 3 package cards (Starter/Operator/High Command) + GET A QUOTE CTAs + nexusstudio.dev link. PLACEHOLDER prices/URL — user to supply real values (edit PACKAGES + NEXUS_URL in /app/frontend/src/components/NexusStudioPromo.jsx).
+- All other requested items (shark-bite footer, muzzle-flash header, KYC, pokie/keno graphics, cashier) already built + verified in preview; production shows old build due to duplicate-deployment/domain issue (support escalation pending).
