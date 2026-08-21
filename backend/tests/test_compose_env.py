@@ -55,6 +55,47 @@ def test_public_slot_catalog_has_aaa_grade_roster():
     assert not missing, f"missing popular slots: {sorted(missing)}"
 
 
+def test_public_slot_catalog_has_recent_art_family_and_assets():
+    required = {
+        "aurora_strike",
+        "nebula_fortune",
+        "titan_city",
+        "valley_of_echoes",
+        "neon_reserve",
+        "celestial_forge",
+        "forge_of_the_lost",
+        "oasis_relics",
+        "stormbreaker",
+        "midnight_harvest",
+    }
+    missing = required - set(PUBLIC_SLOT_IDS)
+    assert not missing, f"missing slot family: {sorted(missing)}"
+
+    slots_dir = Path(__file__).resolve().parents[2] / "frontend" / "public" / "slots"
+    theme_map = {
+        "aurora_strike": ["aurora"],
+        "nebula_fortune": ["nebula"],
+        "titan_city": ["titan"],
+        "valley_of_echoes": ["valley"],
+        "neon_reserve": ["neon"],
+        "celestial_forge": ["celestial"],
+        "forge_of_the_lost": ["forge"],
+        "oasis_relics": ["oasis"],
+        "stormbreaker": ["storm"],
+        "midnight_harvest": ["midnight"],
+    }
+    missing_assets = []
+    for key in sorted(required):
+        for asset in theme_map[key]:
+            for suffix in [f"bg_{asset}.jpg", f"thumb_{asset}.jpg"]:
+                if not (slots_dir / suffix).exists():
+                    missing_assets.append(suffix)
+            for idx in range(1, 7):
+                if not (slots_dir / "symbols" / f"{asset}_sym_{idx}.svg").exists():
+                    missing_assets.append(f"symbols/{asset}_sym_{idx}.svg")
+    assert not missing_assets, f"missing art assets: {sorted(missing_assets)[:20]}"
+
+
 def test_public_slot_catalog_has_global_popular_titles():
     required = {
         "book_of_dead",
