@@ -32,10 +32,11 @@ What is MISSING on production (present and working in preview):
 - Footer underwater scene + site-wide war-map background
 
 Please can you:
-1. Confirm which deployment currently serves wagesofwarcasin0.online.
-2. Re-map the domain to the correct "night-vision-gold" deployment (latest checkpoint).
-3. Delete/remove the wrong/duplicate deployment.
-4. Force a clean rebuild if a stale build cache is involved.
+1. **Unlink / remove the Emergent-managed Stripe sandbox** on my app so the `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET` and `STRIPE_MODE` fields become **editable** — they're currently locked in the read-only "System keys" section and I can't change them. I want to use my OWN live Stripe account.
+2. Confirm which deployment currently serves wagesofwarcasin0.online.
+3. Re-map the domain to the correct "night-vision-gold" deployment (latest checkpoint).
+4. Delete/remove the wrong/duplicate deployment.
+5. Force a clean rebuild if a stale build cache is involved.
 
 I can share screenshots of the missing sections on request. Happy to trigger a fresh republish on request.
 
