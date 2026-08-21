@@ -85,7 +85,21 @@ export function getAppOriginUrl() {
 
 export function getBackendOriginUrl() {
   const explicit = (process.env.REACT_APP_BACKEND_URL || "").trim();
-  if (explicit) return trimTrailingSlash(explicit);
+  if (explicit) {
+    try {
+      const explicitOrigin = new URL(explicit).origin;
+      if (
+        typeof window !== "undefined" &&
+        window.location.hostname.endsWith(".preview.emergentagent.com") &&
+        explicitOrigin !== window.location.origin
+      ) {
+        return window.location.origin;
+      }
+    } catch (error) {
+      // Ignore malformed values and fall through to the current origin below.
+    }
+    return trimTrailingSlash(explicit);
+  }
   if (typeof window === "undefined") return "";
   return window.location.origin;
 }
