@@ -186,3 +186,10 @@ Structural real-money payment system wired with TEST/PLACEHOLDER keys, ready to 
 - Streak Reminder: Lobby nudge (testid lobby-wheel-ready) fetches /wheel/status for logged-in users; shows "YOUR DAILY WHEEL IS READY" when off cooldown, upgrades to a red MEGA-jackpot alert when mega_unlocked. Links to /wheel. animate-pulse-soft added to index.css.
 - Both verified present + styled via screenshots. Frontend compiles clean.
 
+
+### 21 Aug 2026 — Contact Management + PIN-protected HQ Inbox (verified)
+- Footer "Contact Management" button (SupportDialog.jsx) opens a support form (name/email/subject/message) → POST /api/support/ticket (public, links user_id if logged in). Placed above "Powered by Nexus Studio Master".
+- Admin dashboard new "HQ Inbox" tab: PIN-gated (PIN stored server-side as HQ_PIN in backend/.env = 13801380$, NEVER in client). GET /api/support/tickets + POST /api/support/tickets/{id}/resolve require_admin + header X-HQ-Pin. Shows tickets with status + Mark Resolved.
+- Verified: ticket creation, wrong PIN=403, correct PIN returns tickets, UI unlock + resolve all work.
+- NOTE: preview backend/.env now has STRIPE_MODE="live" (was test) — flagged to user; production Stripe live keys still pending (user's sk_live_ key was invalid).
+
