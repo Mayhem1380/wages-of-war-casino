@@ -6,6 +6,15 @@ usage() {
   exit 1
 }
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -d "$PWD/frontend" ] && [ -f "$PWD/frontend/package.json" ]; then
+  REPO_ROOT="$PWD"
+else
+  REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+fi
+FRONTEND_DIR="$REPO_ROOT/frontend"
+BUILD_DIR="$FRONTEND_DIR/build"
+
 HOST=${DEPLOY_HOST:-}
 USER=${DEPLOY_USER:-}
 DEST=${DEPLOY_PATH:-}
@@ -15,14 +24,31 @@ KEY=${DEPLOY_KEY:-}
 [ -n "$USER" ] || usage
 [ -n "$DEST" ] || usage
 
-echo "Packaging frontend build..."
-if [ -d frontend/build ]; then
-  TARFILE="wagesofwar_build_$(date +%Y%m%d%H%M%S).tar.gz"
-  tar -czf "$TARFILE" -C frontend build
-else
-  echo "frontend/build not found — please run the frontend build first." >&2
+if [ ! -d "$BUILD_DIR" ]; then
+  echo "Missing frontend build; generating production bundle..."
+  if [ ! -f "$FRONTEND_DIR/package.json" ]; then
+    echo "frontend/package.json not found in $FRONTEND_DIR" >&2
+    exit 2
+  fi
+  if ! command -v npm >/dev/null 2>&1; then
+    echo "npm is required to build the frontend bundle." >&2
+    exit 2
+  fi
+  (
+    cd "$FRONTEND_DIR"
+    npm ci --legacy-peer-deps
+    npm run build
+  )
+fi
+
+if [ ! -d "$BUILD_DIR" ]; then
+  echo "frontend/build still not found after npm build" >&2
   exit 2
 fi
+
+echo "Packaging frontend build..."
+TARFILE="$REPO_ROOT/wagesofwar_build_$(date +%Y%m%d%H%M%S).tar.gz"
+tar -czf "$TARFILE" -C "$FRONTEND_DIR" build
 
 echo "Uploading $TARFILE to $USER@$HOST:$DEST"
 if [ -n "$KEY" ]; then
