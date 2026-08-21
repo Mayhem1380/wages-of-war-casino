@@ -18,8 +18,8 @@ def test_deploy_script_builds_missing_frontend_build(tmp_path):
         textwrap.dedent(
             """#!/usr/bin/env bash
 set -e
-mkdir -p "$PWD/frontend/build"
-cat > "$PWD/frontend/build/index.html" <<'HTML'
+mkdir -p "$PWD/build"
+cat > "$PWD/build/index.html" <<'HTML'
 <!doctype html><html><body>built</body></html>
 HTML
 exit 0
