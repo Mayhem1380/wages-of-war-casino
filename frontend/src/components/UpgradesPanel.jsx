@@ -22,8 +22,8 @@ export default function UpgradesPanel() {
           return parsed;
         }
       }
-    } catch (_error) {
-      // ignore malformed local data and fall back below
+    } catch (error) {
+      console.warn("UpgradesPanel: ignoring malformed local data", error);
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_UPGRADES));
     return DEFAULT_UPGRADES;
