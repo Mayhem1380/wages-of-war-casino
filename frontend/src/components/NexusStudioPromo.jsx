@@ -30,7 +30,7 @@ export function NexusStudioPromo() {
   return (
     <section
       data-testid="nexus-studio-promo"
-      className="mt-12 border-t border-gold/20 pt-10"
+      className="pt-10"
     >
       <div className="flex items-center gap-3 mb-6">
         <Rocket size={24} weight="fill" className="text-gold" />

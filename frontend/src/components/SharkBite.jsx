@@ -108,7 +108,7 @@ export default function SharkBite() {
           box-shadow: inset 8px 0 22px rgba(120,200,255,0.1), inset -10px 0 18px rgba(0,0,0,0.4), 0 0 18px rgba(90,170,230,0.1);
           transform: skewX(-8deg);
           opacity: 0.84;
-          animation: wowSharkFloat 8.5s ease-in-out infinite;
+          animation: wowSharkBite 7.5s ease-in-out infinite;
         }
         .wow-shark-silhouette::before {
           content: "";
@@ -154,6 +154,13 @@ export default function SharkBite() {
         @keyframes wowSharkFloat {
           0%, 100% { transform: translateY(0) skewX(-8deg); }
           50% { transform: translateY(-10px) skewX(-8deg); }
+        }
+        @keyframes wowSharkBite {
+          0%, 60%  { transform: translate(0, 0) skewX(-8deg) scale(1); opacity: 0.8; }
+          72%      { transform: translate(-190px, -70px) skewX(-3deg) scale(1.12); opacity: 0.96; }
+          78%      { transform: translate(-150px, -58px) skewX(-6deg) scale(1.05); opacity: 0.9; }
+          88%      { transform: translate(-60px, -22px) skewX(-8deg) scale(1.0); opacity: 0.82; }
+          100%     { transform: translate(0, 0) skewX(-8deg) scale(1); opacity: 0.8; }
         }
         @keyframes wowPulse {
           0%, 100% { transform: scale(0.96); opacity: 0.12; }

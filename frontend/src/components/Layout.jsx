@@ -338,7 +338,17 @@ export function Layout({ children }) {
 
       <main className="flex-1 relative z-10">{children}</main>
 
-      <footer className="relative z-10 border-t-2 border-gold/20 bg-black/70 mt-16 overflow-hidden">
+      {/* Nexus Studio — standalone professional band (moved OUT of the underwater footer) */}
+      <section
+        data-testid="nexus-studio-band"
+        className="relative z-10 border-t-2 border-gold/20 bg-gradient-to-b from-[#0b0f0b] via-black to-[#0a0d0a]"
+      >
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-8 py-4">
+          <NexusStudioPromo />
+        </div>
+      </section>
+
+      <footer className="relative z-10 border-t-2 border-gold/20 bg-black/70 overflow-hidden">
         <div
           className="absolute inset-0 pointer-events-none opacity-[0.6]"
           style={{
@@ -403,7 +413,6 @@ export function Layout({ children }) {
               <div className="mt-5 max-w-md">
                 <SupportDialog />
               </div>
-              <NexusStudioPromo />
               <div className="mt-5 flex items-center gap-4">
                 <img
                   src={BRAND.coin}
