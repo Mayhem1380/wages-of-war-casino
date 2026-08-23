@@ -77,7 +77,13 @@ export default function FlagshipSlot() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, refreshUser, openAuth } = useAuth();
-  const art = FLAGSHIP_ART[id] || {};
+  const art = FLAGSHIP_ART[id] || {
+    thumb: "/slots/thumb_gold.jpg",
+    bg: "/slots/bg_gold.jpg",
+    accent: "#F6C64A",
+    frame: "#8a6a1e",
+    panel: "#141008",
+  };
 
   const [machine, setMachine] = useState(null);
   const [grid, setGrid] = useState([[], [], [], [], []]);
@@ -518,7 +524,7 @@ export default function FlagshipSlot() {
         </div>
       )}
 
-      <div className="max-w-5xl mx-auto px-3 sm:px-6 py-6">
+      <div className="max-w-5xl mx-auto px-3 sm:px-6 pt-6 pb-28 lg:pb-6">
         <button
           onClick={() => navigate("/lobby")}
           className="flex items-center gap-2 text-white/60 hover:text-white font-mono text-sm mb-4"
@@ -773,6 +779,7 @@ export default function FlagshipSlot() {
               </div>
             </div>
 
+            <div className="hidden lg:block">
             {free && free.done ? (
               <Button
                 data-testid="flagship-free-collect"
@@ -792,6 +799,7 @@ export default function FlagshipSlot() {
                 <Lightning size={26} weight="fill" /> {busy ? "..." : "SPIN"}
               </Button>
             )}
+            </div>
 
             <div
               className="rounded-md border p-4 bg-black/55"
@@ -831,6 +839,35 @@ export default function FlagshipSlot() {
           </div>
         </div>
       </div>
+
+      {/* Mobile sticky action bar */}
+      {!intro && (
+        <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 flex items-center gap-3 px-3 py-2.5 bg-black/92 backdrop-blur-md border-t-2 border-gold/40">
+          <div className="flex flex-col leading-none shrink-0">
+            <span className="font-mono text-[9px] text-white/50 tracking-widest">BALANCE</span>
+            <span className="font-mono text-sm text-gold">{fmt(user?.balance || 0)}</span>
+          </div>
+          {free && free.done ? (
+            <Button
+              data-testid="flagship-spin-mobile"
+              onClick={collectFree}
+              className="flex-1 h-14 bg-nvg hover:bg-nvg/90 text-black font-display text-xl tracking-widest gap-2 animate-flicker"
+            >
+              <Coins size={22} weight="fill" /> COLLECT {fmt(free.total)}
+            </Button>
+          ) : (
+            <Button
+              data-testid="flagship-spin-mobile"
+              onClick={doSpin}
+              disabled={busy}
+              className="flex-1 h-14 text-black font-display text-xl tracking-widest gap-2 disabled:opacity-60"
+              style={{ background: art.accent }}
+            >
+              <Lightning size={22} weight="fill" /> {busy ? "..." : "SPIN"}
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -55,6 +55,10 @@ textarea:focus-visible {
   border-color: rgba(78, 228, 78, 0.8);
 }
 
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
 body {
   margin: 0;
   background-color: #050605;

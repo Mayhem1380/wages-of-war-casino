@@ -222,7 +222,7 @@ export default function SlotGame() {
   return (
     <div
       data-testid={SLOT.root}
-      className="max-w-6xl mx-auto px-4 sm:px-8 py-8"
+      className="max-w-6xl mx-auto px-4 sm:px-8 pt-8 pb-28 lg:pb-8"
       style={{
         background: art.bg
           ? `linear-gradient(rgba(6, 10, 8, 0.78), rgba(6, 10, 8, 0.94)), url(${art.bg}) center/cover no-repeat fixed`
@@ -433,6 +433,7 @@ export default function SlotGame() {
             </div>
           </div>
 
+          <div className="hidden lg:block">
           {free && free.done ? (
             <Button
               data-testid={SLOT.freeCollect}
@@ -456,6 +457,7 @@ export default function SlotGame() {
               {inFree ? "FREE FIRE..." : spinning ? "SPINNING..." : "SPIN"}
             </Button>
           )}
+          </div>
 
           <div
             className="hud p-4"
@@ -512,6 +514,33 @@ export default function SlotGame() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Mobile sticky action bar */}
+      <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 flex items-center gap-3 px-3 py-2.5 bg-black/92 backdrop-blur-md border-t-2 border-gold/40">
+        <div className="flex flex-col leading-none shrink-0">
+          <span className="font-mono text-[9px] text-white/50 tracking-widest">BALANCE</span>
+          <span className="font-mono text-sm text-gold">{fmt(user?.balance || 0)}</span>
+        </div>
+        {free && free.done ? (
+          <Button
+            data-testid="slot-spin-mobile"
+            onClick={collectFree}
+            className="flex-1 h-14 bg-nvg hover:bg-nvg/90 text-black font-display text-xl tracking-widest gap-2 animate-flicker"
+          >
+            <Coins size={22} weight="fill" /> COLLECT {fmt(free.total)}
+          </Button>
+        ) : (
+          <Button
+            data-testid="slot-spin-mobile"
+            onClick={doSpin}
+            disabled={spinning || inFree}
+            className="flex-1 h-14 bg-gold hover:bg-gold/90 text-black font-display text-xl tracking-widest gap-2 disabled:opacity-60"
+          >
+            {inFree ? <Sparkle size={22} weight="fill" /> : <Lightning size={22} weight="fill" />}
+            {inFree ? "FREE FIRE..." : spinning ? "SPINNING..." : "SPIN"}
+          </Button>
+        )}
       </div>
     </div>
   );

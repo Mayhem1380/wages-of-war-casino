@@ -60,14 +60,14 @@ export default function SharkBite() {
         .wow-war-flash {
           position: absolute;
           left: 50%;
-          top: 58%;
+          top: 50%;
           width: 420px;
           height: 180px;
           transform: translate(-50%, -50%);
           border-radius: 9999px;
           background: radial-gradient(ellipse at center, rgba(255, 76, 54, 0.28), rgba(255, 135, 35, 0.08) 38%, rgba(0,0,0,0) 72%);
           filter: blur(4px);
-          animation: wowWarFlash 7.5s ease-in-out infinite;
+          animation: wowWarFlash 8.5s ease-in-out infinite;
         }
 
         .wow-war-pulse {
@@ -93,7 +93,7 @@ export default function SharkBite() {
           background: radial-gradient(ellipse at center, rgba(120,205,255,0.28), rgba(90,170,230,0.10) 45%, rgba(0,0,0,0) 70%);
           filter: blur(2px);
           opacity: 0.18;
-          animation: wowSharkLunge 7.5s ease-in-out infinite;
+          animation: wowSharkLunge 8.5s ease-in-out infinite;
           will-change: transform, opacity;
         }
 
@@ -108,7 +108,7 @@ export default function SharkBite() {
           box-shadow: inset 8px 0 22px rgba(120,200,255,0.1), inset -10px 0 18px rgba(0,0,0,0.4), 0 0 18px rgba(90,170,230,0.1);
           transform: skewX(-8deg);
           opacity: 0.84;
-          animation: wowSharkBite 7.5s ease-in-out infinite;
+          animation: wowSharkBite 8.5s ease-in-out infinite;
         }
         .wow-shark-silhouette::before {
           content: "";
@@ -145,22 +145,25 @@ export default function SharkBite() {
         }
 
         @keyframes wowSharkLunge {
-          0%, 62%   { transform: translate(50%, -50%) scale(1); opacity: 0.14; }
-          74%       { transform: translate(20%, -50%) scale(1.25); opacity: 0.42; }
-          80%       { transform: translate(14%, -50%) scale(1.3); opacity: 0.48; }
-          90%       { transform: translate(40%, -50%) scale(1.08); opacity: 0.22; }
-          100%      { transform: translate(50%, -50%) scale(1); opacity: 0.14; }
+          0%, 32%   { transform: translate(50%, -50%) scale(1); opacity: 0.12; }
+          44%       { transform: translate(-140%, -50%) scale(1.28); opacity: 0.42; }
+          56%       { transform: translate(-150%, -50%) scale(1.34); opacity: 0.48; }
+          72%       { transform: translate(20%, -50%) scale(1.08); opacity: 0.2; }
+          100%      { transform: translate(50%, -50%) scale(1); opacity: 0.12; }
         }
         @keyframes wowSharkFloat {
           0%, 100% { transform: translateY(0) skewX(-8deg); }
           50% { transform: translateY(-10px) skewX(-8deg); }
         }
         @keyframes wowSharkBite {
-          0%, 60%  { transform: translate(0, 0) skewX(-8deg) scale(1); opacity: 0.8; }
-          72%      { transform: translate(-190px, -70px) skewX(-3deg) scale(1.12); opacity: 0.96; }
-          78%      { transform: translate(-150px, -58px) skewX(-6deg) scale(1.05); opacity: 0.9; }
-          88%      { transform: translate(-60px, -22px) skewX(-8deg) scale(1.0); opacity: 0.82; }
-          100%     { transform: translate(0, 0) skewX(-8deg) scale(1); opacity: 0.8; }
+          0%    { transform: translate(40px, 10px) skewX(-8deg) scale(0.85); opacity: 0.04; }
+          12%   { opacity: 0.35; }
+          40%   { transform: translate(-36vw, -46px) skewX(-3deg) scale(1.18); opacity: 0.97; }
+          48%   { transform: translate(-32vw, -40px) skewX(-7deg) scale(0.98); opacity: 0.9; }
+          55%   { transform: translate(-36vw, -46px) skewX(-2deg) scale(1.2); opacity: 0.98; }
+          62%   { transform: translate(-31vw, -38px) skewX(-7deg) scale(0.96); opacity: 0.88; }
+          78%   { transform: translate(-12vw, -14px) skewX(-8deg) scale(1.0); opacity: 0.5; }
+          100%  { transform: translate(40px, 10px) skewX(-8deg) scale(0.85); opacity: 0.04; }
         }
         @keyframes wowPulse {
           0%, 100% { transform: scale(0.96); opacity: 0.12; }
@@ -168,10 +171,11 @@ export default function SharkBite() {
           60% { transform: scale(1.06); opacity: 0.2; }
         }
         @keyframes wowWarFlash {
-          0%, 70%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.92); }
-          76% { opacity: 0.9; }
-          80% { opacity: 0.55; transform: translate(-50%, -50%) scale(1.08); }
-          88% { opacity: 0.12; }
+          0%, 38%, 70%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+          46% { opacity: 0.85; transform: translate(-50%, -50%) scale(1.05); }
+          50% { opacity: 0.4; transform: translate(-50%, -50%) scale(0.98); }
+          56% { opacity: 0.92; transform: translate(-50%, -50%) scale(1.14); }
+          64% { opacity: 0.12; }
         }
       `}</style>
     </div>

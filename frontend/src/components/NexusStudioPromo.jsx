@@ -6,23 +6,23 @@ import { Rocket, Check, ArrowUpRight } from "@phosphor-icons/react";
 const NEXUS_URL = "https://nexusstudio.dev";
 const PACKAGES = [
   {
-    name: "STARTER STRIKE",
-    price: "$1,500",
-    tagline: "Landing page / single build",
-    perks: ["1-page cinematic build", "Custom art pass", "Mobile-ready", "7-day delivery"],
+    name: "10-SLOT PACK",
+    price: "$5,000",
+    tagline: "10 custom slot machines",
+    perks: ["10 themed slot games", "Custom art per game", "Server-side RNG engine", "Mobile-ready + deploy"],
   },
   {
-    name: "OPERATOR",
-    price: "$4,500",
+    name: "STARTUP BUILD",
+    price: "$5,800",
     featured: true,
-    tagline: "Full app / multi-page",
-    perks: ["Full front + backend", "AAA custom graphics", "Payments & auth wired", "Deploy + support"],
+    tagline: "Full startup platform",
+    perks: ["Full front + backend", "AAA custom graphics", "Payments & auth wired", "Deploy + launch support"],
   },
   {
-    name: "HIGH COMMAND",
-    price: "Custom",
-    tagline: "Enterprise / platform",
-    perks: ["Everything in Operator", "Real-money & compliance", "Ongoing ops & scaling", "Priority line"],
+    name: "PLATFORM COMPLETE",
+    price: "$35,000",
+    tagline: "Complete turnkey casino",
+    perks: ["Everything in Startup", "40+ slots + table games", "Real-money & compliance", "Ongoing ops & scaling"],
   },
 ];
 

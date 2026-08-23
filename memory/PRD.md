@@ -197,3 +197,22 @@ Structural real-money payment system wired with TEST/PLACEHOLDER keys, ready to 
 ### 21 Aug 2026 — Nexus Studio pricing/packages advertisement
 - New NexusStudioPromo.jsx in footer (testid nexus-studio-promo): 3 package cards (Starter/Operator/High Command) + GET A QUOTE CTAs + nexusstudio.dev link. PLACEHOLDER prices/URL — user to supply real values (edit PACKAGES + NEXUS_URL in /app/frontend/src/components/NexusStudioPromo.jsx).
 - All other requested items (shark-bite footer, muzzle-flash header, KYC, pokie/keno graphics, cashier) already built + verified in preview; production shows old build due to duplicate-deployment/domain issue (support escalation pending).
+
+
+### 23 Aug 2026 — Real prices, uploaded tile art, mobile UX, shark/war-flash, Keno live board, vault solvency, deploy fix
+- NEXUS PRICING corrected to confirmed values in NexusStudioPromo.jsx (footer) + FleetSales.jsx: 10-Slot Pack $5,000 · Startup Build $5,800 (Most Popular) · Platform Complete $35,000 (+ Enterprise P.O.A. on Fleet page).
+- Footer: NexusStudioPromo MOVED out of the underwater footer into its own standalone band above the footer, so the glowing logo + diver + shark scene is unobstructed.
+- SHARK (SharkBite.jsx): now emerges from darkness, lunges to centre and "chews" the logo (double-chomp), then retreats; red war-flash + lunge glow synced to the bite (8.5s cycle).
+- WAR-ZONE FLASH: CombatBackground now renders for EVERYONE on entry (was logged-in only) in Layout.jsx.
+- UPLOADED TILE ART wired: /slots/tile_warpath_legends.png, tile_golden_dynasty.png, tile_money_train_convoy.png (from user artifacts) into gameMeta FLAGSHIP_ART + BASE_MACHINE_ART. warpath_legends previously had NO art (was broken) — now fixed. Added no-blank fallback in resolveMachineArt + FlagshipSlot (defaults to bg_gold/thumb_gold).
+- MOBILE: added `overflow-x:hidden` (index.css) to stop the sideways shift; added a sticky bottom SPIN/COLLECT action bar (lg:hidden) on FlagshipSlot.jsx + SlotGame.jsx so players never scroll past the reels to spin (desktop in-flow button hidden on mobile).
+- KENO LIVE DRAW BOARD: new components/KenoLiveBoard.jsx — always-on digital lounge feed that rolls 20 balls then counts down to the next auto-draw every 2 minutes; highlights balls matching the player's picks. Mounted at top of KenoGame.jsx (testid keno-live-board).
+- VAULT SOLVENCY GUARD (server.py _process_withdrawals_loop): withdrawals are HELD (vault_hold=true) unless house available funds cover the payout minus VAULT_MIN_RESERVE_USD (default 0). Admin vault view at GET /api/admin/bankroll. KYC (Stripe Identity) + deposits already automated; real payout still needs a real VAULT_API_KEY (placeholder → pending queue).
+- DEPLOYMENT FIX: requirements.txt slimmed from ~124 bloated pins (numpy/pandas/google-genai/boto3/dev tools — none imported by backend) to a verified-installable 33-package set (backend only uses fastapi, motor, pydantic, bcrypt, PyJWT, httpx, stripe, dotenv). Fixed JWT_SECRET placeholder (deployment BLOCKER) with a real 96-char secret. These address the failed production Docker build (pip install --no-dependencies step).
+- All verified in preview (compiles, no image 404s, Keno board drawing, footer prices/shark, admin login + vault endpoint). Production requires a fresh REPUBLISH to go live.
+
+BACKLOG / NEEDS USER CONFIRMATION:
+- Coin-denomination classic machines (1c/2c/5c/10c, doubles, card suits) — new machine set, needs exact specs.
+- Full audit of all slot sounds/upgrades (largely already built).
+- Real automated payouts require a real VAULT_API_KEY / payout provider (Stripe payouts or NOWPayments payout API) + keys from user.
+

@@ -231,8 +231,8 @@ export const FLAGSHIP_ART = {
     ],
   },
   golden_dynasty: {
-    thumb: "/slots/thumb_dynasty.jpg",
-    bg: "/slots/bg_dynasty.jpg",
+    thumb: "/slots/tile_golden_dynasty.png",
+    bg: "/slots/tile_golden_dynasty.png",
     accent: "#FFC04A",
     frame: "#C23A2E",
     panel: "#2a0a0c",
@@ -260,11 +260,18 @@ export const FLAGSHIP_ART = {
     panel: "#0a1626",
   },
   money_train_convoy: {
-    thumb: "/slots/thumb_train.jpg",
-    bg: "/slots/bg_train.jpg",
+    thumb: "/slots/tile_money_train_convoy.png",
+    bg: "/slots/tile_money_train_convoy.png",
     accent: "#F6C64A",
     frame: "#8a6a1e",
     panel: "#181206",
+  },
+  warpath_legends: {
+    thumb: "/slots/tile_warpath_legends.png",
+    bg: "/slots/tile_warpath_legends.png",
+    accent: "#FF7A3A",
+    frame: "#8a4a1e",
+    panel: "#1a0f08",
   },
   wild_west_recon: {
     thumb: "/slots/thumb_west.jpg",
@@ -536,12 +543,13 @@ const BASE_MACHINE_ART = {
   book_of_ops: { bg: "/slots/bg_book.jpg", thumb: "/slots/thumb_book.jpg", panel: "#E0B24A" },
   big_bass_bombardment: { bg: "/slots/bg_bass.jpg", thumb: "/slots/thumb_bass.jpg", panel: "#5AA6FF" },
   wild_west_recon: { bg: "/slots/bg_west.jpg", thumb: "/slots/thumb_west.jpg", panel: "#C9A06A" },
-  money_train_convoy: { bg: "/slots/bg_train.jpg", thumb: "/slots/thumb_train.jpg", panel: "#4EE44E" },
+  money_train_convoy: { bg: "/slots/tile_money_train_convoy.png", thumb: "/slots/tile_money_train_convoy.png", panel: "#4EE44E" },
+  warpath_legends: { bg: "/slots/tile_warpath_legends.png", thumb: "/slots/tile_warpath_legends.png", panel: "#FF7A3A" },
   pharaohs_arsenal: { bg: "/slots/bg_pharaoh.jpg", thumb: "/slots/thumb_pharaoh_aaa.svg", panel: "#E0B24A" },
   kraken_depths: { bg: "/slots/bg_kraken.jpg", thumb: "/slots/thumb_kraken.jpg", panel: "#57E6C6" },
   inferno_airstrike: { bg: "/slots/bg_inferno.jpg", thumb: "/slots/thumb_inferno_aaa.svg", panel: "#FF7A2E" },
   frozen_front: { bg: "/slots/bg_frozen.jpg", thumb: "/slots/thumb_frozen.jpg", panel: "#9FD0FF" },
-  golden_dynasty: { bg: "/slots/bg_dynasty.jpg", thumb: "/slots/thumb_dynasty_aaa.svg", panel: "#FF5A5A" },
+  golden_dynasty: { bg: "/slots/tile_golden_dynasty.png", thumb: "/slots/tile_golden_dynasty.png", panel: "#FF5A5A" },
   samurai_strike: { bg: "/slots/bg_samurai.jpg", thumb: "/slots/thumb_samurai.jpg", panel: "#F6E27A" },
   voodoo_vengeance: { bg: "/slots/bg_voodoo.jpg", thumb: "/slots/thumb_voodoo.jpg", panel: "#C07BFF" },
   corsair_cannons: { bg: "/slots/bg_corsair.jpg", thumb: "/slots/thumb_corsair.jpg", panel: "#7FE3FF" },
@@ -808,8 +816,8 @@ export const resolveMachineArt = (id, fallback = {}) => {
     ...fallback,
     accent: fallback.accent || current.accent || base.panel || "#4EE44E",
     panel: fallback.panel || current.panel || base.panel || current.accent || "#4EE44E",
-    bg: fallback.bg || current.bg || base.bg || "",
-    thumb: fallback.thumb || current.thumb || base.thumb || "",
+    bg: fallback.bg || current.bg || base.bg || "/slots/bg_gold.jpg",
+    thumb: fallback.thumb || current.thumb || base.thumb || "/slots/thumb_gold.jpg",
   };
 };
 
