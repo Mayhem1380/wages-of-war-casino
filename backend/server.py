@@ -280,8 +280,13 @@ async def get_house_bankroll_summary():
 
 def validate_runtime_config() -> None:
     """Log high-impact config issues so production misconfigurations are obvious."""
+    global JWT_SECRET, FRONTEND_URL
+
     env_name = os.environ.get("ENVIRONMENT", os.environ.get("APP_ENV", "")).lower()
     is_prod = env_name in {"prod", "production", "live"}
+
+    FRONTEND_URL = os.environ.get("FRONTEND_URL", FRONTEND_URL).strip()
+    JWT_SECRET = os.environ.get("JWT_SECRET", JWT_SECRET).strip()
 
     issues = []
     warnings = []
@@ -292,7 +297,7 @@ def validate_runtime_config() -> None:
     if not STRIPE_WEBHOOK_SECRETS:
         issues.append("STRIPE_WEBHOOK_SECRET is missing")
 
-    if not os.environ.get("FRONTEND_URL", "").strip():
+    if not FRONTEND_URL:
         issues.append("FRONTEND_URL is missing")
 
     if not JWT_SECRET or "change-me" in JWT_SECRET.lower() or "replace" in JWT_SECRET.lower():
