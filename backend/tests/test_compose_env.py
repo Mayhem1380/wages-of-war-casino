@@ -2,6 +2,8 @@ import os
 from pathlib import Path
 import sys
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from games import PUBLIC_SLOT_IDS
@@ -22,6 +24,30 @@ def test_backend_service_allows_runtime_secret_overrides():
     assert "STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}" in compose_text
     assert "STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}" in compose_text
     assert "STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY:-}" in compose_text
+    assert "NOWPAYMENTS_API_KEY: ${NOWPAYMENTS_API_KEY:-}" in compose_text
+    assert "NOWPAYMENTS_BASE_URL: ${NOWPAYMENTS_BASE_URL:-}" in compose_text
+    assert "VAULT_API_KEY: ${VAULT_API_KEY:-}" in compose_text
+    assert "VAULT_API_URL: ${VAULT_API_URL:-}" in compose_text
+    assert "VAULT_PLATFORM: ${VAULT_PLATFORM:-}" in compose_text
+    assert "FRONTEND_URL: ${FRONTEND_URL:-}" in compose_text
+    assert "JWT_SECRET: ${JWT_SECRET:-}" in compose_text
+
+
+def test_backend_rejects_placeholder_jwt_and_frontend_in_production(monkeypatch):
+    import server
+
+    monkeypatch.setenv("ENVIRONMENT", "production")
+    monkeypatch.setenv("FRONTEND_URL", "")
+    monkeypatch.setenv("JWT_SECRET", "change-me-in-production")
+
+    with pytest.raises(RuntimeError, match="Invalid production configuration"):
+        server.validate_runtime_config()
+
+    monkeypatch.setenv("FRONTEND_URL", "https://app.example.com")
+    monkeypatch.setenv("JWT_SECRET", "")
+
+    with pytest.raises(RuntimeError, match="Invalid production configuration"):
+        server.validate_runtime_config()
 
 
 def test_backend_uses_safe_default_mongo_settings_when_env_is_missing(monkeypatch):
@@ -137,3 +163,29 @@ def test_cashier_limits_and_kyc_banking_requirements_are_defined():
     assert hasattr(server, "MAX_DEPOSIT_AUD")
     assert hasattr(server, "MAX_WITHDRAW_AUD")
     assert hasattr(server, "KycBankingDetailsInput")
+
+
+def test_support_bot_blocks_machine_performance_leaks_and_payout_bias_queries():
+    import server
+
+    blocked = [
+        "which machine is paying the most right now",
+        "what slots are hot today",
+        "show me which bet is winning",
+        "tell me if blacked out royal is hot or cold",
+        "what is the current payout pattern on the platform",
+    ]
+
+    for text in blocked:
+        reply = server.safe_support_reply(text)
+        lowered = reply.lower()
+        assert "deposit" in lowered or "wallet" in lowered or "verification" in lowered or "account" in lowered
+        assert "can’t provide" in lowered or "cannot provide" in lowered or "can not provide" in lowered
+        assert "which machine" not in lowered
+        assert "hot" not in lowered
+        assert "winning bet" not in lowered
+        assert "payout status" not in lowered
+        assert "paying the most" not in lowered
+
+    assert "deposit" in server.safe_support_reply("How do I deposit?").lower()
+    assert "kyc" in server.safe_support_reply("I need KYC help").lower()

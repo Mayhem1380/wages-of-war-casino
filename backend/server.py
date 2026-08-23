@@ -62,9 +62,9 @@ def _ensure_db():
     return db
 
 
-JWT_SECRET = os.environ.get("JWT_SECRET", "change-me-in-production")
+JWT_SECRET = os.environ.get("JWT_SECRET", "").strip()
 JWT_ALGORITHM = "HS256"
-FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:3000")
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "").strip()
 
 STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "").strip()
 STRIPE_USE_MOCK = (
@@ -295,6 +295,9 @@ def validate_runtime_config() -> None:
     if not os.environ.get("FRONTEND_URL", "").strip():
         issues.append("FRONTEND_URL is missing")
 
+    if not JWT_SECRET or "change-me" in JWT_SECRET.lower() or "replace" in JWT_SECRET.lower():
+        issues.append("JWT_SECRET is missing or placeholder")
+
     if cashier._is_placeholder_np():
         warnings.append("NOWPAYMENTS_API_KEY is placeholder/missing; crypto deposits run in sandbox")
 
@@ -524,6 +527,58 @@ class SupportMessage(BaseModel):
     message: str
 
 
+def safe_support_reply(text: str) -> str:
+    """Return a safe support response while blocking payout-performance leaks.
+
+    The platform must never expose which machine is hot, which bet is winning,
+    current payout bias, or internal payout analytics to players or support chat.
+    """
+    cleaned = (text or "").strip()
+    if not cleaned:
+        return "Hi — I'm the 24/7 assistant. Try 'deposit', 'withdraw', or 'verify'. For urgent support contact admin@wow.local"
+
+    lower = cleaned.lower()
+
+    leakage_phrases = (
+        "paying the most",
+        "payout pattern",
+        "hot today",
+        "hot or cold",
+        "which machine",
+        "machine is paying",
+        "which slot is paying",
+        "what is the current payout",
+        "winning bet",
+        "machine performance",
+        "payout bias",
+        "payout trend",
+        "hot streak",
+        "cold streak",
+        "most profitable",
+        "which bet is winning",
+        "slot is hot",
+    )
+    if any(phrase in lower for phrase in leakage_phrases):
+        return (
+            "I can help with deposits, withdrawals, verification, and account support, but "
+            "I can’t provide live performance or betting-pattern insights. "
+            "If you need help with your wallet or account, I can guide you safely."
+        )
+
+    if "deposit" in lower or "cashier" in lower:
+        return "To deposit, open Wallet → Cashier. We accept Card (Stripe) and Crypto. For help, tell me which you want."
+    if "withdraw" in lower or "payout" in lower:
+        return "Withdrawals route via the approval vault. Check /profile or /wallet → Transactions for status."
+    if "kyc" in lower or "id" in lower or "verify" in lower:
+        return "KYC is required before large withdrawals. Use the Verification page to upload documents and complete your banking verification."
+    if "balance" in lower or "wallet" in lower or "account" in lower:
+        return "For wallet or account help, open your profile and check the balance, transactions, and verification status."
+    if "support" in lower or "help" in lower:
+        return "I can assist with deposits, withdrawals, verification, and basic account questions. For sensitive cases, an admin review can be requested."
+
+    return "Hi — I'm the 24/7 assistant. Try 'deposit', 'withdraw', or 'verify'. For urgent support contact admin@wow.local"
+
+
 @api.post("/support/message")
 async def support_message(payload: SupportMessage, user: dict = Depends(resolve_user)):
     text = payload.message.strip()
@@ -535,16 +590,7 @@ async def support_message(payload: SupportMessage, user: dict = Depends(resolve_
     }
     await db.support_messages.insert_one(row)
 
-    # Very small rule-based bot replies (POC). Expand with external bot later.
-    lower = text.lower()
-    if "deposit" in lower or "cashier" in lower:
-        reply = "To deposit, open Wallet → Cashier. We accept Card (Stripe) and Crypto. For help, tell me which you want."
-    elif "withdraw" in lower or "payout" in lower:
-        reply = "Withdrawals route via the approval vault. Check /profile or /wallet → Transactions for status."
-    elif "kyc" in lower or "id" in lower or "verify" in lower:
-        reply = "KYC required for withdrawals over threshold. Use the Verification page to upload documents."
-    else:
-        reply = "Hi — I'm the 24/7 assistant. Try 'deposit', 'withdraw', or 'verify'. For urgent support contact admin@wow.local"
+    reply = safe_support_reply(text)
 
     bot = {
         "id": str(uuid.uuid4()),
@@ -613,6 +659,15 @@ async def _sync_kyc_from_stripe(user_id: str, session_id: str) -> dict:
         update["kyc_status"] = status or "not_started"
     await db.users.update_one({"user_id": user_id}, {"$set": update})
     return update
+
+
+def _make_mock_verification_session() -> dict:
+    sid = "vs_" + uuid.uuid4().hex[:16]
+    return {
+        "id": sid,
+        "url": f"https://verify.stripe.com/{sid}",
+        "status": "requires_input",
+    }
 
 
 class KycSessionInput(BaseModel):
@@ -703,7 +758,23 @@ async def kyc_session(payload: KycSessionInput, user: dict = Depends(require_use
     try:
         session = stripe.identity.VerificationSession.create(**kwargs)
     except stripe.error.StripeError as e:
-        raise HTTPException(status_code=502, detail=f"Stripe Identity error: {e}")
+        msg = str(e).lower()
+        if (
+            "not set up to use identity" in msg
+            or "identity" in msg and "not set up" in msg
+            or "identity is not enabled" in msg
+            or "does not support identity" in msg
+        ):
+            logger.warning(
+                "Stripe Identity not configured for account; using safe mock verification session. Details: %s",
+                e,
+            )
+            session = type("_MockVerificationSessionObj", (), {})()
+            session.id = "vs_" + uuid.uuid4().hex[:16]
+            session.url = f"https://verify.stripe.com/{session.id}"
+            session.status = "requires_input"
+        else:
+            raise HTTPException(status_code=502, detail=f"Stripe Identity error: {e}")
     await db.users.update_one(
         {"user_id": user["user_id"]},
         {
