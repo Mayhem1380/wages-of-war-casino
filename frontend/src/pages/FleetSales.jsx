@@ -130,26 +130,26 @@ export default function FleetSales() {
     },
   ];
 
-  // NOTE: placeholder pricing — replace with your confirmed fleet licence prices.
+  // Confirmed Nexus Studio fleet package pricing (USD).
   const pricing = [
     {
-      name: "Recon — Single Brand",
-      note: "Turnkey casino · your branding",
+      name: "10-Slot Pack",
+      note: "10 custom slot machines · deploy-ready",
+      price: "$5,000",
+    },
+    {
+      name: "Startup Build",
+      note: "Full platform · front + backend",
+      price: "$5,800",
+    },
+    {
+      name: "Platform Complete",
+      note: "Turnkey casino · real-money & compliance",
       price: "$35,000",
     },
     {
-      name: "Fleet — Multi Brand",
-      note: "Multi-currency · multi-language",
-      price: "$75,000",
-    },
-    {
-      name: "Command — White Label",
-      note: "Full licence + ops support",
-      price: "$150,000",
-    },
-    {
-      name: "Global — Enterprise",
-      note: "Custom multi-market deployment",
+      name: "Enterprise Fleet",
+      note: "Multi-brand · custom deployment",
       price: "P.O.A.",
     },
   ];

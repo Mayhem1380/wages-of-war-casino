@@ -4,6 +4,7 @@ import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { fmt } from "@/data/gameMeta";
 import { AnimatedShowcase } from "@/components/AnimatedShowcase";
+import { KenoLiveBoard } from "@/components/KenoLiveBoard";
 import { WinCelebration } from "@/components/WinCelebration";
 import { KENO } from "@/constants/testIds";
 import { Button } from "@/components/ui/button";
@@ -168,6 +169,10 @@ export default function KenoGame() {
               {fmt(user?.balance || 0)}
             </span>
           </div>
+        </div>
+
+        <div className="mb-6">
+          <KenoLiveBoard picks={picks} />
         </div>
 
         <div className="mb-6">

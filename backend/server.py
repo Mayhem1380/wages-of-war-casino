@@ -888,7 +888,37 @@ async def _process_withdrawals_loop():
             pending = await db.cashier_transactions.find(
                 {"direction": "withdrawal", "status": "pending"}
             ).to_list(50)
+
+            # SOLVENCY GUARD: never release more than the vault can cover.
+            # VAULT_MIN_RESERVE_USD keeps a float in the bank so the casino
+            # stays solvent while still paying genuine wins.
+            reserve_cents = int(round(float(os.environ.get("VAULT_MIN_RESERVE_USD", "0")) * 100))
+            summary = await get_house_bankroll_summary()
+            available_cents = int(summary.get("available_cents", 0))
+
             for t in pending:
+                now_iso = datetime.now(timezone.utc).isoformat()
+                amt_cents = int(round(float(t.get("amount_usd", 0) or 0) * 100))
+
+                # Hold the payout if the vault lacks the funds to cover it.
+                if available_cents - amt_cents < reserve_cents:
+                    await db.cashier_transactions.update_one(
+                        {"id": t["id"]},
+                        {"$set": {
+                            "status": "pending",
+                            "vault_hold": True,
+                            "hold_reason": "insufficient_vault_balance",
+                            "updated_at": now_iso,
+                        }},
+                    )
+                    logger.warning(
+                        "WITHDRAWAL HELD id=%s amount_usd=%.2f vault_available_usd=%.2f (insufficient vault funds)",
+                        t.get("id"),
+                        float(t.get("amount_usd", 0) or 0),
+                        available_cents / 100.0,
+                    )
+                    continue
+
                 # attempt submit to vault
                 try:
                     res = await cashier.vault_submit_withdrawal(
@@ -897,14 +927,16 @@ async def _process_withdrawals_loop():
                         t.get("destination", ""),
                         t.get("id"),
                     )
-                    now_iso = datetime.now(timezone.utc).isoformat()
                     if res.get("ok"):
+                        available_cents -= amt_cents  # reserve the released funds
                         await db.cashier_transactions.update_one(
                             {"id": t["id"]},
                             {
                                 "$set": {
                                     "status": "processing",
                                     "vault_id": res.get("vault_id"),
+                                    "vault_hold": False,
+                                    "hold_reason": None,
                                     "updated_at": now_iso,
                                 }
                             },

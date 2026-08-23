@@ -204,7 +204,8 @@ export function Layout({ children }) {
         className="fixed inset-0 z-0 pointer-events-none bg-cover bg-center opacity-[0.18]"
         style={{ backgroundImage: "url(/brand/warmap_bg.jpg)" }}
       />
-      {user && <CombatBackground />}
+      {/* War-zone combat scene (muzzle flashes) — shown on entry for everyone */}
+      <CombatBackground />
       <header className="sticky top-0 z-50 border-b-2 border-gold/25 bg-black/85 backdrop-blur-md">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-8 h-16 flex items-center justify-between gap-4">
           <Link to="/" data-testid={NAV.logo}>
