@@ -10,6 +10,7 @@ import React, {
 import api, { apiError } from "@/lib/api";
 import { toast } from "sonner";
 import { fmt } from "@/data/gameMeta";
+import { resolveAuthStateFromError } from "@/lib/authState";
 
 const AuthContext = createContext(null);
 
@@ -49,10 +50,13 @@ export function AuthProvider({ children }) {
         );
       }
       return data;
-    } catch {
-      setUser(false);
-      lastRankRef.current = null;
-      return false;
+    } catch (error) {
+      const nextState = resolveAuthStateFromError(error);
+      setUser(nextState ?? null);
+      if (nextState === false) {
+        lastRankRef.current = null;
+      }
+      return nextState;
     }
   }, [applyUser]);
 

@@ -860,10 +860,10 @@ export const FLAGSHIP_IDS = [
 
 export const BRAND = {
   hero: "/brand/hero.jpeg",
-  emblem: "/brand/header_coin.png?v=4",
+  emblem: "/brand/header_coin.png",
   promo: "/brand/promo-platforms.jpeg",
-  coin: "/brand/winged_emblem.png?v=2",
-  coinNightOps: "/brand/header_coin.png?v=4",
+  coin: "/brand/winged_emblem.png",
+  coinNightOps: "/brand/header_coin.png",
   nexusBanner: "/brand/nexus-banner.jpg",
   giveaway: "/brand/giveaway.webp",
   footerUnderwater: "/brand/footer_underwater.jpg",
