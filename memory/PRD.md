@@ -231,3 +231,13 @@ REMAINING BACKLOG:
 - Stripe go-live (claim sandbox under Manage → Payments).
 - Cosmetic: Keno win toast overlaps top nav on mobile.
 
+
+
+### 24 Aug 2026 (pt.2) — DEPLOY BLOCKER FIX, 6 new AAA slots, voiceover
+- ROOT-CAUSE OF FAILED PUBLISHES FOUND & FIXED: /app/.gitignore was blanket-ignoring .env / .env.* / **/.env (lines 34-41), stripping backend/.env (Mongo/JWT/Stripe) and frontend/.env from the production build context → every publish shipped without config and failed/came up broken. Removed the blanket .env ignores (kept only *.local variants). This is the fix to re-publish after.
+- 6 NEW AAA SLOTS added (flagship): solar_vanguard, obsidian_empire, neon_pharaoh, crimson_vanguard, golden_atlas, emerald_guardian. Backend: SLOT_MACHINES + PUBLIC_SLOT_IDS + FLAGSHIP_IDS in games.py (reuse existing symbol pools/paytables). Frontend: FLAGSHIP_ART + BASE_MACHINE_ART + FLAGSHIP_IDS in gameMeta.js. AAA tiles generated via Gemini image gen, saved /app/frontend/public/slots/tile_<id>.jpg. Verified: listed as flagship, spin returns 200, tiles render in lobby.
+- PROMO VOICEOVER: generated a military-radio-comms MP3 via OpenAI TTS (tts-1-hd, voice=onyx) → /app/frontend/public/brand/wages_of_war_voiceover.mp3, wired as a "◉ RADIO BROADCAST" <audio> player under the Landing ad video (data-testid promo-voiceover). EMERGENT_LLM_KEY added to backend/.env. NOTE: full combat-SFX VIDEO (bombs/jets/machine-guns composited) is NOT possible with current tooling — user must supply finished video and we wire it in, OR use the generated voiceover over their footage.
+- Advertisement video (wages_of_war_casino_promo_final.mp4) already wired on Landing MISSION BRIEFING.
+
+STILL REQUIRES USER: click Re-publish (after .gitignore fix). Remaining 34 new slots (batches), real VAULT_API_KEY for payouts, Stripe go-live.
+
