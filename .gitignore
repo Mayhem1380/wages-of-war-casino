@@ -30,11 +30,9 @@ next-env.d.ts
 dist/
 dist
 
-# Environment files (comprehensive coverage)
-.env
-.env.*
-**/.env
-**/.env.*
+# Environment files — the production build REQUIRES these, so they must NOT be ignored.
+# Do NOT re-add blanket .env ignores: it strips backend/.env (Mongo, JWT, Stripe) and
+# frontend/.env from the deployment build context and breaks every publish.
 .env.local
 .env.development.local
 .env.test.local
