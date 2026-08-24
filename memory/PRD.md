@@ -248,3 +248,10 @@ STILL REQUIRES USER: click Re-publish (after .gitignore fix). Remaining 34 new s
 - Verified: all 14 new machines list as flagship, spins return 200, tiles render in lobby (Jade Dynasty, Inferno Warlord, Neon Pharaoh, Arctic Recon confirmed on screen).
 - Total new AAA slots this fork: 14. Remaining toward ~40: ~26 (future batches).
 
+
+
+### 24 Aug 2026 (pt.4) — Slot batch 3 (8 more → 22 new AAA slots total)
+- Added 8 more flagship slots: desert_fury, steel_leviathan, crimson_dynasty, venom_squadron, platinum_siege, ember_legion, sapphire_command, golden_griffin. Same wiring (games.py + gameMeta.js). Tiles at public/slots/tile_<id>.jpg (22 new-slot tiles total on disk).
+- Verified: 22/22 new machines listed as flagship, spins return 200, frontend compiles clean (200, no errors).
+- Running total new AAA slots this fork: 22. Remaining toward ~40: ~18 (future batches).
+
