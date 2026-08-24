@@ -200,6 +200,48 @@ export const SYMBOL_META = {
 
 // Flagship (AAA) machines: painted thumbnail + reel background + jackpot accent
 export const FLAGSHIP_ART = {
+  solar_vanguard: {
+    thumb: "/slots/tile_solar_vanguard.jpg",
+    bg: "/slots/tile_solar_vanguard.jpg",
+    accent: "#FFCD4A",
+    frame: "#C99A2E",
+    panel: "#2a1e08",
+  },
+  obsidian_empire: {
+    thumb: "/slots/tile_obsidian_empire.jpg",
+    bg: "/slots/tile_obsidian_empire.jpg",
+    accent: "#57E6C6",
+    frame: "#2e8c7a",
+    panel: "#08201c",
+  },
+  neon_pharaoh: {
+    thumb: "/slots/tile_neon_pharaoh.jpg",
+    bg: "/slots/tile_neon_pharaoh.jpg",
+    accent: "#8CF64A",
+    frame: "#C99A2E",
+    panel: "#0e2a12",
+  },
+  crimson_vanguard: {
+    thumb: "/slots/tile_crimson_vanguard.jpg",
+    bg: "/slots/tile_crimson_vanguard.jpg",
+    accent: "#FF5A4A",
+    frame: "#a83228",
+    panel: "#2a0a08",
+  },
+  golden_atlas: {
+    thumb: "/slots/tile_golden_atlas.jpg",
+    bg: "/slots/tile_golden_atlas.jpg",
+    accent: "#F6C64A",
+    frame: "#C99A2E",
+    panel: "#241a06",
+  },
+  emerald_guardian: {
+    thumb: "/slots/tile_emerald_guardian.jpg",
+    bg: "/slots/tile_emerald_guardian.jpg",
+    accent: "#2FE86A",
+    frame: "#2e8c4a",
+    panel: "#08200f",
+  },
   pharaohs_arsenal: {
     thumb: "/slots/thumb_pharaoh_aaa.svg",
     bg: "/slots/bg_pharaoh.jpg",
@@ -539,6 +581,12 @@ export const FLAGSHIP_ART = {
 
 // Lobby card theming per machine
 const BASE_MACHINE_ART = {
+  solar_vanguard: { bg: "/slots/tile_solar_vanguard.jpg", thumb: "/slots/tile_solar_vanguard.jpg", panel: "#FFCD4A" },
+  obsidian_empire: { bg: "/slots/tile_obsidian_empire.jpg", thumb: "/slots/tile_obsidian_empire.jpg", panel: "#57E6C6" },
+  neon_pharaoh: { bg: "/slots/tile_neon_pharaoh.jpg", thumb: "/slots/tile_neon_pharaoh.jpg", panel: "#8CF64A" },
+  crimson_vanguard: { bg: "/slots/tile_crimson_vanguard.jpg", thumb: "/slots/tile_crimson_vanguard.jpg", panel: "#FF5A4A" },
+  golden_atlas: { bg: "/slots/tile_golden_atlas.jpg", thumb: "/slots/tile_golden_atlas.jpg", panel: "#F6C64A" },
+  emerald_guardian: { bg: "/slots/tile_emerald_guardian.jpg", thumb: "/slots/tile_emerald_guardian.jpg", panel: "#2FE86A" },
   gates_of_glory: { bg: "/slots/bg_gatesglory.jpg", thumb: "/slots/thumb_gatesglory.jpg", panel: "#F6E27A" },
   book_of_ops: { bg: "/slots/bg_book.jpg", thumb: "/slots/thumb_book.jpg", panel: "#E0B24A" },
   big_bass_bombardment: { bg: "/slots/bg_bass.jpg", thumb: "/slots/thumb_bass.jpg", panel: "#5AA6FF" },
@@ -968,6 +1016,12 @@ export const fmt = (n) =>
   });
 
 export const FLAGSHIP_IDS = [
+  "solar_vanguard",
+  "obsidian_empire",
+  "neon_pharaoh",
+  "crimson_vanguard",
+  "golden_atlas",
+  "emerald_guardian",
   "pharaohs_arsenal",
   "inferno_airstrike",
   "golden_dynasty",
