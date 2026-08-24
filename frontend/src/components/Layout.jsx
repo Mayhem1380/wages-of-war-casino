@@ -371,7 +371,7 @@ export function Layout({ children }) {
 
         {/* Blue glowing casino emblem faded between the diver & shark (breathing) + rising bubbles */}
         <style>{`
-          @keyframes wowBreathe { 0%,100%{ opacity:.28; transform:translate(-50%,-50%) scale(1); } 50%{ opacity:.5; transform:translate(-50%,-50%) scale(1.05); } }
+          @keyframes wowBreathe { 0%,100%{ opacity:.42; transform:translate(-50%,-50%) scale(1); } 50%{ opacity:.68; transform:translate(-50%,-50%) scale(1.05); } }
           @keyframes wowBubble { 0%{ transform:translateY(0) scale(1); opacity:0; } 12%{ opacity:.55; } 100%{ transform:translateY(-210px) scale(1.5); opacity:0; } }
         `}</style>
         <img
@@ -381,7 +381,7 @@ export function Layout({ children }) {
           className="pointer-events-none absolute left-1/2 top-1/2 w-56 sm:w-80 z-[1]"
           style={{
             filter:
-              "drop-shadow(0 0 26px rgba(56,189,248,0.85)) drop-shadow(0 0 60px rgba(14,165,233,0.6))",
+              "brightness(0) invert(1) drop-shadow(0 0 26px rgba(255,255,255,0.9)) drop-shadow(0 0 60px rgba(255,255,255,0.55))",
             animation: "wowBreathe 5s ease-in-out infinite",
           }}
         />
