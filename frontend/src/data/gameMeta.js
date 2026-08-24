@@ -200,6 +200,62 @@ export const SYMBOL_META = {
 
 // Flagship (AAA) machines: painted thumbnail + reel background + jackpot accent
 export const FLAGSHIP_ART = {
+  cobalt_siege: {
+    thumb: "/slots/tile_cobalt_siege.jpg",
+    bg: "/slots/tile_cobalt_siege.jpg",
+    accent: "#4EA6FF",
+    frame: "#2e5c8c",
+    panel: "#08121f",
+  },
+  royal_ordnance: {
+    thumb: "/slots/tile_royal_ordnance.jpg",
+    bg: "/slots/tile_royal_ordnance.jpg",
+    accent: "#F6C64A",
+    frame: "#C99A2E",
+    panel: "#241a06",
+  },
+  jade_dynasty: {
+    thumb: "/slots/tile_jade_dynasty.jpg",
+    bg: "/slots/tile_jade_dynasty.jpg",
+    accent: "#2FE86A",
+    frame: "#2e8c4a",
+    panel: "#08200f",
+  },
+  inferno_warlord: {
+    thumb: "/slots/tile_inferno_warlord.jpg",
+    bg: "/slots/tile_inferno_warlord.jpg",
+    accent: "#FF5A2E",
+    frame: "#a83228",
+    panel: "#2a0a08",
+  },
+  arctic_recon: {
+    thumb: "/slots/tile_arctic_recon.jpg",
+    bg: "/slots/tile_arctic_recon.jpg",
+    accent: "#8CE6FF",
+    frame: "#3a7a9c",
+    panel: "#08181f",
+  },
+  midas_command: {
+    thumb: "/slots/tile_midas_command.jpg",
+    bg: "/slots/tile_midas_command.jpg",
+    accent: "#FFCD4A",
+    frame: "#C99A2E",
+    panel: "#2a1e08",
+  },
+  phantom_strike: {
+    thumb: "/slots/tile_phantom_strike.jpg",
+    bg: "/slots/tile_phantom_strike.jpg",
+    accent: "#B07AFF",
+    frame: "#6a3ea8",
+    panel: "#150a24",
+  },
+  thunder_baron: {
+    thumb: "/slots/tile_thunder_baron.jpg",
+    bg: "/slots/tile_thunder_baron.jpg",
+    accent: "#F6E27A",
+    frame: "#C9A02E",
+    panel: "#241f06",
+  },
   solar_vanguard: {
     thumb: "/slots/tile_solar_vanguard.jpg",
     bg: "/slots/tile_solar_vanguard.jpg",
@@ -581,6 +637,14 @@ export const FLAGSHIP_ART = {
 
 // Lobby card theming per machine
 const BASE_MACHINE_ART = {
+  cobalt_siege: { bg: "/slots/tile_cobalt_siege.jpg", thumb: "/slots/tile_cobalt_siege.jpg", panel: "#4EA6FF" },
+  royal_ordnance: { bg: "/slots/tile_royal_ordnance.jpg", thumb: "/slots/tile_royal_ordnance.jpg", panel: "#F6C64A" },
+  jade_dynasty: { bg: "/slots/tile_jade_dynasty.jpg", thumb: "/slots/tile_jade_dynasty.jpg", panel: "#2FE86A" },
+  inferno_warlord: { bg: "/slots/tile_inferno_warlord.jpg", thumb: "/slots/tile_inferno_warlord.jpg", panel: "#FF5A2E" },
+  arctic_recon: { bg: "/slots/tile_arctic_recon.jpg", thumb: "/slots/tile_arctic_recon.jpg", panel: "#8CE6FF" },
+  midas_command: { bg: "/slots/tile_midas_command.jpg", thumb: "/slots/tile_midas_command.jpg", panel: "#FFCD4A" },
+  phantom_strike: { bg: "/slots/tile_phantom_strike.jpg", thumb: "/slots/tile_phantom_strike.jpg", panel: "#B07AFF" },
+  thunder_baron: { bg: "/slots/tile_thunder_baron.jpg", thumb: "/slots/tile_thunder_baron.jpg", panel: "#F6E27A" },
   solar_vanguard: { bg: "/slots/tile_solar_vanguard.jpg", thumb: "/slots/tile_solar_vanguard.jpg", panel: "#FFCD4A" },
   obsidian_empire: { bg: "/slots/tile_obsidian_empire.jpg", thumb: "/slots/tile_obsidian_empire.jpg", panel: "#57E6C6" },
   neon_pharaoh: { bg: "/slots/tile_neon_pharaoh.jpg", thumb: "/slots/tile_neon_pharaoh.jpg", panel: "#8CF64A" },
@@ -1016,6 +1080,14 @@ export const fmt = (n) =>
   });
 
 export const FLAGSHIP_IDS = [
+  "cobalt_siege",
+  "royal_ordnance",
+  "jade_dynasty",
+  "inferno_warlord",
+  "arctic_recon",
+  "midas_command",
+  "phantom_strike",
+  "thunder_baron",
   "solar_vanguard",
   "obsidian_empire",
   "neon_pharaoh",

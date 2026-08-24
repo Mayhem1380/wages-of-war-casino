@@ -72,6 +72,62 @@ def _machine(
 
 
 SLOT_MACHINES = {
+    "cobalt_siege": _machine(
+        "cobalt_siege", "Cobalt Siege", "Storm the blue line", "olympus", "High",
+        {"crown": 5, "orb": 6, "chalice": 7, "ring": 8, "hourglass": 10, "gem_red": 12, "gem_blue": 12, "gem_green": 14, "gem_purple": 14, "wild": 4, "scatter": 4},
+        "wild", "scatter",
+        {"crown": {"3": 10, "4": 25, "5": 50}, "orb": {"3": 5, "4": 15, "5": 40}, "chalice": {"3": 4, "4": 10, "5": 25}, "ring": {"3": 3, "4": 8, "5": 20}, "hourglass": {"3": 2, "4": 5, "5": 12}, "gem_red": {"3": 1.5, "4": 4, "5": 10}, "gem_blue": {"3": 1, "4": 3, "5": 8}, "gem_green": {"3": 0.8, "4": 2, "5": 6}, "gem_purple": {"3": 0.5, "4": 1.5, "5": 5}},
+        {"3": 3, "4": 10, "5": 50}, 10, 95,
+    ),
+    "royal_ordnance": _machine(
+        "royal_ordnance", "Royal Ordnance", "Crown the cannons", "olympus", "High",
+        {"crown": 5, "orb": 6, "chalice": 7, "ring": 8, "hourglass": 10, "gem_red": 12, "gem_blue": 12, "gem_green": 14, "gem_purple": 14, "wild": 4, "scatter": 4},
+        "wild", "scatter",
+        {"crown": {"3": 10, "4": 25, "5": 50}, "orb": {"3": 5, "4": 15, "5": 40}, "chalice": {"3": 4, "4": 10, "5": 25}, "ring": {"3": 3, "4": 8, "5": 20}, "hourglass": {"3": 2, "4": 5, "5": 12}, "gem_red": {"3": 1.5, "4": 4, "5": 10}, "gem_blue": {"3": 1, "4": 3, "5": 8}, "gem_green": {"3": 0.8, "4": 2, "5": 6}, "gem_purple": {"3": 0.5, "4": 1.5, "5": 5}},
+        {"3": 3, "4": 10, "5": 50}, 10, 95,
+    ),
+    "jade_dynasty": _machine(
+        "jade_dynasty", "Jade Dynasty", "The jade emperor rises", "olympus", "High",
+        {"crown": 5, "orb": 6, "chalice": 7, "ring": 8, "hourglass": 10, "gem_red": 12, "gem_blue": 12, "gem_green": 14, "gem_purple": 14, "wild": 4, "scatter": 4},
+        "wild", "scatter",
+        {"crown": {"3": 10, "4": 25, "5": 50}, "orb": {"3": 5, "4": 15, "5": 40}, "chalice": {"3": 4, "4": 10, "5": 25}, "ring": {"3": 3, "4": 8, "5": 20}, "hourglass": {"3": 2, "4": 5, "5": 12}, "gem_red": {"3": 1.5, "4": 4, "5": 10}, "gem_blue": {"3": 1, "4": 3, "5": 8}, "gem_green": {"3": 0.8, "4": 2, "5": 6}, "gem_purple": {"3": 0.5, "4": 1.5, "5": 5}},
+        {"3": 3, "4": 10, "5": 50}, 10, 94,
+    ),
+    "inferno_warlord": _machine(
+        "inferno_warlord", "Inferno Warlord", "Burn the frontline", "olympus", "High",
+        {"crown": 5, "orb": 6, "chalice": 7, "ring": 8, "hourglass": 10, "gem_red": 12, "gem_blue": 12, "gem_green": 14, "gem_purple": 14, "wild": 4, "scatter": 4},
+        "wild", "scatter",
+        {"crown": {"3": 10, "4": 25, "5": 50}, "orb": {"3": 5, "4": 15, "5": 40}, "chalice": {"3": 4, "4": 10, "5": 25}, "ring": {"3": 3, "4": 8, "5": 20}, "hourglass": {"3": 2, "4": 5, "5": 12}, "gem_red": {"3": 1.5, "4": 4, "5": 10}, "gem_blue": {"3": 1, "4": 3, "5": 8}, "gem_green": {"3": 0.8, "4": 2, "5": 6}, "gem_purple": {"3": 0.5, "4": 1.5, "5": 5}},
+        {"3": 3, "4": 10, "5": 50}, 10, 94,
+    ),
+    "arctic_recon": _machine(
+        "arctic_recon", "Arctic Recon", "Strike from the frost", "olympus", "High",
+        {"crown": 5, "orb": 6, "chalice": 7, "ring": 8, "hourglass": 10, "gem_red": 12, "gem_blue": 12, "gem_green": 14, "gem_purple": 14, "wild": 4, "scatter": 4},
+        "wild", "scatter",
+        {"crown": {"3": 10, "4": 25, "5": 50}, "orb": {"3": 5, "4": 15, "5": 40}, "chalice": {"3": 4, "4": 10, "5": 25}, "ring": {"3": 3, "4": 8, "5": 20}, "hourglass": {"3": 2, "4": 5, "5": 12}, "gem_red": {"3": 1.5, "4": 4, "5": 10}, "gem_blue": {"3": 1, "4": 3, "5": 8}, "gem_green": {"3": 0.8, "4": 2, "5": 6}, "gem_purple": {"3": 0.5, "4": 1.5, "5": 5}},
+        {"3": 3, "4": 10, "5": 50}, 10, 93,
+    ),
+    "midas_command": _machine(
+        "midas_command", "Midas Command", "Everything turns to gold", "olympus", "High",
+        {"crown": 5, "orb": 6, "chalice": 7, "ring": 8, "hourglass": 10, "gem_red": 12, "gem_blue": 12, "gem_green": 14, "gem_purple": 14, "wild": 4, "scatter": 4},
+        "wild", "scatter",
+        {"crown": {"3": 10, "4": 25, "5": 50}, "orb": {"3": 5, "4": 15, "5": 40}, "chalice": {"3": 4, "4": 10, "5": 25}, "ring": {"3": 3, "4": 8, "5": 20}, "hourglass": {"3": 2, "4": 5, "5": 12}, "gem_red": {"3": 1.5, "4": 4, "5": 10}, "gem_blue": {"3": 1, "4": 3, "5": 8}, "gem_green": {"3": 0.8, "4": 2, "5": 6}, "gem_purple": {"3": 0.5, "4": 1.5, "5": 5}},
+        {"3": 3, "4": 10, "5": 50}, 10, 93,
+    ),
+    "phantom_strike": _machine(
+        "phantom_strike", "Phantom Strike", "Vanish into the win", "olympus", "High",
+        {"crown": 5, "orb": 6, "chalice": 7, "ring": 8, "hourglass": 10, "gem_red": 12, "gem_blue": 12, "gem_green": 14, "gem_purple": 14, "wild": 4, "scatter": 4},
+        "wild", "scatter",
+        {"crown": {"3": 10, "4": 25, "5": 50}, "orb": {"3": 5, "4": 15, "5": 40}, "chalice": {"3": 4, "4": 10, "5": 25}, "ring": {"3": 3, "4": 8, "5": 20}, "hourglass": {"3": 2, "4": 5, "5": 12}, "gem_red": {"3": 1.5, "4": 4, "5": 10}, "gem_blue": {"3": 1, "4": 3, "5": 8}, "gem_green": {"3": 0.8, "4": 2, "5": 6}, "gem_purple": {"3": 0.5, "4": 1.5, "5": 5}},
+        {"3": 3, "4": 10, "5": 50}, 10, 92,
+    ),
+    "thunder_baron": _machine(
+        "thunder_baron", "Thunder Baron", "Command the storm", "olympus", "High",
+        {"crown": 5, "orb": 6, "chalice": 7, "ring": 8, "hourglass": 10, "gem_red": 12, "gem_blue": 12, "gem_green": 14, "gem_purple": 14, "wild": 4, "scatter": 4},
+        "wild", "scatter",
+        {"crown": {"3": 10, "4": 25, "5": 50}, "orb": {"3": 5, "4": 15, "5": 40}, "chalice": {"3": 4, "4": 10, "5": 25}, "ring": {"3": 3, "4": 8, "5": 20}, "hourglass": {"3": 2, "4": 5, "5": 12}, "gem_red": {"3": 1.5, "4": 4, "5": 10}, "gem_blue": {"3": 1, "4": 3, "5": 8}, "gem_green": {"3": 0.8, "4": 2, "5": 6}, "gem_purple": {"3": 0.5, "4": 1.5, "5": 5}},
+        {"3": 3, "4": 10, "5": 50}, 10, 92,
+    ),
     "solar_vanguard": _machine(
         "solar_vanguard", "Solar Vanguard", "Strike from the blazing sun", "olympus", "High",
         {"crown": 5, "orb": 6, "chalice": 7, "ring": 8, "hourglass": 10, "gem_red": 12, "gem_blue": 12, "gem_green": 14, "gem_purple": 14, "wild": 4, "scatter": 4},
@@ -4192,6 +4248,14 @@ def spin_slot(machine_id, total_bet, free=False):
 # canonical product contract and the regression suite.
 # ---------------------------------------------------------------------------
 PUBLIC_SLOT_IDS = [
+    "cobalt_siege",
+    "royal_ordnance",
+    "jade_dynasty",
+    "inferno_warlord",
+    "arctic_recon",
+    "midas_command",
+    "phantom_strike",
+    "thunder_baron",
     "solar_vanguard",
     "obsidian_empire",
     "neon_pharaoh",
@@ -4313,6 +4377,14 @@ PUBLIC_SLOT_IDS = [
 ]
 
 FLAGSHIP_IDS = {
+    "cobalt_siege",
+    "royal_ordnance",
+    "jade_dynasty",
+    "inferno_warlord",
+    "arctic_recon",
+    "midas_command",
+    "phantom_strike",
+    "thunder_baron",
     "solar_vanguard",
     "obsidian_empire",
     "neon_pharaoh",
