@@ -373,16 +373,40 @@ export function Layout({ children }) {
         <style>{`
           @keyframes wowBreathe { 0%,100%{ opacity:.42; transform:translate(-50%,-50%) scale(1); } 50%{ opacity:.68; transform:translate(-50%,-50%) scale(1.05); } }
           @keyframes wowBubble { 0%{ transform:translateY(0) scale(1); opacity:0; } 12%{ opacity:.55; } 100%{ transform:translateY(-210px) scale(1.5); opacity:0; } }
+          @keyframes wowBiteLeft {
+            0%,46%,74%,100% { transform: translate(-50%,-50%) rotate(0deg); opacity:.5; }
+            55% { transform: translate(-70%,-42%) rotate(-12deg); opacity:.64; }
+            63% { transform: translate(-61%,-46%) rotate(-7deg); opacity:.58; }
+          }
+          @keyframes wowBiteRight {
+            0%,46%,74%,100% { transform: translate(-50%,-50%) rotate(0deg); opacity:.5; }
+            55% { transform: translate(-30%,-58%) rotate(12deg); opacity:.64; }
+            63% { transform: translate(-39%,-54%) rotate(7deg); opacity:.58; }
+          }
         `}</style>
+        {/* Emblem split into two halves — the shark bites it in half on each strike, then it reforms */}
         <img
           src="/brand/footer_logo_blue.png"
           alt=""
           aria-hidden="true"
           className="pointer-events-none absolute left-1/2 top-1/2 w-56 sm:w-80 z-[1]"
           style={{
+            clipPath: "inset(0 50% 0 0)",
             filter:
-              "brightness(0) invert(1) drop-shadow(0 0 26px rgba(255,255,255,0.9)) drop-shadow(0 0 60px rgba(255,255,255,0.55))",
-            animation: "wowBreathe 5s ease-in-out infinite",
+              "drop-shadow(0 0 22px rgba(56,189,248,0.8)) drop-shadow(0 0 54px rgba(14,165,233,0.55))",
+            animation: "wowBiteLeft 8.5s ease-in-out infinite",
+          }}
+        />
+        <img
+          src="/brand/footer_logo_blue.png"
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none absolute left-1/2 top-1/2 w-56 sm:w-80 z-[1]"
+          style={{
+            clipPath: "inset(0 0 0 50%)",
+            filter:
+              "drop-shadow(0 0 22px rgba(56,189,248,0.8)) drop-shadow(0 0 54px rgba(14,165,233,0.55))",
+            animation: "wowBiteRight 8.5s ease-in-out infinite",
           }}
         />
         {[...Array(7)].map((_, i) => (
