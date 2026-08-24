@@ -72,6 +72,48 @@ def _machine(
 
 
 SLOT_MACHINES = {
+    "solar_vanguard": _machine(
+        "solar_vanguard", "Solar Vanguard", "Strike from the blazing sun", "olympus", "High",
+        {"crown": 5, "orb": 6, "chalice": 7, "ring": 8, "hourglass": 10, "gem_red": 12, "gem_blue": 12, "gem_green": 14, "gem_purple": 14, "wild": 4, "scatter": 4},
+        "wild", "scatter",
+        {"crown": {"3": 10, "4": 25, "5": 50}, "orb": {"3": 5, "4": 15, "5": 40}, "chalice": {"3": 4, "4": 10, "5": 25}, "ring": {"3": 3, "4": 8, "5": 20}, "hourglass": {"3": 2, "4": 5, "5": 12}, "gem_red": {"3": 1.5, "4": 4, "5": 10}, "gem_blue": {"3": 1, "4": 3, "5": 8}, "gem_green": {"3": 0.8, "4": 2, "5": 6}, "gem_purple": {"3": 0.5, "4": 1.5, "5": 5}},
+        {"3": 3, "4": 10, "5": 50}, 10, 96,
+    ),
+    "obsidian_empire": _machine(
+        "obsidian_empire", "Obsidian Empire", "Command the black-glass throne", "olympus", "High",
+        {"crown": 5, "orb": 6, "chalice": 7, "ring": 8, "hourglass": 10, "gem_red": 12, "gem_blue": 12, "gem_green": 14, "gem_purple": 14, "wild": 4, "scatter": 4},
+        "wild", "scatter",
+        {"crown": {"3": 10, "4": 25, "5": 50}, "orb": {"3": 5, "4": 15, "5": 40}, "chalice": {"3": 4, "4": 10, "5": 25}, "ring": {"3": 3, "4": 8, "5": 20}, "hourglass": {"3": 2, "4": 5, "5": 12}, "gem_red": {"3": 1.5, "4": 4, "5": 10}, "gem_blue": {"3": 1, "4": 3, "5": 8}, "gem_green": {"3": 0.8, "4": 2, "5": 6}, "gem_purple": {"3": 0.5, "4": 1.5, "5": 5}},
+        {"3": 3, "4": 10, "5": 50}, 10, 95,
+    ),
+    "neon_pharaoh": _machine(
+        "neon_pharaoh", "Neon Pharaoh", "Awaken the night-vision dynasty", "adventure", "High",
+        {"explorer": 5, "idol": 6, "scarab": 8, "ace": 12, "king": 12, "queen": 13, "jack": 14, "ten": 15, "book": 6},
+        "book", "book",
+        {"explorer": {"3": 10, "4": 40, "5": 200}, "idol": {"3": 5, "4": 20, "5": 100}, "scarab": {"3": 4, "4": 15, "5": 75}, "ace": {"3": 1, "4": 5, "5": 25}, "king": {"3": 1, "4": 5, "5": 25}, "queen": {"3": 0.5, "4": 3, "5": 15}, "jack": {"3": 0.5, "4": 3, "5": 15}, "ten": {"3": 0.5, "4": 2, "5": 10}},
+        {"3": 2, "4": 20, "5": 200}, 10, 94,
+    ),
+    "crimson_vanguard": _machine(
+        "crimson_vanguard", "Crimson Vanguard", "Charge the crimson line", "olympus", "High",
+        {"crown": 5, "orb": 6, "chalice": 7, "ring": 8, "hourglass": 10, "gem_red": 12, "gem_blue": 12, "gem_green": 14, "gem_purple": 14, "wild": 4, "scatter": 4},
+        "wild", "scatter",
+        {"crown": {"3": 10, "4": 25, "5": 50}, "orb": {"3": 5, "4": 15, "5": 40}, "chalice": {"3": 4, "4": 10, "5": 25}, "ring": {"3": 3, "4": 8, "5": 20}, "hourglass": {"3": 2, "4": 5, "5": 12}, "gem_red": {"3": 1.5, "4": 4, "5": 10}, "gem_blue": {"3": 1, "4": 3, "5": 8}, "gem_green": {"3": 0.8, "4": 2, "5": 6}, "gem_purple": {"3": 0.5, "4": 1.5, "5": 5}},
+        {"3": 3, "4": 10, "5": 50}, 10, 93,
+    ),
+    "golden_atlas": _machine(
+        "golden_atlas", "Golden Atlas", "Hold the world in gold", "olympus", "High",
+        {"crown": 5, "orb": 6, "chalice": 7, "ring": 8, "hourglass": 10, "gem_red": 12, "gem_blue": 12, "gem_green": 14, "gem_purple": 14, "wild": 4, "scatter": 4},
+        "wild", "scatter",
+        {"crown": {"3": 10, "4": 25, "5": 50}, "orb": {"3": 5, "4": 15, "5": 40}, "chalice": {"3": 4, "4": 10, "5": 25}, "ring": {"3": 3, "4": 8, "5": 20}, "hourglass": {"3": 2, "4": 5, "5": 12}, "gem_red": {"3": 1.5, "4": 4, "5": 10}, "gem_blue": {"3": 1, "4": 3, "5": 8}, "gem_green": {"3": 0.8, "4": 2, "5": 6}, "gem_purple": {"3": 0.5, "4": 1.5, "5": 5}},
+        {"3": 3, "4": 10, "5": 50}, 10, 92,
+    ),
+    "emerald_guardian": _machine(
+        "emerald_guardian", "Emerald Guardian", "The jade sentinel stirs", "olympus", "High",
+        {"crown": 5, "orb": 6, "chalice": 7, "ring": 8, "hourglass": 10, "gem_red": 12, "gem_blue": 12, "gem_green": 14, "gem_purple": 14, "wild": 4, "scatter": 4},
+        "wild", "scatter",
+        {"crown": {"3": 10, "4": 25, "5": 50}, "orb": {"3": 5, "4": 15, "5": 40}, "chalice": {"3": 4, "4": 10, "5": 25}, "ring": {"3": 3, "4": 8, "5": 20}, "hourglass": {"3": 2, "4": 5, "5": 12}, "gem_red": {"3": 1.5, "4": 4, "5": 10}, "gem_blue": {"3": 1, "4": 3, "5": 8}, "gem_green": {"3": 0.8, "4": 2, "5": 6}, "gem_purple": {"3": 0.5, "4": 1.5, "5": 5}},
+        {"3": 3, "4": 10, "5": 50}, 10, 91,
+    ),
     "gates_of_glory": _machine(
         "gates_of_glory",
         "Gates of Glory",
@@ -4150,6 +4192,12 @@ def spin_slot(machine_id, total_bet, free=False):
 # canonical product contract and the regression suite.
 # ---------------------------------------------------------------------------
 PUBLIC_SLOT_IDS = [
+    "solar_vanguard",
+    "obsidian_empire",
+    "neon_pharaoh",
+    "crimson_vanguard",
+    "golden_atlas",
+    "emerald_guardian",
     "gates_of_glory",
     "book_of_ops",
     "big_bass_bombardment",
@@ -4265,6 +4313,12 @@ PUBLIC_SLOT_IDS = [
 ]
 
 FLAGSHIP_IDS = {
+    "solar_vanguard",
+    "obsidian_empire",
+    "neon_pharaoh",
+    "crimson_vanguard",
+    "golden_atlas",
+    "emerald_guardian",
     "pharaohs_arsenal",
     "inferno_airstrike",
     "golden_dynasty",
