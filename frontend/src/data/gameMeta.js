@@ -200,6 +200,62 @@ export const SYMBOL_META = {
 
 // Flagship (AAA) machines: painted thumbnail + reel background + jackpot accent
 export const FLAGSHIP_ART = {
+  desert_fury: {
+    thumb: "/slots/tile_desert_fury.jpg",
+    bg: "/slots/tile_desert_fury.jpg",
+    accent: "#F6C64A",
+    frame: "#C99A2E",
+    panel: "#241a06",
+  },
+  steel_leviathan: {
+    thumb: "/slots/tile_steel_leviathan.jpg",
+    bg: "/slots/tile_steel_leviathan.jpg",
+    accent: "#57C6E6",
+    frame: "#3a6a7c",
+    panel: "#0a1820",
+  },
+  crimson_dynasty: {
+    thumb: "/slots/tile_crimson_dynasty.jpg",
+    bg: "/slots/tile_crimson_dynasty.jpg",
+    accent: "#FF5A4A",
+    frame: "#a83228",
+    panel: "#2a0a08",
+  },
+  venom_squadron: {
+    thumb: "/slots/tile_venom_squadron.jpg",
+    bg: "/slots/tile_venom_squadron.jpg",
+    accent: "#6EE84A",
+    frame: "#3a7a2e",
+    panel: "#0e2008",
+  },
+  platinum_siege: {
+    thumb: "/slots/tile_platinum_siege.jpg",
+    bg: "/slots/tile_platinum_siege.jpg",
+    accent: "#C0D0E0",
+    frame: "#7a8a9c",
+    panel: "#141a20",
+  },
+  ember_legion: {
+    thumb: "/slots/tile_ember_legion.jpg",
+    bg: "/slots/tile_ember_legion.jpg",
+    accent: "#FF7A2E",
+    frame: "#a85228",
+    panel: "#2a1206",
+  },
+  sapphire_command: {
+    thumb: "/slots/tile_sapphire_command.jpg",
+    bg: "/slots/tile_sapphire_command.jpg",
+    accent: "#4E7AFF",
+    frame: "#2e4c8c",
+    panel: "#080f24",
+  },
+  golden_griffin: {
+    thumb: "/slots/tile_golden_griffin.jpg",
+    bg: "/slots/tile_golden_griffin.jpg",
+    accent: "#FFCD4A",
+    frame: "#C99A2E",
+    panel: "#241a06",
+  },
   cobalt_siege: {
     thumb: "/slots/tile_cobalt_siege.jpg",
     bg: "/slots/tile_cobalt_siege.jpg",
@@ -637,6 +693,14 @@ export const FLAGSHIP_ART = {
 
 // Lobby card theming per machine
 const BASE_MACHINE_ART = {
+  desert_fury: { bg: "/slots/tile_desert_fury.jpg", thumb: "/slots/tile_desert_fury.jpg", panel: "#F6C64A" },
+  steel_leviathan: { bg: "/slots/tile_steel_leviathan.jpg", thumb: "/slots/tile_steel_leviathan.jpg", panel: "#57C6E6" },
+  crimson_dynasty: { bg: "/slots/tile_crimson_dynasty.jpg", thumb: "/slots/tile_crimson_dynasty.jpg", panel: "#FF5A4A" },
+  venom_squadron: { bg: "/slots/tile_venom_squadron.jpg", thumb: "/slots/tile_venom_squadron.jpg", panel: "#6EE84A" },
+  platinum_siege: { bg: "/slots/tile_platinum_siege.jpg", thumb: "/slots/tile_platinum_siege.jpg", panel: "#C0D0E0" },
+  ember_legion: { bg: "/slots/tile_ember_legion.jpg", thumb: "/slots/tile_ember_legion.jpg", panel: "#FF7A2E" },
+  sapphire_command: { bg: "/slots/tile_sapphire_command.jpg", thumb: "/slots/tile_sapphire_command.jpg", panel: "#4E7AFF" },
+  golden_griffin: { bg: "/slots/tile_golden_griffin.jpg", thumb: "/slots/tile_golden_griffin.jpg", panel: "#FFCD4A" },
   cobalt_siege: { bg: "/slots/tile_cobalt_siege.jpg", thumb: "/slots/tile_cobalt_siege.jpg", panel: "#4EA6FF" },
   royal_ordnance: { bg: "/slots/tile_royal_ordnance.jpg", thumb: "/slots/tile_royal_ordnance.jpg", panel: "#F6C64A" },
   jade_dynasty: { bg: "/slots/tile_jade_dynasty.jpg", thumb: "/slots/tile_jade_dynasty.jpg", panel: "#2FE86A" },
@@ -1080,6 +1144,14 @@ export const fmt = (n) =>
   });
 
 export const FLAGSHIP_IDS = [
+  "desert_fury",
+  "steel_leviathan",
+  "crimson_dynasty",
+  "venom_squadron",
+  "platinum_siege",
+  "ember_legion",
+  "sapphire_command",
+  "golden_griffin",
   "cobalt_siege",
   "royal_ordnance",
   "jade_dynasty",
