@@ -2272,6 +2272,22 @@ async def checkout(payload: CheckoutInput, user: dict = Depends(require_user)):
     )
     if not pkg:
         raise HTTPException(status_code=400, detail="Unknown package")
+
+    existing = await db.payment_transactions.find_one(
+        {
+            "user_id": user["user_id"],
+            "lookup_key": pkg["lookup_key"],
+            "credited": False,
+            "payment_status": {"$ne": "paid"},
+        },
+        {"_id": 0, "session_id": 1},
+    )
+    if existing:
+        raise HTTPException(
+            status_code=409,
+            detail="This credit package is already in progress for your account.",
+        )
+
     try:
         price = _ensure_price(pkg)
         total_credits = pkg["credits"] + pkg.get("bonus", 0)
@@ -2323,58 +2339,62 @@ async def checkout(payload: CheckoutInput, user: dict = Depends(require_user)):
 
 
 async def _credit_if_paid(record):
-    if record.get("payment_status") == "paid" and not record.get("credited"):
-        if record.get("kind") == "cashier_deposit":
-            usd_cents = int(record.get("usd_cents", 0))
-            await db.users.update_one(
-                {"user_id": record["user_id"]},
-                {"$inc": {"real_balance_cents": usd_cents}},
-            )
-            await db.payment_transactions.update_one(
-                {"session_id": record["session_id"]}, {"$set": {"credited": True}}
-            )
-            await db.cashier_transactions.update_one(
-                {"provider_ref": record["session_id"]},
-                {
-                    "$set": {
-                        "status": "completed",
-                        "updated_at": datetime.now(timezone.utc).isoformat(),
-                    }
-                },
-            )
-            await record_house_cashflow(
-                usd_cents / 100.0,
-                "deposit",
-                "cashier_deposit",
-                {"user_id": record["user_id"], "session_id": record["session_id"]},
-            )
-            await record_transaction(
-                record["user_id"],
-                "deposit_fiat",
-                usd_cents / 100.0,
-                {
-                    "method": "card",
-                    "currency": record.get("currency"),
-                    "session_id": record["session_id"],
-                },
-            )
-        else:
-            credits = float(record.get("credits", 0))
-            await db.users.update_one(
-                {"user_id": record["user_id"]}, {"$inc": {"balance": credits}}
-            )
-            await db.payment_transactions.update_one(
-                {"session_id": record["session_id"]}, {"$set": {"credited": True}}
-            )
-            await record_transaction(
-                record["user_id"],
-                "deposit",
-                credits,
-                {
-                    "amount_usd": record["amount"] / 100.0,
-                    "package": record["lookup_key"],
-                },
-            )
+    if record.get("payment_status") != "paid":
+        return
+    if record.get("credited"):
+        return
+
+    if record.get("kind") == "cashier_deposit":
+        usd_cents = int(record.get("usd_cents", 0))
+        await db.users.update_one(
+            {"user_id": record["user_id"]},
+            {"$inc": {"real_balance_cents": usd_cents}},
+        )
+        await db.payment_transactions.update_one(
+            {"session_id": record["session_id"]}, {"$set": {"credited": True}}
+        )
+        await db.cashier_transactions.update_one(
+            {"provider_ref": record["session_id"]},
+            {
+                "$set": {
+                    "status": "completed",
+                    "updated_at": datetime.now(timezone.utc).isoformat(),
+                }
+            },
+        )
+        await record_house_cashflow(
+            usd_cents / 100.0,
+            "deposit",
+            "cashier_deposit",
+            {"user_id": record["user_id"], "session_id": record["session_id"]},
+        )
+        await record_transaction(
+            record["user_id"],
+            "deposit_fiat",
+            usd_cents / 100.0,
+            {
+                "method": "card",
+                "currency": record.get("currency"),
+                "session_id": record["session_id"],
+            },
+        )
+    else:
+        credits = float(record.get("credits", 0))
+        await db.users.update_one(
+            {"user_id": record["user_id"]}, {"$inc": {"balance": credits}}
+        )
+        await db.payment_transactions.update_one(
+            {"session_id": record["session_id"]}, {"$set": {"credited": True}}
+        )
+        await record_transaction(
+            record["user_id"],
+            "deposit",
+            credits,
+            {
+                "amount_usd": record["amount"] / 100.0,
+                "package": record["lookup_key"],
+            },
+        )
 
 
 @api.get("/payments/status/{session_id}")

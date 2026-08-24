@@ -76,3 +76,6 @@ The project already contains strong working building blocks. The job is to prese
 
 ## Final rule
 When in doubt, verify with code and fresh build evidence instead of guessing from a stale preview or login redirect. Build quality, product polish, and deployment correctness must be proven before being claimed complete.
+7785fc6b-5e92-4d8d-955a-7e7fe7ea9ac5
+live link https://night-vision-gold.emergent.host. 
+

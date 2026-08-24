@@ -127,7 +127,7 @@ export default function Landing() {
           src={BRAND.coinNightOps}
           alt="Wages of War Casino — Night Ops Edition"
           data-testid="hero-nightops-coin"
-          className="absolute top-4 right-4 sm:top-8 sm:right-8 w-24 sm:w-36 md:w-48 lg:w-56 z-20 animate-coin-intro pointer-events-none select-none"
+          className="absolute top-3 right-3 sm:top-8 sm:right-8 w-16 sm:w-36 md:w-48 lg:w-56 z-20 animate-coin-intro pointer-events-none select-none"
           style={{ filter: "drop-shadow(0 0 34px rgba(212,175,55,0.5))" }}
         />
         <div className="relative max-w-[1400px] mx-auto px-4 sm:px-8 pt-16 pb-20 sm:pt-24 sm:pb-28 md:pt-32 md:pb-40">
@@ -236,7 +236,25 @@ export default function Landing() {
             MISSION BRIEFING
           </h2>
         </div>
-        <AnimatedShowcase testId="home-intro-video" variant="promo" />
+        <div
+          data-testid="home-intro-video"
+          className="hud hud-gold relative overflow-hidden aspect-video"
+        >
+          <video
+            src="/brand/wages_of_war_casino_promo_final.mp4"
+            poster={BRAND.hero}
+            controls
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          <span className="absolute top-3 left-3 flex items-center gap-2 font-mono text-[10px] tracking-widest text-nvg/80 bg-black/50 px-2 py-1 pointer-events-none">
+            ● OFFICIAL ADVERTISEMENT
+          </span>
+        </div>
       </section>
 
       {/* NIGHT VISION GOLD */}
