@@ -255,3 +255,10 @@ STILL REQUIRES USER: click Re-publish (after .gitignore fix). Remaining 34 new s
 - Verified: 22/22 new machines listed as flagship, spins return 200, frontend compiles clean (200, no errors).
 - Running total new AAA slots this fork: 22. Remaining toward ~40: ~18 (future batches).
 
+
+
+### 24 Aug 2026 (pt.5) — White footer emblem + go-live escalation
+- Footer centre emblem (/brand/footer_logo_blue.png in Layout.jsx ~line 378) recolored to ALL WHITE via CSS filter `brightness(0) invert(1)` + white drop-shadow glow (was blue); breathing opacity bumped to .42-.68. Verified in footer screenshot.
+- Escalated go-live to support: they CANNOT press Publish or access the user's Stripe (account-access policy). Minimum unavoidable user actions = 1 click Publish + 1 Stripe login to flip sandbox→live. Support can verify config/domain/logs.
+- BACKLOG requested by user (NOT built yet, build on request): more slot graphics toward ~40 (18 to go), extra Keno graphics + "Side Keno", new games "Two-Up" and "Pontoon".
+
