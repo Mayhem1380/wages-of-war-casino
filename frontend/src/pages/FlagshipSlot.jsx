@@ -842,7 +842,7 @@ export default function FlagshipSlot() {
 
       {/* Mobile sticky action bar */}
       {!intro && (
-        <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 flex items-center gap-3 px-3 py-2.5 bg-black/92 backdrop-blur-md border-t-2 border-gold/40">
+        <div className="lg:hidden fixed bottom-0 inset-x-0 z-[60] flex items-center gap-3 px-3 py-2.5 bg-black/92 backdrop-blur-md border-t-2 border-gold/40">
           <div className="flex flex-col leading-none shrink-0">
             <span className="font-mono text-[9px] text-white/50 tracking-widest">BALANCE</span>
             <span className="font-mono text-sm text-gold">{fmt(user?.balance || 0)}</span>

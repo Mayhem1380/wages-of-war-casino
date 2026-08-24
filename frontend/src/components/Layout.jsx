@@ -414,6 +414,25 @@ export function Layout({ children }) {
               <div className="mt-5 max-w-md">
                 <SupportDialog />
               </div>
+              <div
+                data-testid="footer-hq-contact"
+                className="mt-5 space-y-1 font-mono text-[11px] text-muted-foreground"
+              >
+                <div className="tracking-[0.3em] text-nvg/70 uppercase mb-1">
+                  HQ · Contact
+                </div>
+                <a href="mailto:support@wagesofwarcasino.com" className="block hover:text-nvg transition-colors">
+                  support@wagesofwarcasino.com
+                </a>
+                <a href="mailto:payments@wagesofwarcasino.com" className="block hover:text-nvg transition-colors">
+                  payments@wagesofwarcasino.com · vault &amp; payouts
+                </a>
+                <a href="mailto:compliance@wagesofwarcasino.com" className="block hover:text-nvg transition-colors">
+                  compliance@wagesofwarcasino.com · KYC &amp; compliance
+                </a>
+                <div className="pt-1 text-foreground/80">Wages of War Operations Ltd.</div>
+                <div>Registered Office — Malta (MGA licensed)</div>
+              </div>
               <div className="mt-5 flex items-center gap-4">
                 <img
                   src={BRAND.coin}

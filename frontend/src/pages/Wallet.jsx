@@ -82,6 +82,7 @@ export default function Wallet() {
   };
 
   const buy = async (pkg) => {
+    if (busy) return;
     setBusy(pkg.id);
     try {
       const { data } = await api.post("/payments/checkout", {

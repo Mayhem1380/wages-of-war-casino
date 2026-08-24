@@ -216,3 +216,18 @@ BACKLOG / NEEDS USER CONFIRMATION:
 - Full audit of all slot sounds/upgrades (largely already built).
 - Real automated payouts require a real VAULT_API_KEY / payout provider (Stripe payouts or NOWPayments payout API) + keys from user.
 
+
+
+### 24 Aug 2026 — Promo advertisement video, HQ contacts, mobile spin-bar fix, chat launcher
+- OFFICIAL ADVERTISEMENT VIDEO: user's professional promo (wages_of_war_casino_promo_final.mp4, from uploaded zip) placed in /app/frontend/public/brand/ and also overwrote nexus_fleet_reel.mp4. Wired as a real <video> (autoplay/muted/loop/controls) in the Landing MISSION BRIEFING section (data-testid home-intro-video), replacing the CSS AnimatedShowcase. FleetSales reel now also plays the promo.
+- HQ CONTACT: added footer-hq-contact block (Layout.jsx) with mailto links support@ / payments@ (vault & payouts) / compliance@ (KYC) @wagesofwarcasino.com + "Wages of War Operations Ltd." + Malta registered-office line. NOTE: emails/address are display placeholders on the domain — user should confirm real inboxes/address.
+- MOBILE SPIN BAR BLOCKER FIXED (from iteration_12 QA): ChatWidget rewritten to a 56px circular launcher (chat-launcher-btn) offset bottom-24 lg:bottom-6, now uses REACT_APP_BACKEND_URL + data-testids; mobile spin bars raised to z-[60]. iteration_13 QA: 100% pass — real taps spin on flagship + basic slots, no overlap, Keno + no-overflow regressions pass.
+- Landing hero coin shrunk on mobile (w-16) + top spacing so it no longer overlaps the badge chips.
+- User decision: PUBLISH NOW (lock in all completed work) before building the 40 new slots. 40-slot AAA expansion deferred as a funded next step (reference contact-sheet of names/colours provided by user).
+
+REMAINING BACKLOG:
+- 40 new AAA slot machines (art + backend registry) — user has a name/colour reference sheet; large credit-heavy batch, do after publish.
+- Real automated payouts need a real VAULT_API_KEY / payout provider.
+- Stripe go-live (claim sandbox under Manage → Payments).
+- Cosmetic: Keno win toast overlaps top nav on mobile.
+
