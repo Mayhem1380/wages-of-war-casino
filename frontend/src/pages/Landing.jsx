@@ -255,6 +255,21 @@ export default function Landing() {
             ● OFFICIAL ADVERTISEMENT
           </span>
         </div>
+        <div
+          data-testid="promo-voiceover-bar"
+          className="mt-3 flex items-center gap-3 hud px-3 py-2"
+        >
+          <span className="font-mono text-[10px] tracking-widest text-nvg/80 whitespace-nowrap">
+            ◉ RADIO BROADCAST
+          </span>
+          <audio
+            data-testid="promo-voiceover"
+            src="/brand/wages_of_war_voiceover.mp3"
+            controls
+            preload="metadata"
+            className="w-full h-9"
+          />
+        </div>
       </section>
 
       {/* NIGHT VISION GOLD */}
