@@ -241,3 +241,10 @@ REMAINING BACKLOG:
 
 STILL REQUIRES USER: click Re-publish (after .gitignore fix). Remaining 34 new slots (batches), real VAULT_API_KEY for payouts, Stripe go-live.
 
+
+
+### 24 Aug 2026 (pt.3) — Slot batch 2 (8 more → 14 new AAA slots total)
+- Added 8 more flagship slots: cobalt_siege, royal_ordnance, jade_dynasty, inferno_warlord, arctic_recon, midas_command, phantom_strike, thunder_baron. Same wiring pattern (games.py SLOT_MACHINES + PUBLIC_SLOT_IDS + FLAGSHIP_IDS; gameMeta.js FLAGSHIP_ART + BASE_MACHINE_ART + FLAGSHIP_IDS). AAA tiles at public/slots/tile_<id>.jpg.
+- Verified: all 14 new machines list as flagship, spins return 200, tiles render in lobby (Jade Dynasty, Inferno Warlord, Neon Pharaoh, Arctic Recon confirmed on screen).
+- Total new AAA slots this fork: 14. Remaining toward ~40: ~26 (future batches).
+
