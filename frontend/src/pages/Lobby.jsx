@@ -188,6 +188,42 @@ export default function Lobby() {
         </p>
       </div>
 
+      {/* PLAYER QUICK-DEPLOY LAUNCHPAD */}
+      <div className="mb-10" data-testid="player-command-hub">
+        <p className="font-mono text-xs tracking-[0.35em] text-nvg/70 mb-3">
+          // QUICK DEPLOY
+        </p>
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+          {[
+            { icon: Target, name: "Keno", to: "/keno" },
+            { icon: Coins, name: "Coin Flip", to: "/coinflip" },
+            { icon: Sparkle, name: "Daily Wheel", to: "/wheel" },
+            { icon: Flame, name: "Tournament", to: "/tournament" },
+            { icon: Trophy, name: "Leaderboard", to: "/leaderboard" },
+            { icon: Crown, name: "VIP Club", to: "/vip" },
+          ].map((q) => {
+            const Icon = q.icon;
+            return (
+              <button
+                key={q.name}
+                data-testid={`quick-deploy-${q.name.toLowerCase().replace(/\s+/g, "-")}`}
+                onClick={() => navigate(q.to)}
+                className="group flex flex-col items-center gap-2 border border-border bg-black/40 backdrop-blur-sm py-4 px-2 hover:border-gold/70 hover:bg-gold/[0.06] transition-colors"
+              >
+                <Icon
+                  size={26}
+                  weight="fill"
+                  className="text-nvg group-hover:text-gold transition-colors"
+                />
+                <span className="font-stencil tracking-widest uppercase text-[11px] sm:text-xs text-foreground text-center leading-tight">
+                  {q.name}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* GAME PREVIEW VIDEO */}
       <div className="mb-10">
         <AnimatedShowcase testId="lobby-preview-video" variant="game-preview" />
