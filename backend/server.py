@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 from pathlib import Path
 import os
+from collections import defaultdict
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / ".env")
@@ -197,6 +198,53 @@ STARTING_BALANCE = 10000.0
 DAILY_BONUS_COOLDOWN_HOURS = 24
 CASHBACK_COOLDOWN_HOURS = 168  # weekly
 
+AUTH_FAILURE_WINDOW_SECONDS = 900
+AUTH_FAILURE_LIMIT = 5
+_AUTH_FAILURES = defaultdict(list)
+
+
+def _resolved_cors_origins() -> List[str]:
+    """Build an explicit allowlist for credentialed CORS requests.
+
+    Browsers reject wildcard origins when credentials are enabled, so we always
+    echo a concrete origin instead of returning '*'. If nothing is configured,
+    we fall back to the usual local dev ports and require explicit env values for
+    hosted deployments.
+    """
+    values: List[str] = []
+    seen = set()
+
+    for raw in [
+        os.environ.get("CORS_ORIGINS", ""),
+        os.environ.get("FRONTEND_URL", ""),
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+    ]:
+        for item in str(raw).split(","):
+            origin = item.strip().rstrip("/")
+            if not origin or origin == "*" or origin in seen:
+                continue
+            if not origin.startswith(("http://", "https://")):
+                continue
+            seen.add(origin)
+            values.append(origin)
+
+    if not values:
+        values = [
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+            "http://localhost:8000",
+            "http://127.0.0.1:8000",
+        ]
+    return values
+
+
+CORS_ORIGINS = _resolved_cors_origins()
+CORS_ALLOW_ORIGINS = CORS_ORIGINS
+CORS_ALLOW_ORIGIN_REGEX = None
+
 app = FastAPI(title="Wages of War Casino API")
 api = APIRouter(prefix="/api")
 
@@ -392,6 +440,19 @@ def public_user(u: dict) -> dict:
         ),
         "signup_verification_bonus_amount": 10.0,
     }
+
+
+def _reset_login_failures(email: str):
+    _AUTH_FAILURES.pop(email, None)
+
+
+def _login_failure_count(email: str) -> int:
+    now = datetime.now(timezone.utc)
+    attempts = _AUTH_FAILURES.get(email, [])
+    attempts = [ts for ts in attempts if (now - ts).total_seconds() < AUTH_FAILURE_WINDOW_SECONDS]
+    if len(attempts) != len(_AUTH_FAILURES.get(email, [])):
+        _AUTH_FAILURES[email] = attempts
+    return len(attempts)
 
 
 async def resolve_user(request: Request) -> Optional[dict]:
@@ -1056,13 +1117,21 @@ async def register(payload: RegisterInput, response: Response):
 @api.post("/auth/login")
 async def login(payload: LoginInput, response: Response):
     email = payload.email.lower().strip()
+    attempts = _AUTH_FAILURES.get(email, [])
+    now = datetime.now(timezone.utc)
+    attempts = [ts for ts in attempts if (now - ts).total_seconds() < AUTH_FAILURE_WINDOW_SECONDS]
+    if len(attempts) >= AUTH_FAILURE_LIMIT:
+        _AUTH_FAILURES[email] = attempts
+        raise HTTPException(status_code=429, detail="Too many failed login attempts")
+
     u = await db.users.find_one({"email": email})
-    if (
-        not u
-        or not u.get("password_hash")
-        or not verify_password(payload.password, u["password_hash"])
-    ):
+    valid = bool(u and u.get("password_hash") and verify_password(payload.password, u["password_hash"]))
+    if not valid:
+        attempts.append(now)
+        _AUTH_FAILURES[email] = attempts
         raise HTTPException(status_code=401, detail="Invalid email or password")
+
+    _reset_login_failures(email)
     token = create_access_token(u["user_id"], email)
     set_auth_cookie(response, token)
     return {"user": public_user(u), "token": token}
@@ -1316,6 +1385,8 @@ async def slots_spin(payload: SpinInput, user: dict = Depends(require_user)):
         }
 
     result["free_session"] = free_session
+    result["win"] = round(result["total_win"], 2)
+    result["payout"] = round(result["total_win"], 2)
     result["balance"] = round(updated["balance"], 2)
     result["net"] = round(net, 2)
     return result
@@ -2973,7 +3044,8 @@ async def health_check():
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=".*",
+    allow_origins=CORS_ALLOW_ORIGINS,
+    allow_origin_regex=CORS_ALLOW_ORIGIN_REGEX,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
