@@ -10,7 +10,7 @@ services:
       PORT: 8000
       MONGO_URL: ${MONGO_URL:-mongodb://localhost:27017}
       DB_NAME: ${DB_NAME:-test_database}
-      CORS_ORIGINS: ${CORS_ORIGINS:-*}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000,http://localhost:8000,http://127.0.0.1:8000}
       FRONTEND_URL: ${FRONTEND_URL:-}
       JWT_SECRET: ${JWT_SECRET:-}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-}

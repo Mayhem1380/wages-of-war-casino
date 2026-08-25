@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
-import { MACHINE_ART, FLAGSHIP_ART, fmt } from "@/data/gameMeta";
+import { MACHINE_ART, FLAGSHIP_ART, resolveMachineArt, fmt } from "@/data/gameMeta";
 import { LOBBY } from "@/constants/testIds";
 import { SymbolTile } from "@/components/SymbolTile";
 import { AnimatedShowcase } from "@/components/AnimatedShowcase";
@@ -453,66 +453,58 @@ export default function Lobby() {
               </CornerCard>
             );
           }
+          const rart = resolveMachineArt(s.id, art);
           return (
             <CornerCard
               key={s.id}
               testId={LOBBY.slotCard(s.id)}
-              accent={art.accent}
+              accent={rart.accent}
               onClick={() => navigate(`/slots/${s.id}`)}
               className={feature ? "lg:col-span-2" : ""}
             >
-              <div
-                className="p-6 h-full flex flex-col justify-between min-h-[220px]"
-                style={{
-                  background: `radial-gradient(120% 120% at 50% 0%, ${art.from} 0%, ${art.to} 70%)`,
-                }}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="font-mono text-[10px] tracking-widest px-2 py-0.5 border"
-                      style={{
-                        borderColor: `${art.accent}66`,
-                        color: art.accent,
-                      }}
-                    >
-                      #{i + 1} MOST WANTED
-                    </span>
-                  </div>
-                  <span className="font-mono text-[10px] text-gold border border-gold/40 px-2 py-0.5">
-                    {s.volatility.toUpperCase()} VOL
+              <div className="relative h-full min-h-[220px] overflow-hidden">
+                <img
+                  src={rart.thumb}
+                  alt={s.name}
+                  loading="lazy"
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background:
+                      "linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.42) 45%, rgba(0,0,0,0.92) 100%)",
+                  }}
+                />
+                <div className="absolute top-3 left-3 flex items-center gap-2">
+                  <span
+                    className="font-mono text-[10px] tracking-widest px-2 py-0.5 bg-black/60 border"
+                    style={{
+                      borderColor: `${rart.accent}66`,
+                      color: rart.accent,
+                    }}
+                  >
+                    #{i + 1} MOST WANTED
                   </span>
                 </div>
-
-                <div className="flex items-center gap-4 my-4">
-                  {(symbolPreview[s.id] || []).map((sym, idx) => (
-                    <div
-                      key={`${s.id}-${sym}-${idx}`}
-                      className="animate-pop"
-                      style={{ animationDelay: `${idx * 0.06}s` }}
-                    >
-                      <SymbolTile id={sym} size={feature ? 60 : 46} />
-                    </div>
-                  ))}
-                </div>
-
-                <div>
-                  <h3 className="font-display text-4xl tracking-wide text-foreground leading-none group-hover:gold-gradient">
+                <span className="absolute top-3 right-3 font-mono text-[10px] px-2 py-0.5 bg-black/70 border border-gold/40 text-gold tracking-widest">
+                  {s.volatility.toUpperCase()} VOL
+                </span>
+                <div className="absolute inset-x-0 bottom-0 p-5">
+                  <h3 className="font-display text-4xl sm:text-5xl tracking-wide text-white leading-none drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] group-hover:gold-gradient">
                     {s.name}
                   </h3>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {s.tagline}
-                  </p>
-                  <div className="mt-4 flex items-center justify-between">
+                  <p className="text-sm text-white/70 mt-1">{s.tagline}</p>
+                  <div className="mt-3 flex items-center justify-between">
                     <span
                       className="font-mono text-[11px]"
-                      style={{ color: art.accent }}
+                      style={{ color: rart.accent }}
                     >
                       {art.tag}
                     </span>
                     <span
-                      className="flex items-center gap-1 font-stencil tracking-widest uppercase text-sm"
-                      style={{ color: art.accent }}
+                      className="flex items-center gap-1 font-stencil tracking-widest uppercase text-sm px-3 py-1 rounded-sm"
+                      style={{ background: rart.accent, color: "#120c02" }}
                     >
                       Deploy <CaretRight size={14} weight="bold" />
                     </span>

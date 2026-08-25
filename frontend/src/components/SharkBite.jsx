@@ -61,13 +61,13 @@ export default function SharkBite() {
           position: absolute;
           left: 50%;
           top: 50%;
-          width: 420px;
-          height: 180px;
+          width: 520px;
+          height: 220px;
           transform: translate(-50%, -50%);
           border-radius: 9999px;
-          background: radial-gradient(ellipse at center, rgba(255, 76, 54, 0.28), rgba(255, 135, 35, 0.08) 38%, rgba(0,0,0,0) 72%);
+          background: radial-gradient(ellipse at center, rgba(255, 76, 54, 0.42), rgba(255, 135, 35, 0.12) 38%, rgba(0,0,0,0) 72%);
           filter: blur(4px);
-          animation: wowWarFlash 8.5s ease-in-out infinite;
+          animation: wowWarFlash 5s ease-in-out infinite;
         }
 
         .wow-war-pulse {
@@ -79,7 +79,7 @@ export default function SharkBite() {
           border-radius: 50%;
           background: radial-gradient(circle at center, rgba(109, 233, 255, 0.3), rgba(86, 186, 255, 0.06) 45%, rgba(0,0,0,0) 72%);
           filter: blur(3px);
-          animation: wowPulse 6s ease-in-out infinite;
+          animation: wowPulse 4s ease-in-out infinite;
         }
 
         .wow-shark-glow {
@@ -93,7 +93,7 @@ export default function SharkBite() {
           background: radial-gradient(ellipse at center, rgba(120,205,255,0.28), rgba(90,170,230,0.10) 45%, rgba(0,0,0,0) 70%);
           filter: blur(2px);
           opacity: 0.18;
-          animation: wowSharkLunge 8.5s ease-in-out infinite;
+          animation: wowSharkLunge 5s ease-in-out infinite;
           will-change: transform, opacity;
         }
 
@@ -101,14 +101,14 @@ export default function SharkBite() {
           position: absolute;
           right: 11%;
           bottom: 5%;
-          width: 300px;
-          height: 120px;
+          width: 400px;
+          height: 160px;
           border-radius: 56% 44% 52% 48% / 60% 48% 52% 40%;
-          background: linear-gradient(180deg, rgba(10,18,25,0.74), rgba(3,6,12,0.9));
-          box-shadow: inset 8px 0 22px rgba(120,200,255,0.1), inset -10px 0 18px rgba(0,0,0,0.4), 0 0 18px rgba(90,170,230,0.1);
+          background: linear-gradient(180deg, rgba(10,18,25,0.82), rgba(3,6,12,0.96));
+          box-shadow: inset 10px 0 26px rgba(120,200,255,0.16), inset -12px 0 20px rgba(0,0,0,0.5), 0 0 34px rgba(90,170,230,0.28);
           transform: skewX(-8deg);
-          opacity: 0.84;
-          animation: wowSharkBite 8.5s ease-in-out infinite;
+          opacity: 0.96;
+          animation: wowSharkBite 5s ease-in-out infinite;
         }
         .wow-shark-silhouette::before {
           content: "";
@@ -137,11 +137,11 @@ export default function SharkBite() {
           position: absolute;
           left: 54%;
           top: 46%;
-          width: 8px;
-          height: 8px;
+          width: 11px;
+          height: 11px;
           border-radius: 50%;
-          background: rgba(255,255,255,0.9);
-          box-shadow: 0 0 12px rgba(255,255,255,0.7);
+          background: rgba(255,90,60,0.95);
+          box-shadow: 0 0 16px rgba(255,70,40,0.9), 0 0 6px rgba(255,255,255,0.8);
         }
 
         @keyframes wowSharkLunge {
