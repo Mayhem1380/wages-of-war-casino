@@ -12,7 +12,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo.errors import OperationFailure
 import logging
 from pydantic import BaseModel, Field, EmailStr
-from typing import List, Optional
+from typing import List, Optional, Dict
 import uuid
 import bcrypt
 import jwt
@@ -30,6 +30,8 @@ from games import (
     PUBLIC_SLOT_IDS,
     spin_slot,
     play_keno,
+    play_wow_keno,
+    play_side_keno,
     KENO_PAYTABLE,
     PAYLINES,
     VIP_TIERS,
@@ -1054,6 +1056,16 @@ class KenoInput(BaseModel):
     stake: float = Field(gt=0)
 
 
+class WowKenoInput(BaseModel):
+    picks: List[int]
+    stake: float = Field(gt=0)
+
+
+class SideKenoInput(BaseModel):
+    bets: Dict[str, str]
+    stake: float = Field(gt=0)
+
+
 class CoinFlipInput(BaseModel):
     side: str
     bet: float = Field(gt=0)
@@ -1540,6 +1552,105 @@ async def keno_play(payload: KenoInput, user: dict = Depends(require_user)):
     await add_tournament_score(user, result["win"])
     result["balance"] = round(updated["balance"], 2)
     result["net"] = round(net, 2)
+    return result
+
+
+@api.post("/games/keno/wow")
+async def wow_keno_play(payload: WowKenoInput, user: dict = Depends(require_user)):
+    if payload.stake < 10:
+        raise HTTPException(status_code=400, detail="Minimum stake is 10 credits")
+    if user.get("balance", 0) < payload.stake:
+        raise HTTPException(status_code=400, detail="Insufficient credits")
+    try:
+        result = play_wow_keno(payload.picks, payload.stake)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    net = result["win"] - payload.stake
+    updated = await adjust_balance(
+        user["user_id"],
+        delta_balance=net,
+        wagered=payload.stake,
+        won=result["win"],
+        biggest=result["win"],
+        played=1,
+    )
+    if result["win"] > payload.stake:
+        await record_house_cashflow(
+            result["win"] - payload.stake,
+            "player_payout",
+            "keno_wow_win",
+            {"user_id": user["user_id"], "picks": result["picks"], "stake": payload.stake},
+        )
+    elif payload.stake > 0:
+        await record_house_cashflow(
+            payload.stake,
+            "house_win",
+            "keno_wow_loss",
+            {"user_id": user["user_id"], "picks": result["picks"], "stake": payload.stake},
+        )
+    await record_transaction(
+        user["user_id"],
+        "keno_wow",
+        net,
+        {"picks": result["picks"], "stake": payload.stake, "win": result["win"]},
+    )
+    await add_tournament_score(user, result["win"])
+    result["balance"] = round(updated["balance"], 2)
+    result["net"] = round(net, 2)
+    return result
+
+
+@api.post("/games/keno/side")
+async def side_keno_play(payload: SideKenoInput, user: dict = Depends(require_user)):
+    if payload.stake < 10:
+        raise HTTPException(status_code=400, detail="Minimum stake is 10 credits per bet")
+    try:
+        result = play_side_keno(payload.bets)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    num_legs = len(result["legs"])
+    total_stake = round(payload.stake * num_legs, 2)
+    if user.get("balance", 0) < total_stake:
+        raise HTTPException(status_code=400, detail="Insufficient credits")
+    total_win = round(
+        sum(payload.stake * result["leg_payout"] for leg in result["legs"] if leg["won"]),
+        2,
+    )
+    net = round(total_win - total_stake, 2)
+    updated = await adjust_balance(
+        user["user_id"],
+        delta_balance=net,
+        wagered=total_stake,
+        won=total_win,
+        biggest=total_win,
+        played=1,
+    )
+    if total_win > total_stake:
+        await record_house_cashflow(
+            total_win - total_stake,
+            "player_payout",
+            "keno_side_win",
+            {"user_id": user["user_id"], "bets": payload.bets, "stake": total_stake},
+        )
+    elif total_stake > 0:
+        await record_house_cashflow(
+            total_stake,
+            "house_win",
+            "keno_side_loss",
+            {"user_id": user["user_id"], "bets": payload.bets, "stake": total_stake},
+        )
+    await record_transaction(
+        user["user_id"],
+        "keno_side",
+        net,
+        {"bets": payload.bets, "stake": total_stake, "win": total_win},
+    )
+    await add_tournament_score(user, total_win)
+    result["stake"] = payload.stake
+    result["total_stake"] = total_stake
+    result["win"] = total_win
+    result["balance"] = round(updated["balance"], 2)
+    result["net"] = net
     return result
 
 
