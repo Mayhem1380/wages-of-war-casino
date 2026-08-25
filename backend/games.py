@@ -4202,6 +4202,83 @@ SLOT_MACHINES = {
         8,
         82,
     ),
+    "sovereign_strike": _machine(
+        "sovereign_strike", "Sovereign Strike", "Rain down the royal barrage", "olympus", "High",
+        {"crown": 5, "orb": 6, "chalice": 7, "ring": 8, "hourglass": 10, "gem_red": 12, "gem_blue": 12, "gem_green": 14, "gem_purple": 14, "wild": 4, "scatter": 4},
+        "wild", "scatter",
+        {"crown": {"3": 10, "4": 25, "5": 50}, "orb": {"3": 5, "4": 15, "5": 40}, "chalice": {"3": 4, "4": 10, "5": 25}, "ring": {"3": 3, "4": 8, "5": 20}, "hourglass": {"3": 2, "4": 5, "5": 12}, "gem_red": {"3": 1.5, "4": 4, "5": 10}, "gem_blue": {"3": 1, "4": 3, "5": 8}, "gem_green": {"3": 0.8, "4": 2, "5": 6}, "gem_purple": {"3": 0.5, "4": 1.5, "5": 5}},
+        {"3": 3, "4": 10, "5": 50}, 10, 94,
+    ),
+    "aces_high": _machine(
+        "aces_high", "Aces High", "Own the skies, stack the aces", "olympus", "High",
+        {"crown": 5, "orb": 6, "chalice": 7, "ring": 8, "hourglass": 10, "gem_red": 12, "gem_blue": 12, "gem_green": 14, "gem_purple": 14, "wild": 4, "scatter": 4},
+        "wild", "scatter",
+        {"crown": {"3": 10, "4": 25, "5": 50}, "orb": {"3": 5, "4": 15, "5": 40}, "chalice": {"3": 4, "4": 10, "5": 25}, "ring": {"3": 3, "4": 8, "5": 20}, "hourglass": {"3": 2, "4": 5, "5": 12}, "gem_red": {"3": 1.5, "4": 4, "5": 10}, "gem_blue": {"3": 1, "4": 3, "5": 8}, "gem_green": {"3": 0.8, "4": 2, "5": 6}, "gem_purple": {"3": 0.5, "4": 1.5, "5": 5}},
+        {"3": 3, "4": 10, "5": 50}, 10, 95,
+    ),
+    "gold_convoy": _machine(
+        "gold_convoy", "Gold Convoy", "Hijack the bullion run", "olympus", "High",
+        {"crown": 5, "orb": 6, "chalice": 7, "ring": 8, "hourglass": 10, "gem_red": 12, "gem_blue": 12, "gem_green": 14, "gem_purple": 14, "wild": 4, "scatter": 4},
+        "wild", "scatter",
+        {"crown": {"3": 10, "4": 25, "5": 50}, "orb": {"3": 5, "4": 15, "5": 40}, "chalice": {"3": 4, "4": 10, "5": 25}, "ring": {"3": 3, "4": 8, "5": 20}, "hourglass": {"3": 2, "4": 5, "5": 12}, "gem_red": {"3": 1.5, "4": 4, "5": 10}, "gem_blue": {"3": 1, "4": 3, "5": 8}, "gem_green": {"3": 0.8, "4": 2, "5": 6}, "gem_purple": {"3": 0.5, "4": 1.5, "5": 5}},
+        {"3": 3, "4": 10, "5": 50}, 10, 94,
+    ),
+    "night_raid": _machine(
+        "night_raid", "Night Raid", "Strike hard under cover of dark", "olympus", "High",
+        {"crown": 5, "orb": 6, "chalice": 7, "ring": 8, "hourglass": 10, "gem_red": 12, "gem_blue": 12, "gem_green": 14, "gem_purple": 14, "wild": 4, "scatter": 4},
+        "wild", "scatter",
+        {"crown": {"3": 10, "4": 25, "5": 50}, "orb": {"3": 5, "4": 15, "5": 40}, "chalice": {"3": 4, "4": 10, "5": 25}, "ring": {"3": 3, "4": 8, "5": 20}, "hourglass": {"3": 2, "4": 5, "5": 12}, "gem_red": {"3": 1.5, "4": 4, "5": 10}, "gem_blue": {"3": 1, "4": 3, "5": 8}, "gem_green": {"3": 0.8, "4": 2, "5": 6}, "gem_purple": {"3": 0.5, "4": 1.5, "5": 5}},
+        {"3": 3, "4": 10, "5": 50}, 10, 94,
+    ),
+    "titanium_tundra": _machine(
+        "titanium_tundra", "Titanium Tundra", "Freeze the reels, forge the wins", "olympus", "High",
+        {"crown": 5, "orb": 6, "chalice": 7, "ring": 8, "hourglass": 10, "gem_red": 12, "gem_blue": 12, "gem_green": 14, "gem_purple": 14, "wild": 4, "scatter": 4},
+        "wild", "scatter",
+        {"crown": {"3": 10, "4": 25, "5": 50}, "orb": {"3": 5, "4": 15, "5": 40}, "chalice": {"3": 4, "4": 10, "5": 25}, "ring": {"3": 3, "4": 8, "5": 20}, "hourglass": {"3": 2, "4": 5, "5": 12}, "gem_red": {"3": 1.5, "4": 4, "5": 10}, "gem_blue": {"3": 1, "4": 3, "5": 8}, "gem_green": {"3": 0.8, "4": 2, "5": 6}, "gem_purple": {"3": 0.5, "4": 1.5, "5": 5}},
+        {"3": 3, "4": 10, "5": 50}, 10, 93,
+    ),
+    "jungle_guerrilla": _machine(
+        "jungle_guerrilla", "Jungle Guerrilla", "Ambush from the canopy", "olympus", "High",
+        {"crown": 5, "orb": 6, "chalice": 7, "ring": 8, "hourglass": 10, "gem_red": 12, "gem_blue": 12, "gem_green": 14, "gem_purple": 14, "wild": 4, "scatter": 4},
+        "wild", "scatter",
+        {"crown": {"3": 10, "4": 25, "5": 50}, "orb": {"3": 5, "4": 15, "5": 40}, "chalice": {"3": 4, "4": 10, "5": 25}, "ring": {"3": 3, "4": 8, "5": 20}, "hourglass": {"3": 2, "4": 5, "5": 12}, "gem_red": {"3": 1.5, "4": 4, "5": 10}, "gem_blue": {"3": 1, "4": 3, "5": 8}, "gem_green": {"3": 0.8, "4": 2, "5": 6}, "gem_purple": {"3": 0.5, "4": 1.5, "5": 5}},
+        {"3": 3, "4": 10, "5": 50}, 10, 94,
+    ),
+    "urban_sniper": _machine(
+        "urban_sniper", "Urban Sniper", "One shot, one payout", "olympus", "High",
+        {"crown": 5, "orb": 6, "chalice": 7, "ring": 8, "hourglass": 10, "gem_red": 12, "gem_blue": 12, "gem_green": 14, "gem_purple": 14, "wild": 4, "scatter": 4},
+        "wild", "scatter",
+        {"crown": {"3": 10, "4": 25, "5": 50}, "orb": {"3": 5, "4": 15, "5": 40}, "chalice": {"3": 4, "4": 10, "5": 25}, "ring": {"3": 3, "4": 8, "5": 20}, "hourglass": {"3": 2, "4": 5, "5": 12}, "gem_red": {"3": 1.5, "4": 4, "5": 10}, "gem_blue": {"3": 1, "4": 3, "5": 8}, "gem_green": {"3": 0.8, "4": 2, "5": 6}, "gem_purple": {"3": 0.5, "4": 1.5, "5": 5}},
+        {"3": 3, "4": 10, "5": 50}, 10, 94,
+    ),
+    "stealth_bomber": _machine(
+        "stealth_bomber", "Stealth Bomber", "Drop the payload jackpot", "olympus", "High",
+        {"crown": 5, "orb": 6, "chalice": 7, "ring": 8, "hourglass": 10, "gem_red": 12, "gem_blue": 12, "gem_green": 14, "gem_purple": 14, "wild": 4, "scatter": 4},
+        "wild", "scatter",
+        {"crown": {"3": 10, "4": 25, "5": 50}, "orb": {"3": 5, "4": 15, "5": 40}, "chalice": {"3": 4, "4": 10, "5": 25}, "ring": {"3": 3, "4": 8, "5": 20}, "hourglass": {"3": 2, "4": 5, "5": 12}, "gem_red": {"3": 1.5, "4": 4, "5": 10}, "gem_blue": {"3": 1, "4": 3, "5": 8}, "gem_green": {"3": 0.8, "4": 2, "5": 6}, "gem_purple": {"3": 0.5, "4": 1.5, "5": 5}},
+        {"3": 3, "4": 10, "5": 50}, 10, 95,
+    ),
+    "panzer_plunder": _machine(
+        "panzer_plunder", "Panzer Plunder", "Roll over the gold reserves", "olympus", "High",
+        {"crown": 5, "orb": 6, "chalice": 7, "ring": 8, "hourglass": 10, "gem_red": 12, "gem_blue": 12, "gem_green": 14, "gem_purple": 14, "wild": 4, "scatter": 4},
+        "wild", "scatter",
+        {"crown": {"3": 10, "4": 25, "5": 50}, "orb": {"3": 5, "4": 15, "5": 40}, "chalice": {"3": 4, "4": 10, "5": 25}, "ring": {"3": 3, "4": 8, "5": 20}, "hourglass": {"3": 2, "4": 5, "5": 12}, "gem_red": {"3": 1.5, "4": 4, "5": 10}, "gem_blue": {"3": 1, "4": 3, "5": 8}, "gem_green": {"3": 0.8, "4": 2, "5": 6}, "gem_purple": {"3": 0.5, "4": 1.5, "5": 5}},
+        {"3": 3, "4": 10, "5": 50}, 10, 93,
+    ),
+    "black_hawk_bounty": _machine(
+        "black_hawk_bounty", "Black Hawk Bounty", "Extract the jackpot", "olympus", "High",
+        {"crown": 5, "orb": 6, "chalice": 7, "ring": 8, "hourglass": 10, "gem_red": 12, "gem_blue": 12, "gem_green": 14, "gem_purple": 14, "wild": 4, "scatter": 4},
+        "wild", "scatter",
+        {"crown": {"3": 10, "4": 25, "5": 50}, "orb": {"3": 5, "4": 15, "5": 40}, "chalice": {"3": 4, "4": 10, "5": 25}, "ring": {"3": 3, "4": 8, "5": 20}, "hourglass": {"3": 2, "4": 5, "5": 12}, "gem_red": {"3": 1.5, "4": 4, "5": 10}, "gem_blue": {"3": 1, "4": 3, "5": 8}, "gem_green": {"3": 0.8, "4": 2, "5": 6}, "gem_purple": {"3": 0.5, "4": 1.5, "5": 5}},
+        {"3": 3, "4": 10, "5": 50}, 10, 94,
+    ),
+    "iron_infantry": _machine(
+        "iron_infantry", "Iron Infantry", "Advance the iron line", "olympus", "High",
+        {"crown": 5, "orb": 6, "chalice": 7, "ring": 8, "hourglass": 10, "gem_red": 12, "gem_blue": 12, "gem_green": 14, "gem_purple": 14, "wild": 4, "scatter": 4},
+        "wild", "scatter",
+        {"crown": {"3": 10, "4": 25, "5": 50}, "orb": {"3": 5, "4": 15, "5": 40}, "chalice": {"3": 4, "4": 10, "5": 25}, "ring": {"3": 3, "4": 8, "5": 20}, "hourglass": {"3": 2, "4": 5, "5": 12}, "gem_red": {"3": 1.5, "4": 4, "5": 10}, "gem_blue": {"3": 1, "4": 3, "5": 8}, "gem_green": {"3": 0.8, "4": 2, "5": 6}, "gem_purple": {"3": 0.5, "4": 1.5, "5": 5}},
+        {"3": 3, "4": 10, "5": 50}, 10, 94,
+    ),
 }
 
 
@@ -4438,6 +4515,17 @@ PUBLIC_SLOT_IDS = [
     "sun_of_egypt_3",
     "sun_of_egypt_4",
     "three_pigs",
+    "sovereign_strike",
+    "aces_high",
+    "gold_convoy",
+    "night_raid",
+    "titanium_tundra",
+    "jungle_guerrilla",
+    "urban_sniper",
+    "stealth_bomber",
+    "panzer_plunder",
+    "black_hawk_bounty",
+    "iron_infantry",
 ]
 
 FLAGSHIP_IDS = {
@@ -4517,6 +4605,17 @@ FLAGSHIP_IDS = {
     "oasis_relics",
     "stormbreaker",
     "midnight_harvest",
+    "sovereign_strike",
+    "aces_high",
+    "gold_convoy",
+    "night_raid",
+    "titanium_tundra",
+    "jungle_guerrilla",
+    "urban_sniper",
+    "stealth_bomber",
+    "panzer_plunder",
+    "black_hawk_bounty",
+    "iron_infantry",
 }
 
 # jackpot name -> multiplier of the total bet
@@ -4726,6 +4825,115 @@ def play_keno(picks, stake):
         "multiplier": mult,
         "win": win,
         "stake": round(stake, 2),
+    }
+
+
+# ---------------------------------------------------------------------------
+# WOW KENO — Wages of War Keno. Pick 1-10 from 1-80, draw 20. After the draw,
+# 3 random "warhead" numbers are armed among the drawn set; every player hit
+# that lands on a warhead DOUBLES the whole payout (x2 per warhead, up to x8).
+# Punchier high-octane paytable.
+# ---------------------------------------------------------------------------
+WOW_KENO_PAYTABLE = {
+    1: {0: 0, 1: 3.8},
+    2: {0: 0, 1: 1, 2: 10},
+    3: {0: 0, 1: 0, 2: 2.5, 3: 30},
+    4: {0: 0, 1: 0, 2: 2, 3: 7, 4: 55},
+    5: {0: 0, 1: 0, 2: 1.5, 3: 4, 4: 15, 5: 110},
+    6: {0: 0, 1: 0, 2: 0, 3: 3, 4: 8, 5: 40, 6: 220},
+    7: {0: 0, 1: 0, 2: 0, 3: 2, 4: 5, 5: 15, 6: 80, 7: 450},
+    8: {0: 0, 1: 0, 2: 0, 3: 0, 4: 5, 5: 12, 6: 55, 7: 200, 8: 900},
+    9: {0: 0, 1: 0, 2: 0, 3: 0, 4: 4, 5: 8, 6: 30, 7: 100, 8: 500, 9: 2000},
+    10: {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 6, 6: 18, 7: 60, 8: 250, 9: 1000, 10: 8000},
+}
+
+
+def play_wow_keno(picks, stake):
+    picks = sorted(set(int(p) for p in picks))
+    n = len(picks)
+    if n < 1 or n > 10:
+        raise ValueError("Pick between 1 and 10 numbers")
+    if any(p < 1 or p > 80 for p in picks):
+        raise ValueError("Numbers must be between 1 and 80")
+    pool = list(range(1, 81))
+    drawn = []
+    for _ in range(20):
+        drawn.append(pool.pop(secrets.randbelow(len(pool))))
+    drawn_set = set(drawn)
+    hits = sorted([p for p in picks if p in drawn_set])
+    # arm 3 warheads among the drawn numbers
+    dpool = list(drawn)
+    warheads = []
+    for _ in range(min(3, len(dpool))):
+        warheads.append(dpool.pop(secrets.randbelow(len(dpool))))
+    warhead_set = set(warheads)
+    warhead_hits = sorted([h for h in hits if h in warhead_set])
+    base_mult = WOW_KENO_PAYTABLE[n].get(len(hits), 0)
+    warhead_mult = 2 ** len(warhead_hits) if (warhead_hits and base_mult > 0) else 1
+    mult = round(base_mult * warhead_mult, 2)
+    win = round(mult * stake, 2)
+    return {
+        "mode": "wow",
+        "picks": picks,
+        "drawn": sorted(drawn),
+        "hits": hits,
+        "hit_count": len(hits),
+        "warheads": sorted(warheads),
+        "warhead_hits": warhead_hits,
+        "base_multiplier": base_mult,
+        "warhead_multiplier": warhead_mult,
+        "multiplier": mult,
+        "win": win,
+        "stake": round(stake, 2),
+    }
+
+
+# ---------------------------------------------------------------------------
+# SIDE KENO — fast prop bets on a fresh 20-ball draw (no number grid).
+# Markets: sum over/under 810, odd/even majority, zone high/low (41-80 vs 1-40).
+# Each active leg costs one stake unit and pays SIDE_KENO_PAYOUT on a win.
+# ---------------------------------------------------------------------------
+SIDE_KENO_PAYOUT = 1.95
+SIDE_KENO_MARKETS = {
+    "sum": {"over", "under"},
+    "parity": {"odd", "even"},
+    "zone": {"high", "low"},
+}
+
+
+def play_side_keno(bets):
+    active = {
+        k: v
+        for k, v in (bets or {}).items()
+        if k in SIDE_KENO_MARKETS and v in SIDE_KENO_MARKETS[k]
+    }
+    if not active:
+        raise ValueError("Place at least one side bet")
+    pool = list(range(1, 81))
+    drawn = []
+    for _ in range(20):
+        drawn.append(pool.pop(secrets.randbelow(len(pool))))
+    total = sum(drawn)
+    odd = sum(1 for d in drawn if d % 2 == 1)
+    high = sum(1 for d in drawn if d >= 41)
+    outcomes = {
+        "sum": "over" if total > 810 else "under",
+        "parity": "odd" if odd > 10 else "even",
+        "zone": "high" if high > 10 else "low",
+    }
+    legs = []
+    for k, pick in active.items():
+        legs.append(
+            {"market": k, "pick": pick, "outcome": outcomes[k], "won": outcomes[k] == pick}
+        )
+    return {
+        "mode": "side",
+        "drawn": sorted(drawn),
+        "sum": total,
+        "odd_count": odd,
+        "high_count": high,
+        "legs": legs,
+        "leg_payout": SIDE_KENO_PAYOUT,
     }
 
 
