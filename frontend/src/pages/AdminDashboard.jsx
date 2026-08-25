@@ -25,10 +25,11 @@ import OpsAssistanceButton from "@/components/OpsAssistanceButton";
 import AdScreen from "@/components/AdScreen";
 import UpgradesPanel from "@/components/UpgradesPanel";
 import PublishPanel from "@/components/PublishPanel";
+import CommandHub from "@/components/CommandHub";
 
 export default function AdminDashboard() {
   const { user } = useAuth();
-  const [tab, setTab] = useState("overview");
+  const [tab, setTab] = useState("hub");
   const [stats, setStats] = useState(null);
   const [players, setPlayers] = useState([]);
   const [enquiries, setEnquiries] = useState([]);
@@ -221,12 +222,15 @@ export default function AdminDashboard() {
       </div>
 
       <div className="flex flex-wrap gap-2 mb-8">
+        {tabBtn("hub", "Command Hub")}
         {tabBtn("overview", "Overview")}
         {tabBtn("players", "Players")}
         {tabBtn("payments", "Payments")}
         {tabBtn("enquiries", "Fleet Enquiries")}
         {tabBtn("hq", "HQ Inbox")}
       </div>
+
+      {tab === "hub" && <CommandHub />}
 
       {tab === "overview" && stats && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

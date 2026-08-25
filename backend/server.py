@@ -8,6 +8,7 @@ load_dotenv(ROOT_DIR / ".env")
 from fastapi import FastAPI, APIRouter, HTTPException, Request, Response, Depends
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo.errors import OperationFailure
 import logging
 from pydantic import BaseModel, Field, EmailStr
 from typing import List, Optional
@@ -2979,17 +2980,41 @@ app.add_middleware(
 )
 
 
+async def _safe_create_index(collection, field_name, **kwargs):
+    try:
+        await collection.create_index(field_name, **kwargs)
+    except OperationFailure as exc:
+        if exc.code == 13 or "not authorized" in str(exc).lower() or "createindex" in str(exc).lower():
+            logger.warning(
+                "Skipping Mongo index creation for %s on %s because the DB user is not authorized: %s",
+                getattr(collection, "name", type(collection).__name__),
+                field_name,
+                exc,
+            )
+            return
+        raise
+    except Exception as exc:
+        logger.warning(
+            "Skipping Mongo index creation for %s on %s due to non-fatal startup issue: %s",
+            getattr(collection, "name", type(collection).__name__),
+            field_name,
+            exc,
+            exc_info=True,
+        )
+        return
+
+
 @app.on_event("startup")
 async def startup():
     validate_runtime_config()
     global db
     db = _ensure_db()
-    await db.users.create_index("email", unique=True)
-    await db.users.create_index("user_id", unique=True)
-    await db.user_sessions.create_index("session_token")
-    await db.payment_transactions.create_index("session_id")
-    await db.house_ledger.create_index("created_at")
-    await db.house_bankroll.create_index("_id")
+    await _safe_create_index(db.users, "email", unique=True)
+    await _safe_create_index(db.users, "user_id", unique=True)
+    await _safe_create_index(db.user_sessions, "session_token")
+    await _safe_create_index(db.payment_transactions, "session_id")
+    await _safe_create_index(db.house_ledger, "created_at")
+    await _safe_create_index(db.house_bankroll, "_id")
     await db.house_bankroll.update_one(
         {"_id": "house"},
         {

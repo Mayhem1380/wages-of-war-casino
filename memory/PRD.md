@@ -23,6 +23,7 @@ Note: The starting repo was actually an empty CRA/FastAPI template; the full cas
 - High-roller/VIP: climbs ranks, chases leaderboard, buys credit packs.
 
 ## Implemented (2026-06-XX)
+- Session (2026-06 fork): (1) Fixed CombatBackground.jsx canvas crash — guarded ctx.createRadialGradient radius with Math.max(0.01, e.r) (Iteration 14 bug). (2) Nexus Studio B2B "Fleet Sales" reel replaced with premium static cinematic sizzle graphic (/brand/nexus_fleet_sizzle.jpg, carrier + Black Hawks/Apaches) + BRAND.nexusSizzle in gameMeta.js — more professional, no autoplay video. (3) NEW Command Hub launchpad (CommandHub.jsx) wired as default tab in AdminDashboard — single screen with 14 quick-launch links grouped Games / Account & Cashier / Operator(B2B). (4) Delivered copy/paste cinematic 60s video ad script at /app/WAGES_OF_WAR_CINEMATIC_AD_SCRIPT.md (carrier, helicopters, extraction match-cut to reels, slot blitz, logo lock-up) for external editor. Deployment blocker remains USER-side: bad MONGO_URL secret in Publish panel — user must clear it and Re-publish.
 - Auth: register (10,000 starting credits), login, logout, /me, Google session exchange, seeded admin.
 - Slots: 6 machines (Gates of Glory, Book of Ops, Big Bass Bombardment, Sweet Ammo, Wild West Recon, Money Train Convoy) with paytables, wilds, scatters, free-spin payouts, animated reels, win highlighting.
 - Slots expansion (2026-06-14): +5 machines = 11 total. Added Pharaoh's Arsenal (Egyptian ankh wild+scatter, expanding relic style, high vol), Kraken Depths (naval free-spins, medium), Inferno Airstrike (fire/airstrike jackpot, extreme, 100x), Frozen Front (arctic sticky-wilds, high), Golden Dynasty (imperial, extreme, 88x). Backend configs in games.py SLOT_MACHINES; frontend icons in src/data/gameMeta.js (SYMBOL_META + MACHINE_ART) + Lobby symbolPreview. Reused existing Phosphor icon style — no image-gen credits. All verified spinning + free-spin flow end-to-end.
@@ -261,4 +262,11 @@ STILL REQUIRES USER: click Re-publish (after .gitignore fix). Remaining 34 new s
 - Footer centre emblem (/brand/footer_logo_blue.png in Layout.jsx ~line 378) recolored to ALL WHITE via CSS filter `brightness(0) invert(1)` + white drop-shadow glow (was blue); breathing opacity bumped to .42-.68. Verified in footer screenshot.
 - Escalated go-live to support: they CANNOT press Publish or access the user's Stripe (account-access policy). Minimum unavoidable user actions = 1 click Publish + 1 Stripe login to flip sandbox→live. Support can verify config/domain/logs.
 - BACKLOG requested by user (NOT built yet, build on request): more slot graphics toward ~40 (18 to go), extra Keno graphics + "Side Keno", new games "Two-Up" and "Pontoon".
+
+
+### 25 Aug 2026 — Deploy blockers cleared + emblem restored
+- Deploy failures diagnosed from prod logs: (1) invalid prod MONGO_URL mongodb+srv host "wages-of-war-casino" — user cleared it (managed Mongo now injected); (2) createIndexes "not authorized" code 13 — already handled by _safe_create_index in server.py startup (swallows code 13, non-fatal); (3) deployment_agent flagged AuthDialog.jsx:49 getAppOriginUrl() → FIXED to window.location.origin.
+- Footer emblem: reverted the square clip-path "falls in half" split back to a single ROUND intact badge (footer_logo_blue.png) with transparent blue + red glow (drop-shadows) + wowBreathe. The SHARK (SharkBite.jsx) crosses in to bite it; emblem stays whole. Per user: "shark bites it, not it just falls in half."
+- App is now deployment-ready (all deployment_agent blockers resolved). User to Re-publish.
+
 

@@ -108,7 +108,7 @@ export default function CombatBackground() {
 
     function drawMuzzle(x, y, k, dir) {
       const r = 22 + 46 * k;
-      const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+      const g = ctx.createRadialGradient(x, y, 0, x, y, Math.max(0.01, r));
       g.addColorStop(0, `rgba(255,255,235,${0.95 * k})`);
       g.addColorStop(0.35, `rgba(255,198,90,${0.8 * k})`);
       g.addColorStop(1, "rgba(255,110,30,0)");
@@ -168,7 +168,7 @@ export default function CombatBackground() {
           explosions.splice(i, 1);
           continue;
         }
-        const g = ctx.createRadialGradient(e.x, e.y, 0, e.x, e.y, e.r);
+        const g = ctx.createRadialGradient(e.x, e.y, 0, e.x, e.y, Math.max(0.01, e.r));
         g.addColorStop(0, `rgba(255,230,170,${0.22 * k})`);
         g.addColorStop(0.4, `rgba(255,140,50,${0.16 * k})`);
         g.addColorStop(1, "rgba(255,80,20,0)");
