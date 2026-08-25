@@ -255,15 +255,11 @@ export default function FleetSales() {
         data-testid="fleet-pricing-reel"
         className="hud hud-gold relative overflow-hidden mb-10"
       >
-        <video
-          src="/brand/nexus_fleet_reel.mp4"
-          poster="/brand/nexus_fleet_poster.jpg"
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
-          className="absolute inset-0 w-full h-full object-cover opacity-70"
+        <img
+          src={BRAND.nexusSizzle}
+          alt="Nexus Studio Master — Global Gaming Fleet"
+          loading="lazy"
+          className="absolute inset-0 w-full h-full object-cover opacity-80"
         />
         <div
           className="absolute inset-0 pointer-events-none"

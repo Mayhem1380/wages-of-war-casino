@@ -384,29 +384,16 @@ export function Layout({ children }) {
             63% { transform: translate(-39%,-54%) rotate(7deg); opacity:.58; }
           }
         `}</style>
-        {/* Emblem split into two halves — the shark bites it in half on each strike, then it reforms */}
+        {/* Round emblem — transparent with blue + red glow. The SHARK crosses in and bites it; the emblem itself stays intact. */}
         <img
           src="/brand/footer_logo_blue.png"
           alt=""
           aria-hidden="true"
           className="pointer-events-none absolute left-1/2 top-1/2 w-56 sm:w-80 z-[1]"
           style={{
-            clipPath: "inset(0 50% 0 0)",
             filter:
-              "drop-shadow(0 0 22px rgba(56,189,248,0.8)) drop-shadow(0 0 54px rgba(14,165,233,0.55))",
-            animation: "wowBiteLeft 8.5s ease-in-out infinite",
-          }}
-        />
-        <img
-          src="/brand/footer_logo_blue.png"
-          alt=""
-          aria-hidden="true"
-          className="pointer-events-none absolute left-1/2 top-1/2 w-56 sm:w-80 z-[1]"
-          style={{
-            clipPath: "inset(0 0 0 50%)",
-            filter:
-              "drop-shadow(0 0 22px rgba(56,189,248,0.8)) drop-shadow(0 0 54px rgba(14,165,233,0.55))",
-            animation: "wowBiteRight 8.5s ease-in-out infinite",
+              "drop-shadow(0 0 22px rgba(56,189,248,0.85)) drop-shadow(0 0 48px rgba(56,189,248,0.5)) drop-shadow(0 0 70px rgba(255,60,60,0.45))",
+            animation: "wowBreathe 5s ease-in-out infinite",
           }}
         />
         {[...Array(7)].map((_, i) => (
