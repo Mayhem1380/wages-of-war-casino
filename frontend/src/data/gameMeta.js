@@ -872,6 +872,28 @@ const BASE_MACHINE_ART = {
   iron_infantry: { bg: "/slots/tile_iron_infantry.jpg", thumb: "/slots/tile_iron_infantry.jpg", panel: "#FF7A3A" },
 };
 
+// Slots upgraded to their own dedicated AAA banner tile (/slots/tile_<id>.jpg).
+// Overrides both the flagship card art and the base/lobby art so no two slots share.
+const DEDICATED_TILE_IDS = [
+  "ironclad_jackpots", "stormfront_seven", "brigade_of_gold", "blackout_royal",
+  "black_wolf", "buffalo_gold_rush", "happy_prosperous", "panda_magic_royale", "cash_machine",
+];
+DEDICATED_TILE_IDS.forEach((id) => {
+  const src = `/slots/tile_${id}.jpg`;
+  if (FLAGSHIP_ART[id]) {
+    FLAGSHIP_ART[id].thumb = src;
+    FLAGSHIP_ART[id].bg = src;
+  }
+  if (BASE_MACHINE_ART[id]) {
+    BASE_MACHINE_ART[id].thumb = src;
+    BASE_MACHINE_ART[id].bg = src;
+  } else {
+    const panel = (FLAGSHIP_ART[id] && FLAGSHIP_ART[id].panel) || "#C9A24B";
+    BASE_MACHINE_ART[id] = { bg: src, thumb: src, panel };
+  }
+});
+
+
 export const MACHINE_ART = {
   gates_of_glory: {
     accent: "#F6E27A",
