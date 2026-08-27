@@ -384,15 +384,15 @@ export function Layout({ children }) {
             63% { transform: translate(-39%,-54%) rotate(7deg); opacity:.58; }
           }
         `}</style>
-        {/* Round emblem — transparent with blue + red glow. The SHARK crosses in and bites it; the emblem itself stays intact. */}
+        {/* Winged brand emblem — transparent, gold/red glow. The SHARK crosses in and bites it; the emblem itself stays intact. */}
         <img
-          src="/brand/footer_logo_blue.png"
+          src="/brand/winged_emblem.png"
           alt=""
           aria-hidden="true"
           className="pointer-events-none absolute left-1/2 top-1/2 w-56 sm:w-80 z-[1]"
           style={{
             filter:
-              "drop-shadow(0 0 22px rgba(56,189,248,0.85)) drop-shadow(0 0 48px rgba(56,189,248,0.5)) drop-shadow(0 0 70px rgba(255,60,60,0.45))",
+              "drop-shadow(0 0 22px rgba(246,226,122,0.85)) drop-shadow(0 0 48px rgba(201,162,75,0.5)) drop-shadow(0 0 70px rgba(255,60,60,0.4))",
             animation: "wowBreathe 5s ease-in-out infinite",
           }}
         />

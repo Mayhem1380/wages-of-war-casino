@@ -275,3 +275,18 @@ STILL REQUIRES USER: click Re-publish (after .gitignore fix). Remaining 34 new s
 - App is now deployment-ready (all deployment_agent blockers resolved). User to Re-publish.
 
 
+
+### 27 Aug 2026 — Fork: Jungle hero, $5 referrals, 30% reserve, unique tiles, footer emblem, slot UX + AAA symbols
+- **Jungle Ambush hero**: user's "Jungle Guerrilla" poster (→ /brand/jungle_ambush.jpg, BRAND.jungleAmbush) wired as the cinematic hero on FleetSales.jsx (data-testid fleet-jungle-hero), replacing the plain Nexus banner. Verified on /fleet-sales.
+- **$5 Refer-a-Friend (backend)**: RegisterInput accepts ref_code; each user gets referral_code + referred_by. `_maybe_pay_referral(user_id)` pays the referrer $5 (500 real_balance_cents) on the friend's FIRST deposit — hooked into ALL three credit paths (Stripe cashier, crypto, play-credit package). Fully idempotent via atomic referral_reward_paid flag (verified: pays once, no double-pay). New endpoint GET /api/referral/me (code, reward, total/converted referrals, earnings). public_user exposes referral_code/count/earnings_usd. REFERRAL_REWARD_CENTS env-overridable. Live cashier logic untouched. FRONTEND NOT yet wired (capture ?ref= + referral dashboard) — next step.
+- **30% profit reserve**: PROFIT_RESERVE_PCT=0.30 (env). get_house_bankroll_summary() now locks reserve = 30% of total deposits (cash_in); available_cents = bankroll - reserve. Withdrawal solvency loop already consumes available_cents so payouts can never drain the reserve. Summary/admin bankroll now return reserve_pct/reserve_usd. Verified math.
+- **145/145 UNIQUE tiles**: 34 slots previously fell back to shared /slots/thumb_gold.jpg. Added UNIQUE_FIX_ART map in gameMeta.js (after DEDICATED loop) pointing each to a DISTINCT existing image (military slots got their own tile_<id>.jpg that existed but was unwired; legacy brand slots got unique bg_*.jpg). 0 new AI images. Verified 145 unique, 0 dup, 0 missing files.
+- **Footer emblem**: Layout.jsx centerpiece changed /brand/footer_logo_blue.png → /brand/winged_emblem.png with gold/red glow. Verified.
+- **Slot-entry UX (Task 4)**: FlagshipSlot intro now viewport-safe (overflow-y-auto, responsive image/title sizes) + explicit centered "CONTINUE TO PLAY" button (data-testid continue-to-play-btn, tap-anywhere still works). Verified on 390-wide: button visible without scroll.
+- **AAA reel symbols (Task 5)**: SymbolTile.jsx icon/text symbols now render in premium beveled metallic medallions (radial plate, gloss highlight, colored border + glow). Added 48 previously-missing symbol IDs to SYMBOL_META (mapped to existing phosphor icons + themed colors) so reels/paytables NEVER show "?". Verified thunder_titans reels — all polished gems, zero "?".
+- ACTION FOR USER: Re-publish (free) to push all of the above live.
+
+REMAINING / NEXT:
+- Refer-a-Friend FRONTEND: capture ?ref= on landing → localStorage → pass to register; referral dashboard (link + stats) in Cashier/Profile.
+- Giveaway Entry System + Admin Draw (convert static $35K UI to real DB opt-in).
+- Games: Two-Up, Pontoon.
