@@ -200,6 +200,11 @@ STARTING_BALANCE = 10000.0
 DAILY_BONUS_COOLDOWN_HOURS = 24
 CASHBACK_COOLDOWN_HOURS = 168  # weekly
 
+REFERRAL_REWARD_CENTS = int(os.environ.get("REFERRAL_REWARD_CENTS", "500"))
+# House protection: keep 30% of total deposits locked as a solvency reserve that
+# can never be released via player withdrawals.
+PROFIT_RESERVE_PCT = float(os.environ.get("PROFIT_RESERVE_PCT", "0.30"))
+
 AUTH_FAILURE_WINDOW_SECONDS = 900
 AUTH_FAILURE_LIMIT = 5
 _AUTH_FAILURES = defaultdict(list)
@@ -311,10 +316,14 @@ async def get_house_bankroll_summary():
             "pending_payout_cents": 0,
             "updated_at": datetime.now(timezone.utc).isoformat(),
         }
-    available = max(summary.get("bankroll_cents", 0), 0)
+    cash_in = int(summary.get("cash_in_cents", 0))
+    bankroll = int(summary.get("bankroll_cents", 0))
+    # 30% profit reserve — lock a solvency buffer equal to 30% of total deposits.
+    reserve_cents = int(round(max(cash_in, 0) * PROFIT_RESERVE_PCT))
+    available = max(bankroll - reserve_cents, 0)
     coverage = 0.0
-    if summary.get("cash_in_cents", 0):
-        coverage = round(available / max(summary["cash_in_cents"], 1), 4)
+    if cash_in:
+        coverage = round(available / max(cash_in, 1), 4)
     return {
         "starting_bankroll_cents": int(summary.get("starting_bankroll_cents", 0)),
         "bankroll_cents": int(summary.get("bankroll_cents", 0)),
@@ -322,6 +331,9 @@ async def get_house_bankroll_summary():
         "cash_in_cents": int(summary.get("cash_in_cents", 0)),
         "cash_out_cents": int(summary.get("cash_out_cents", 0)),
         "pending_payout_cents": int(summary.get("pending_payout_cents", 0)),
+        "reserve_pct": PROFIT_RESERVE_PCT,
+        "reserve_cents": reserve_cents,
+        "reserve_usd": round(reserve_cents / 100.0, 2),
         "available_cents": available,
         "available_usd": round(available / 100.0, 2),
         "coverage_ratio": coverage,
@@ -441,6 +453,11 @@ def public_user(u: dict) -> dict:
             u.get("signup_verification_bonus_claimed", False)
         ),
         "signup_verification_bonus_amount": 10.0,
+        "referral_code": u.get("referral_code"),
+        "referral_count": int(u.get("referral_count", 0)),
+        "referral_earnings_usd": round(
+            int(u.get("referral_earnings_cents", 0)) / 100.0, 2
+        ),
     }
 
 
@@ -1035,6 +1052,7 @@ class RegisterInput(BaseModel):
     email: EmailStr
     password: str = Field(min_length=6)
     name: str = Field(min_length=1)
+    ref_code: Optional[str] = None
 
 
 class LoginInput(BaseModel):
@@ -1099,6 +1117,17 @@ async def register(payload: RegisterInput, response: Response):
             status_code=400, detail="An account with this email already exists"
         )
     user_id = f"user_{uuid.uuid4().hex[:12]}"
+
+    referred_by = None
+    if payload.ref_code:
+        ref = await db.users.find_one(
+            {"referral_code": payload.ref_code.strip().upper()}
+        )
+        if ref and ref.get("user_id") != user_id:
+            referred_by = ref["user_id"]
+
+    referral_code = await _generate_unique_referral_code()
+
     doc = {
         "user_id": user_id,
         "email": email,
@@ -1116,6 +1145,11 @@ async def register(payload: RegisterInput, response: Response):
         "last_cashback_at": datetime.now(timezone.utc).isoformat(),
         "cashback_wagered_snapshot": 0.0,
         "cashback_won_snapshot": 0.0,
+        "referral_code": referral_code,
+        "referred_by": referred_by,
+        "referral_reward_paid": False,
+        "referral_count": 0,
+        "referral_earnings_cents": 0,
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
     await db.users.insert_one(doc)
@@ -1171,6 +1205,28 @@ async def me(user: dict = Depends(require_user)):
     if granted:
         resp["cashback_just_paid"] = granted
     return resp
+
+
+@api.get("/referral/me")
+async def referral_me(user: dict = Depends(require_user)):
+    fresh = await db.users.find_one({"user_id": user["user_id"]})
+    code = fresh.get("referral_code")
+    if not code:
+        code = await _ensure_referral_code(user["user_id"])
+    total_signups = await db.users.count_documents(
+        {"referred_by": user["user_id"]}
+    )
+    converted = await db.users.count_documents(
+        {"referred_by": user["user_id"], "referral_reward_paid": True}
+    )
+    earnings_cents = int(fresh.get("referral_earnings_cents", 0))
+    return {
+        "referral_code": code,
+        "reward_usd": REFERRAL_REWARD_CENTS / 100.0,
+        "total_referrals": total_signups,
+        "converted_referrals": converted,
+        "earnings_usd": round(earnings_cents / 100.0, 2),
+    }
 
 
 @api.get("/cashback/status")
@@ -2597,6 +2653,76 @@ async def checkout(payload: CheckoutInput, user: dict = Depends(require_user)):
     return {"checkout_url": session.url, "session_id": session.id}
 
 
+def _gen_referral_code():
+    return "WOW" + uuid.uuid4().hex[:6].upper()
+
+
+async def _generate_unique_referral_code():
+    for _ in range(6):
+        code = _gen_referral_code()
+        if not await db.users.find_one({"referral_code": code}):
+            return code
+    return "WOW" + uuid.uuid4().hex[:10].upper()
+
+
+async def _ensure_referral_code(user_id: str) -> str:
+    code = await _generate_unique_referral_code()
+    await db.users.update_one(
+        {"user_id": user_id}, {"$set": {"referral_code": code}}
+    )
+    return code
+
+
+async def _maybe_pay_referral(user_id: str):
+    """Pay the referrer a one-time $5 real-balance bonus on their friend's FIRST
+    deposit. Fully idempotent — the referred user's `referral_reward_paid` flag is
+    claimed atomically so the bonus can never be paid twice, even if called from
+    multiple deposit-credit paths (Stripe / crypto / package)."""
+    referred = await db.users.find_one_and_update(
+        {
+            "user_id": user_id,
+            "referred_by": {"$nin": [None, ""]},
+            "referral_reward_paid": {"$ne": True},
+        },
+        {
+            "$set": {
+                "referral_reward_paid": True,
+                "first_deposit_at": datetime.now(timezone.utc).isoformat(),
+            }
+        },
+    )
+    if not referred:
+        return
+    referrer_id = referred.get("referred_by")
+    if not referrer_id or referrer_id == user_id:
+        return
+    referrer = await db.users.find_one({"user_id": referrer_id})
+    if not referrer:
+        return
+    await db.users.update_one(
+        {"user_id": referrer_id},
+        {
+            "$inc": {
+                "real_balance_cents": REFERRAL_REWARD_CENTS,
+                "referral_earnings_cents": REFERRAL_REWARD_CENTS,
+                "referral_count": 1,
+            }
+        },
+    )
+    await record_house_cashflow(
+        REFERRAL_REWARD_CENTS / 100.0,
+        "referral_bonus",
+        "referral_reward",
+        {"referrer_id": referrer_id, "referred_id": user_id},
+    )
+    await record_transaction(
+        referrer_id,
+        "referral_bonus",
+        REFERRAL_REWARD_CENTS / 100.0,
+        {"referred_user": user_id, "referred_email": referred.get("email")},
+    )
+
+
 async def _credit_if_paid(record):
     if record.get("payment_status") != "paid":
         return
@@ -2637,6 +2763,7 @@ async def _credit_if_paid(record):
                 "session_id": record["session_id"],
             },
         )
+        await _maybe_pay_referral(record["user_id"])
     else:
         credits = float(record.get("credits", 0))
         await db.users.update_one(
@@ -2654,6 +2781,7 @@ async def _credit_if_paid(record):
                 "package": record["lookup_key"],
             },
         )
+        await _maybe_pay_referral(record["user_id"])
 
 
 @api.get("/payments/status/{session_id}")
@@ -2967,6 +3095,7 @@ async def _credit_crypto_deposit(payment_id: str):
             t["amount_usd_cents"] / 100.0,
             {"method": "crypto", "currency": t["currency"], "payment_id": payment_id},
         )
+        await _maybe_pay_referral(t["user_id"])
 
 
 @api.post("/webhooks/nowpayments")

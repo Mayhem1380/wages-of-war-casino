@@ -166,26 +166,55 @@ export default function FleetSales() {
         <ArrowLeft size={16} /> RETURN TO BASE
       </button>
 
-      <div className="hud hud-gold overflow-hidden mb-10">
+      <div
+        data-testid="fleet-jungle-hero"
+        className="hud hud-gold relative overflow-hidden mb-10"
+      >
         <img
-          src={BRAND.nexusBanner}
-          alt="Nexus Studio Master — Global Gaming Fleet Sales"
-          className="w-full"
+          src={BRAND.jungleAmbush}
+          alt="Jungle Ambush — Nexus Studio Master combat fleet"
+          className="absolute inset-0 w-full h-full object-cover"
         />
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              "linear-gradient(90deg, rgba(5,6,5,0.95) 0%, rgba(5,6,5,0.78) 38%, rgba(5,6,5,0.25) 72%, rgba(5,6,5,0.05) 100%)",
+          }}
+        />
+        <div className="relative p-8 md:p-12 min-h-[420px] sm:min-h-[520px] flex flex-col justify-center max-w-2xl">
+          <p className="font-mono text-xs tracking-[0.4em] text-nvg/80 animate-flicker">
+            // JUNGLE OPS · FLEET DEPLOYMENT
+          </p>
+          <h1 className="font-display text-5xl sm:text-6xl tracking-wide gold-gradient mt-2 leading-none flex items-center gap-3">
+            <Airplane size={44} weight="fill" className="text-gold shrink-0" />{" "}
+            GLOBAL GAMING FLEET SALES
+          </h1>
+          <p className="text-muted-foreground mt-4 max-w-xl leading-relaxed">
+            We build and sell elite, ready-to-deploy online casino platforms.
+            Wages of War Casino is our flagship — now the same military-grade
+            gaming fleet is available for operators worldwide.
+          </p>
+          <a
+            href="#enquiry"
+            className="inline-flex items-center gap-2 mt-6 w-fit font-stencil tracking-widest uppercase text-sm text-black bg-gold px-6 py-3 hover:bg-gold/90 glow-gold"
+          >
+            <RocketLaunch size={18} weight="fill" /> Request Fleet Quote
+          </a>
+        </div>
       </div>
 
       <div className="text-center mb-12">
         <p className="font-mono text-xs tracking-[0.4em] text-nvg/70">
           // NEXUS STUDIO MASTER
         </p>
-        <h1 className="font-display text-5xl sm:text-6xl tracking-wide gold-gradient flex items-center justify-center gap-3">
-          <Airplane size={44} weight="fill" className="text-gold" /> GLOBAL
-          GAMING FLEET SALES
-        </h1>
+        <h2 className="font-display text-4xl sm:text-5xl tracking-wide gold-gradient flex items-center justify-center gap-3">
+          <Airplane size={38} weight="fill" className="text-gold" /> ELITE
+          PLATFORMS, DEPLOYED
+        </h2>
         <p className="text-muted-foreground mt-3 max-w-2xl mx-auto leading-relaxed">
-          We build and sell elite, ready-to-deploy online casino platforms.
-          Wages of War Casino is our flagship — now the same military-grade
-          gaming fleet is available for operators worldwide.
+          The same battle-tested engine, branding tools and compliance stack
+          that powers Wages of War Casino — ready for your operation.
         </p>
       </div>
 

@@ -196,6 +196,54 @@ export const SYMBOL_META = {
   },
   scatter: { Icon: Target, color: "#4EE44E", label: "SCATTER" },
   firecoin: { Icon: Fire, color: "#FF7A2E", img: "/slots/sym_firecoin.png" },
+  // --- AAA symbol coverage: map every machine symbol so reels never show "?" ---
+  anvil: { Icon: Cube, color: "#9AA5B1" },
+  badge: { Icon: Shield, color: "#F6E27A" },
+  bandit: { Icon: Skull, color: "#CBD5E1" },
+  blade: { Icon: Knife, color: "#D0D7DE" },
+  bolt: { Icon: Lightning, color: "#FFD34E" },
+  bow: { Icon: Target, color: "#8BE28B" },
+  briefcase: { Icon: Package, color: "#C9A24B" },
+  cannon: { Icon: Bomb, color: "#FF8A4C" },
+  chip: { Icon: Cube, color: "#57E6C6" },
+  circuit: { Icon: Spiral, color: "#57E6C6" },
+  cloud: { Icon: Drop, color: "#9EC5FF" },
+  compass: { Icon: Compass, color: "#7FE3FF" },
+  diamond: { Icon: Diamond, color: "#7FE3FF" },
+  egg: { Icon: Circle, color: "#F5E9C8" },
+  flag: { Icon: Feather, color: "#FF6B6B" },
+  gem_gold: { Icon: Diamond, color: "#F6C64A" },
+  gem_yellow: { Icon: Diamond, color: "#FFE24E" },
+  gun: { Icon: Crosshair, color: "#CBD5E1" },
+  hammer: { Icon: Sword, color: "#D0D7DE" },
+  helmet: { Icon: Shield, color: "#8AA0B5" },
+  lamp: { Icon: Flame, color: "#FFB454" },
+  laser: { Icon: Lightning, color: "#FF4D6D" },
+  launcher: { Icon: Rocket, color: "#FF8A4C" },
+  lion: { Icon: PawPrint, color: "#F6C64A" },
+  mask: { Icon: Ghost, color: "#A06CFF" },
+  medal: { Icon: Trophy, color: "#F6E27A" },
+  nitro: { Icon: Flame, color: "#6EE84A" },
+  pig: { Icon: Coins, color: "#FFB3D1" },
+  pulse: { Icon: Lightning, color: "#FF5A5A" },
+  radiant: { Icon: Sun, color: "#FFE24E" },
+  reign: { Icon: Crown, color: "#F6E27A" },
+  rocket: { Icon: Rocket, color: "#FF8A4C" },
+  rune: { Icon: Sparkle, color: "#A06CFF" },
+  sabre: { Icon: Sword, color: "#D0D7DE" },
+  sash: { Icon: Star, color: "#F6C64A" },
+  scepter: { Icon: Sparkle, color: "#F6E27A" },
+  shield: { Icon: Shield, color: "#8BE28B" },
+  signal: { Icon: Lightning, color: "#57E6C6" },
+  skycoin: { Icon: Coin, color: "#7FE3FF" },
+  spiral: { Icon: Spiral, color: "#57E6C6" },
+  target: { Icon: Target, color: "#FF5A5A" },
+  tire: { Icon: Circle, color: "#9AA5B1" },
+  titan: { Icon: Mountains, color: "#F6C64A" },
+  trigger: { Icon: Crosshair, color: "#FF5A5A" },
+  vanguard: { Icon: Shield, color: "#57C6E6" },
+  vortex: { Icon: Spiral, color: "#7FE3FF" },
+  wand: { Icon: Sparkle, color: "#A06CFF" },
 };
 
 // Flagship (AAA) machines: painted thumbnail + reel background + jackpot accent
@@ -904,6 +952,58 @@ DEDICATED_TILE_IDS.forEach((id) => {
   }
 });
 
+// UNIQUE-ART FIX: these 34 slots previously fell back to the shared gold tile.
+// Each is now pointed at a distinct existing painted image so no two machines
+// share art (all 145 lobby tiles are unique). Pure re-use, no new assets.
+const UNIQUE_FIX_ART = {
+  bull_rush: "/slots/bg_aurora.jpg",
+  gold_bonanza: "/slots/bg_bass.jpg",
+  book_of_dead: "/slots/bg_book.jpg",
+  mega_moolah: "/slots/bg_celestial.jpg",
+  wolf_gold: "/slots/bg_west.jpg",
+  sweet_bonanza: "/slots/bg_dynasty.jpg",
+  reactoonz: "/slots/bg_neon.jpg",
+  divine_fortune: "/slots/bg_fortune.jpg",
+  cleopatra: "/slots/bg_pharaoh.jpg",
+  thunder_titans: "/slots/tile_thunder_titans.jpg",
+  wild_bandito: "/slots/tile_wild_bandito.jpg",
+  night_ops_kingpin: "/slots/tile_night_ops_kingpin.jpg",
+  midnight_vanguard: "/slots/tile_midnight_vanguard.jpg",
+  diamond_commando: "/slots/tile_diamond_commando.jpg",
+  vortex_vanguard: "/slots/tile_vortex_vanguard.jpg",
+  redline_reign: "/slots/tile_redline_reign.jpg",
+  crimson_circuit: "/slots/tile_crimson_circuit.jpg",
+  dragon_lightning_link: "/slots/bg_dragon.jpg",
+  dollar_storm: "/slots/bg_gatesglory.jpg",
+  five_dragons_ultra_grand: "/slots/bg_fivedragon.jpg",
+  game_of_thrones: "/slots/bg_kraken.jpg",
+  triple_gold_twister: "/slots/bg_midnight.jpg",
+  aladdin: "/slots/bg_oasis.jpg",
+  sovereign_strike: "/slots/tile_sovereign_strike.jpg",
+  aces_high: "/slots/tile_aces_high.jpg",
+  gold_convoy: "/slots/tile_gold_convoy.jpg",
+  night_raid: "/slots/tile_night_raid.jpg",
+  titanium_tundra: "/slots/tile_titanium_tundra.jpg",
+  jungle_guerrilla: "/slots/tile_jungle_guerrilla.jpg",
+  urban_sniper: "/slots/tile_urban_sniper.jpg",
+  stealth_bomber: "/slots/tile_stealth_bomber.jpg",
+  panzer_plunder: "/slots/tile_panzer_plunder.jpg",
+  black_hawk_bounty: "/slots/tile_black_hawk_bounty.jpg",
+  iron_infantry: "/slots/tile_iron_infantry.jpg",
+};
+Object.entries(UNIQUE_FIX_ART).forEach(([id, src]) => {
+  if (FLAGSHIP_ART[id]) {
+    FLAGSHIP_ART[id].thumb = src;
+    FLAGSHIP_ART[id].bg = src;
+  }
+  if (BASE_MACHINE_ART[id]) {
+    BASE_MACHINE_ART[id].thumb = src;
+    BASE_MACHINE_ART[id].bg = src;
+  } else {
+    BASE_MACHINE_ART[id] = { bg: src, thumb: src, panel: "#C9A24B" };
+  }
+});
+
 
 export const MACHINE_ART = {
   gates_of_glory: {
@@ -1301,6 +1401,7 @@ export const BRAND = {
   coinNightOps: "/brand/header_coin.png",
   nexusBanner: "/brand/nexus-banner.jpg",
   nexusSizzle: "/brand/nexus_fleet_sizzle.jpg",
+  jungleAmbush: "/brand/jungle_ambush.jpg",
   giveaway: "/brand/giveaway.webp",
   footerUnderwater: "/brand/footer_underwater.jpg",
 };
