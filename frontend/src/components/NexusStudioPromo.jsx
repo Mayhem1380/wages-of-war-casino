@@ -3,7 +3,7 @@ import { Rocket, Check, ArrowUpRight } from "@phosphor-icons/react";
 
 // Nexus Studio design/build service packages advertisement.
 // EDIT the prices + URL below with your real values (or ask the agent to set them).
-const NEXUS_URL = "https://nexusstudio.dev";
+const NEXUS_URL = "https://nexusstudiomaster.com";
 const PACKAGES = [
   {
     name: "10-SLOT PACK",
