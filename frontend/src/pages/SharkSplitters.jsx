@@ -40,6 +40,7 @@ export default function SharkSplitters() {
   const [flip, setFlip] = useState(false);
   const [result, setResult] = useState(null);
   const [celebrate, setCelebrate] = useState(false);
+  const [streak, setStreak] = useState(0);
 
   const face = flip ? "heads" : result ? result.outcome : "heads";
   const meta = OUTCOME_META[face];
@@ -63,11 +64,16 @@ export default function SharkSplitters() {
       setTimeout(() => {
         setFlip(false);
         setResult(data);
+        setStreak(data.streak ?? 0);
         refreshUser();
         if (data.win > 0) {
           sfx.bigWin();
           setCelebrate(true);
-          toast.success(`${OUTCOME_META[data.outcome].label} — WIN +${fmt(data.win)}`);
+          toast.success(
+            data.jackpot
+              ? `STREAK JACKPOT! +${fmt(data.win)}`
+              : `${OUTCOME_META[data.outcome].label} — WIN +${fmt(data.win)}`,
+          );
         } else {
           sfx.lose();
           toast("The shark split your coin. No payout.");
@@ -136,6 +142,26 @@ export default function SharkSplitters() {
           ))}
         </div>
 
+        {/* streak meter */}
+        <div className="mb-4" data-testid="shark-streak-meter">
+          <div className="flex items-center justify-between font-mono text-[11px] tracking-widest text-cyan-200/70 mb-1">
+            <span>WIN STREAK</span>
+            <span className={streak >= 4 ? "text-gold" : "text-cyan-200/70"}>
+              {streak}/5 → JACKPOT
+            </span>
+          </div>
+          <div className="flex gap-1.5">
+            {[0, 1, 2, 3, 4].map((i) => (
+              <div
+                key={i}
+                className={`h-2 flex-1 rounded-sm transition-colors ${
+                  i < streak ? "bg-gold glow-gold" : "bg-cyan-900/50 border border-cyan-400/20"
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+
         {/* arena */}
         <div
           className="relative border border-cyan-400/30 bg-black/30 backdrop-blur-sm overflow-hidden"
@@ -183,7 +209,7 @@ export default function SharkSplitters() {
                       {result.multiplier}×
                     </div>
                     <div className="font-display text-3xl tracking-widest text-cyan-100 mt-2">
-                      WINNER!
+                      {result.jackpot ? "STREAK JACKPOT!" : "WINNER!"}
                     </div>
                     <div className="font-mono text-xs tracking-widest text-cyan-200/70 mt-1">
                       {OUTCOME_META[result.outcome].label}
