@@ -2,7 +2,7 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
-  "homepage": ".",
+  "homepage": "/",
   "dependencies": {
     "@hookform/resolvers": "5.0.1",
     "@phosphor-icons/react": "^2.1.10",
