@@ -1725,7 +1725,18 @@ async def shark_flip(payload: SharkFlipInput, user: dict = Depends(require_user)
         outcome, mult = "tails", 2.0
     else:
         outcome, mult = "split", 0.0
-    win = round(payload.bet * mult, 2)
+    streak = int(user.get("shark_streak", 0) or 0)
+    jackpot = False
+    if mult > 0:
+        streak += 1
+        win = round(payload.bet * mult, 2)
+        if streak >= 5:
+            jackpot = True
+            win = round(win + payload.bet * 5, 2)  # streak jackpot bonus
+            streak = 0
+    else:
+        streak = 0
+        win = 0.0
     net = win - payload.bet
     updated = await adjust_balance(
         user["user_id"],
@@ -1734,6 +1745,9 @@ async def shark_flip(payload: SharkFlipInput, user: dict = Depends(require_user)
         won=win,
         biggest=win,
         played=1,
+    )
+    await db.users.update_one(
+        {"user_id": user["user_id"]}, {"$set": {"shark_streak": streak}}
     )
     if win > 0:
         await record_house_cashflow(
@@ -1753,7 +1767,7 @@ async def shark_flip(payload: SharkFlipInput, user: dict = Depends(require_user)
         user["user_id"],
         "shark_splitters",
         net,
-        {"outcome": outcome, "bet": payload.bet, "win": win, "multiplier": mult},
+        {"outcome": outcome, "bet": payload.bet, "win": win, "jackpot": jackpot},
     )
     await add_tournament_score(user, win)
     return {
@@ -1762,6 +1776,8 @@ async def shark_flip(payload: SharkFlipInput, user: dict = Depends(require_user)
         "win": win,
         "net": round(net, 2),
         "balance": round(updated["balance"], 2),
+        "streak": streak,
+        "jackpot": jackpot,
     }
 
 
