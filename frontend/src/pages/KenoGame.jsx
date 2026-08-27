@@ -198,23 +198,30 @@ export default function KenoGame() {
           <ArrowLeft size={16} /> RETURN TO LOBBY
         </button>
 
+        <div
+          data-testid="warkino-hero"
+          className="relative mb-6 overflow-hidden border border-gold/30 rounded-sm"
+        >
+          <img
+            src="/brand/warkino_hero.jpg"
+            alt="WARKINO — Special Forces Night Ops Edition"
+            className="w-full h-40 sm:h-56 object-cover object-top"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
+        </div>
+
         <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
           <div>
             <p className="font-mono text-xs tracking-[0.4em] text-nvg/70">
-              //{" "}
+              // WARKINO · SPECIAL FORCES ·{" "}
               {mode === "wow"
-                ? "WOW KENO • WARHEAD MULTIPLIERS UP TO 8×"
+                ? "WARHEAD MULTIPLIERS UP TO 8×"
                 : mode === "side"
-                  ? "SIDE KENO • PROP BETS PAY 1.95×"
-                  : "WARHEAD KENO • UP TO 5,000×"}
+                  ? "PROP BETS PAY 1.95×"
+                  : "NIGHT OPS · UP TO 5,000×"}
             </p>
             <h1 className="font-display text-5xl tracking-wide nvg-text flex items-center gap-3">
-              <Target size={40} weight="fill" />{" "}
-              {mode === "wow"
-                ? "WOW KENO"
-                : mode === "side"
-                  ? "SIDE KENO"
-                  : "WARHEAD KENO"}
+              <Target size={40} weight="fill" /> WARKINO
             </h1>
           </div>
           <div className="flex items-center gap-2 px-4 py-2 hud hud-gold">

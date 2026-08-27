@@ -1,0 +1,2 @@
+{"ts": "2026-08-26T06:51:15", "name": "www-asset-load-check", "mode": "ran-inline", "url": "https://night-vision-gold.preview.emergentagent.com", "passed": false, "total_ms": 719, "pw_import_ms": 365, "launch_ms": null, "first_goto_ms": null, "body_ms": null, "body_gotos": []}
+{"ts": "2026-08-26T07:02:41", "name": "prod-auth-modal-open", "mode": "ran-inline", "url": "https://night-vision-gold.emergent.host", "passed": false, "total_ms": 1006, "pw_import_ms": 548, "launch_ms": null, "first_goto_ms": null, "body_ms": null, "body_gotos": []}

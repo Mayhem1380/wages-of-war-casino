@@ -6,6 +6,7 @@ import { BRAND, fmt } from "@/data/gameMeta";
 import { LANDING } from "@/constants/testIds";
 import api from "@/lib/api";
 import { AnimatedShowcase } from "@/components/AnimatedShowcase";
+import { GiveawayAlert } from "@/components/GiveawayAlert";
 import {
   Coins,
   GameController,
@@ -203,7 +204,7 @@ export default function Landing() {
       <section className="border-y border-gold/20 bg-black/50">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-8 grid grid-cols-2 md:grid-cols-4">
           {[
-            { Icon: GameController, label: "SLOT MACHINES", value: "Elite" },
+            { Icon: GameController, label: "SLOT MACHINES", value: "145 Elite" },
             { Icon: Target, label: "WARHEAD KENO", value: "5000x Max" },
             { Icon: Medal, label: "VIP RANKS", value: "8 Tiers" },
             { Icon: Gift, label: "DAILY SUPPLY DROP", value: "Every 24h" },
@@ -227,6 +228,8 @@ export default function Landing() {
       </section>
 
       {/* INTRO VIDEO */}
+      <GiveawayAlert />
+
       <section className="max-w-[1400px] mx-auto px-4 sm:px-8 pt-16">
         <div className="mb-6">
           <p className="font-mono text-xs tracking-[0.4em] text-nvg/70">

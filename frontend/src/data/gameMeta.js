@@ -877,6 +877,17 @@ const BASE_MACHINE_ART = {
 const DEDICATED_TILE_IDS = [
   "ironclad_jackpots", "stormfront_seven", "brigade_of_gold", "blackout_royal",
   "black_wolf", "buffalo_gold_rush", "happy_prosperous", "panda_magic_royale", "cash_machine",
+  "golden_century", "five_kings", "seven_seven_crazy", "golden_rooster", "fire_of_villa_street",
+  "book_of_ops", "gonzo_quest", "peace_and_long_life", "oasis_relics", "golden_lotus",
+  "starburst", "triple_supreme_olympus", "robin_hood", "legacy_of_dinosaurs", "dragon_cash",
+  "dragon_deluxe", "thunderstruck_ii", "iceland", "polar", "magic_totem", "eyes_of_fortune",
+  "nebula_fortune", "book_of_wizard", "maya_sun", "book_of_sun", "sun_magic", "power_sun",
+  "sweet_ammo", "fortune_coins", "choy_sun_doa", "fortune_coin", "dancing_drums",
+  "eighty_eight_fortunes", "gold_party", "rich_little_piggies", "88_roosters", "fortune_lions",
+  "eggs_and_gold", "apple_2", "three_pigs", "pharaohs_arsenal", "queen_of_the_nile",
+  "cleopatra_gold", "sun_of_egypt", "sun_of_egypt_2", "sun_of_egypt_3", "sun_of_egypt_4",
+  "wild_west_recon", "buffalo_blast", "prairie_royale", "stampede_skyline", "golden_bull_run",
+  "buffalo", "dead_or_alive_ii",
 ];
 DEDICATED_TILE_IDS.forEach((id) => {
   const src = `/slots/tile_${id}.jpg`;

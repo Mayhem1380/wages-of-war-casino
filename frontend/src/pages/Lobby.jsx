@@ -193,10 +193,11 @@ export default function Lobby() {
         <p className="font-mono text-xs tracking-[0.35em] text-nvg/70 mb-3">
           // QUICK DEPLOY
         </p>
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+        <div className="grid grid-cols-3 sm:grid-cols-7 gap-3">
           {[
-            { icon: Target, name: "Keno", to: "/keno" },
+            { icon: Target, name: "War Keno", to: "/keno" },
             { icon: Coins, name: "Coin Flip", to: "/coinflip" },
+            { icon: Skull, name: "Shark Flip", to: "/shark" },
             { icon: Sparkle, name: "Daily Wheel", to: "/wheel" },
             { icon: Flame, name: "Tournament", to: "/tournament" },
             { icon: Trophy, name: "Leaderboard", to: "/leaderboard" },

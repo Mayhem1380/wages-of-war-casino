@@ -1071,6 +1071,10 @@ class CoinFlipInput(BaseModel):
     bet: float = Field(gt=0)
 
 
+class SharkFlipInput(BaseModel):
+    bet: float = Field(gt=0)
+
+
 class CheckoutInput(BaseModel):
     lookup_key: str
     origin_url: str
@@ -1700,6 +1704,62 @@ async def coinflip(payload: CoinFlipInput, user: dict = Depends(require_user)):
     return {
         "outcome": outcome,
         "win": round(win, 2),
+        "net": round(net, 2),
+        "balance": round(updated["balance"], 2),
+    }
+
+
+@api.post("/games/shark/flip")
+async def shark_flip(payload: SharkFlipInput, user: dict = Depends(require_user)):
+    if payload.bet < 10:
+        raise HTTPException(status_code=400, detail="Minimum bet is 10 credits")
+    if user.get("balance", 0) < payload.bet:
+        raise HTTPException(status_code=400, detail="Insufficient credits")
+    # ~94% RTP: evens 3.3% (3x), heads 21% (2x), tails 21% (2x), split/lose 54.7%
+    r = secrets.randbelow(1000)
+    if r < 33:
+        outcome, mult = "evens", 3.0
+    elif r < 243:
+        outcome, mult = "heads", 2.0
+    elif r < 453:
+        outcome, mult = "tails", 2.0
+    else:
+        outcome, mult = "split", 0.0
+    win = round(payload.bet * mult, 2)
+    net = win - payload.bet
+    updated = await adjust_balance(
+        user["user_id"],
+        delta_balance=net,
+        wagered=payload.bet,
+        won=win,
+        biggest=win,
+        played=1,
+    )
+    if win > 0:
+        await record_house_cashflow(
+            win,
+            "player_payout",
+            "shark_win",
+            {"user_id": user["user_id"], "outcome": outcome, "bet": payload.bet},
+        )
+    else:
+        await record_house_cashflow(
+            payload.bet,
+            "house_win",
+            "shark_loss",
+            {"user_id": user["user_id"], "outcome": outcome, "bet": payload.bet},
+        )
+    await record_transaction(
+        user["user_id"],
+        "shark_splitters",
+        net,
+        {"outcome": outcome, "bet": payload.bet, "win": win, "multiplier": mult},
+    )
+    await add_tournament_score(user, win)
+    return {
+        "outcome": outcome,
+        "multiplier": mult,
+        "win": win,
         "net": round(net, 2),
         "balance": round(updated["balance"], 2),
     }
