@@ -850,8 +850,8 @@ export default function FlagshipSlot() {
 
       {/* Mobile sticky action bar */}
       {!intro && (
-        <div className="lg:hidden fixed bottom-0 inset-x-0 z-[60] flex items-center gap-3 px-3 py-2.5 bg-black/92 backdrop-blur-md border-t-2 border-gold/40">
-          <div className="flex flex-col leading-none shrink-0">
+        <div className="lg:hidden fixed bottom-0 inset-x-0 z-[60] flex items-center justify-center px-3 py-2.5 bg-black/92 backdrop-blur-md border-t-2 border-gold/40">
+          <div className="absolute left-3 flex flex-col leading-none">
             <span className="font-mono text-[9px] text-white/50 tracking-widest">BALANCE</span>
             <span className="font-mono text-sm text-gold">{fmt(user?.balance || 0)}</span>
           </div>
@@ -859,7 +859,7 @@ export default function FlagshipSlot() {
             <Button
               data-testid="flagship-spin-mobile"
               onClick={collectFree}
-              className="flex-1 h-14 bg-nvg hover:bg-nvg/90 text-black font-display text-xl tracking-widest gap-2 animate-flicker"
+              className="w-full max-w-xs h-14 bg-nvg hover:bg-nvg/90 text-black font-display text-xl tracking-widest gap-2 animate-flicker"
             >
               <Coins size={22} weight="fill" /> COLLECT {fmt(free.total)}
             </Button>
@@ -868,7 +868,7 @@ export default function FlagshipSlot() {
               data-testid="flagship-spin-mobile"
               onClick={doSpin}
               disabled={busy}
-              className="flex-1 h-14 text-black font-display text-xl tracking-widest gap-2 disabled:opacity-60"
+              className="w-full max-w-xs h-14 text-black font-display text-xl tracking-widest gap-2 disabled:opacity-60"
               style={{ background: art.accent }}
             >
               <Lightning size={22} weight="fill" /> {busy ? "..." : "SPIN"}

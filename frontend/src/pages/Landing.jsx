@@ -117,6 +117,40 @@ export default function Landing() {
 
   return (
     <div data-testid={LANDING.hero}>
+      {/* OFFICIAL TRAILER — top of page */}
+      <section
+        data-testid="official-trailer-section"
+        className="relative bg-black border-b-2 border-gold/20"
+      >
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-8 py-6 sm:py-8">
+          <div className="flex items-center gap-3 mb-3">
+            <span className="font-mono text-[10px] sm:text-xs tracking-[0.4em] text-gold animate-flicker">
+              // OFFICIAL TRAILER
+            </span>
+            <div className="flex-1 h-px bg-gold/20" />
+            <span className="font-mono text-[10px] sm:text-xs tracking-[0.3em] text-nvg/70">
+              WAGES OF WAR CASINO
+            </span>
+          </div>
+          <div
+            className="relative overflow-hidden rounded-md border-2 border-gold/30 glow-gold"
+            style={{ boxShadow: "0 0 40px rgba(212,175,55,0.25)" }}
+          >
+            <video
+              data-testid="official-trailer-video"
+              src="/brand/official_trailer.mp4"
+              poster={BRAND.hero}
+              autoPlay
+              muted
+              loop
+              playsInline
+              controls
+              className="w-full max-h-[70vh] object-contain bg-black"
+            />
+          </div>
+        </div>
+      </section>
+
       {/* HERO */}
       <section className="relative overflow-hidden">
         <div
