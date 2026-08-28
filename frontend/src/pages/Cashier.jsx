@@ -42,6 +42,10 @@ export default function Cashier() {
   const [kyc, setKyc] = useState(null);
   const [kycBusy, setKycBusy] = useState(false);
 
+  // Crypto (NOWPayments) is live in production. Preview only carries demo keys,
+  // so real crypto addresses appear on the deployed site, not here.
+  const CRYPTO_ENABLED = true;
+
   // fiat
   const [fiatAmt, setFiatAmt] = useState("50");
   const [fiatCur, setFiatCur] = useState("AUD");
@@ -281,24 +285,21 @@ export default function Cashier() {
         </div>
       </div>
 
-      {summary &&
-        (summary.crypto_live || summary.vault_live) &&
-        !(summary.crypto_live && summary.vault_live) && (
-          <div className="hud border-nvg/50 bg-nvg/5 p-4 mb-6 flex items-start gap-3">
-            <ShieldCheck
-              size={22}
-              weight="fill"
-              className="text-nvg shrink-0 mt-0.5"
-            />
-            <p className="text-sm text-foreground/80">
-              <span className="text-nvg font-semibold">DEPOSITS LIVE.</span>{" "}
-              Card (Stripe) and crypto (NOWPayments) deposits are connected and
-              process real payments.
-              {!summary.vault_live &&
-                " Withdrawals are released via in-app admin approval until the external approval-vault key is connected."}
-            </p>
-          </div>
-        )}
+      {summary && (summary.crypto_live || summary.vault_live) && (
+        <div className="hud border-nvg/50 bg-nvg/5 p-4 mb-6 flex items-start gap-3">
+          <ShieldCheck
+            size={22}
+            weight="fill"
+            className="text-nvg shrink-0 mt-0.5"
+          />
+          <p className="text-sm text-foreground/80">
+            <span className="text-nvg font-semibold">DEPOSITS LIVE.</span>{" "}
+            Card (Stripe) and crypto (NOWPayments) deposits are connected and
+            process real payments. Withdrawals are released via in-app admin
+            approval after identity (KYC) verification.
+          </p>
+        </div>
+      )}
       {summary && !summary.crypto_live && !summary.vault_live && (
         <div className="hud border-alert/50 bg-alert/5 p-4 mb-6 flex items-start gap-3">
           <Warning
@@ -405,7 +406,8 @@ export default function Cashier() {
       <div className="hud">
         <div className="flex border-b border-border">
           {tabBtn("fiat", "Card", CreditCard, CASHIER.tabFiat)}
-          {tabBtn("crypto", "Crypto", CurrencyBtc, CASHIER.tabCrypto)}
+          {CRYPTO_ENABLED &&
+            tabBtn("crypto", "Crypto", CurrencyBtc, CASHIER.tabCrypto)}
           {tabBtn("withdraw", "Withdraw", ArrowUp, CASHIER.tabWithdraw)}
         </div>
 
@@ -457,7 +459,7 @@ export default function Cashier() {
             </div>
           )}
 
-          {tab === "crypto" && (
+          {CRYPTO_ENABLED && tab === "crypto" && (
             <div className="grid md:grid-cols-2 gap-8">
               <div className="max-w-md space-y-4">
                 <p className="text-sm text-muted-foreground">
@@ -599,7 +601,7 @@ export default function Cashier() {
                   onChange={(e) => setWdCur(e.target.value)}
                   className={`${selectCls} mt-1`}
                 >
-                  {(meta?.currencies || []).map((c) => (
+                  {(CRYPTO_ENABLED ? meta?.currencies || [] : fiats).map((c) => (
                     <option key={c.code} value={c.code}>
                       {`${c.symbol} ${c.code} — ${c.name}`}
                     </option>
