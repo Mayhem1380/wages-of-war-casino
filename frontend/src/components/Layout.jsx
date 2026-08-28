@@ -371,61 +371,39 @@ export function Layout({ children }) {
 
         {/* Blue glowing casino emblem faded between the diver & shark + rising bubbles */}
         <style>{`
-          @keyframes wowBreathe { 0%,100%{ opacity:.42; transform:translate(-50%,-50%) scale(1); } 50%{ opacity:.68; transform:translate(-50%,-50%) scale(1.05); } }
           @keyframes wowBubble { 0%{ transform:translateY(0) scale(1); opacity:0; } 12%{ opacity:.55; } 100%{ transform:translateY(-210px) scale(1.5); opacity:0; } }
-          /* SHARK STRIKE: the blue logo is bitten clean in half, the halves are torn
-             away as the shark retreats, then the emblem regrows/heals — looped on the
-             shark's 5s lunge cycle. */
-          .footer-emblem-wrap { transform: translate(-50%,-50%); }
-          .footer-half { transform-origin: center center; will-change: transform, opacity; backface-visibility: hidden; }
-          .footer-half-l { clip-path: inset(0 50% 0 0); animation: wowHealLeft 5s ease-in-out infinite; }
-          .footer-half-r { clip-path: inset(0 0 0 50%); animation: wowHealRight 5s ease-in-out infinite; }
-          @keyframes wowHealLeft {
-            0%   { transform: translate(0,0) rotate(0) scale(1); opacity:.5; }
-            42%  { transform: translate(0,0) rotate(0) scale(1); opacity:.66; }
-            56%  { transform: translate(-5%,3%) rotate(-7deg) scale(1); opacity:.62; }
-            66%  { transform: translate(-48%,26%) rotate(-34deg) scale(.9); opacity:.24; }
-            73%  { transform: translate(-92%,52%) rotate(-58deg) scale(.78); opacity:0; }
-            74%  { transform: translate(0,0) rotate(0) scale(.02); opacity:0; }
-            90%  { opacity:.5; }
-            100% { transform: translate(0,0) rotate(0) scale(1); opacity:.5; }
-          }
-          @keyframes wowHealRight {
-            0%   { transform: translate(0,0) rotate(0) scale(1); opacity:.5; }
-            42%  { transform: translate(0,0) rotate(0) scale(1); opacity:.66; }
-            56%  { transform: translate(5%,3%) rotate(7deg) scale(1); opacity:.62; }
-            66%  { transform: translate(48%,26%) rotate(34deg) scale(.9); opacity:.24; }
-            73%  { transform: translate(92%,52%) rotate(58deg) scale(.78); opacity:0; }
-            74%  { transform: translate(0,0) rotate(0) scale(.02); opacity:0; }
-            90%  { opacity:.5; }
-            100% { transform: translate(0,0) rotate(0) scale(1); opacity:.5; }
+          /* SHARK STRIKE: the ROUND blue logo is chomped away (bitten) as the shark
+             lunges, then regrows/heals — looped on the shark's 5s cycle. Stays a
+             perfect circle at every frame (container is rounded-full + overflow-hidden). */
+          .footer-emblem-heal { animation: wowBiteHeal 5s ease-in-out infinite; will-change: clip-path, opacity; }
+          @keyframes wowBiteHeal {
+            0%   { clip-path: inset(0 0 0 0); opacity:.55; }
+            44%  { clip-path: inset(0 0 0 0); opacity:.66; }
+            54%  { clip-path: inset(0 0 0 0); opacity:.66; }
+            62%  { clip-path: inset(0 47% 0 0); opacity:.5; }
+            70%  { clip-path: inset(0 100% 0 0); opacity:.12; }
+            73%  { clip-path: inset(0 100% 0 0); opacity:0; }
+            86%  { clip-path: inset(0 38% 0 0); opacity:.4; }
+            100% { clip-path: inset(0 0 0 0); opacity:.55; }
           }
           @media (prefers-reduced-motion: reduce) {
-            .footer-half-l, .footer-half-r { animation: none !important; opacity:.55 !important; transform:none !important; }
+            .footer-emblem-heal { animation: none !important; opacity:.55 !important; clip-path: none !important; }
           }
         `}</style>
-        {/* Round blue emblem — two clipped halves so the SHARK can bite it in half, retreat, then the logo heals. */}
+        {/* Round blue emblem — forced circular so it NEVER renders square; shark chomps it then it heals. */}
         <div
           aria-hidden="true"
-          className="footer-emblem-wrap pointer-events-none absolute left-1/2 top-1/2 z-[1] w-56 sm:w-80 aspect-square"
+          className="pointer-events-none absolute left-1/2 top-1/2 z-[1] w-56 sm:w-80 aspect-square rounded-full overflow-hidden"
+          style={{
+            transform: "translate(-50%,-50%)",
+            boxShadow:
+              "0 0 22px rgba(56,189,248,0.85), 0 0 48px rgba(56,189,248,0.5), 0 0 70px rgba(255,60,60,0.45)",
+          }}
         >
           <img
             src="/brand/footer_logo_blue.png"
             alt=""
-            className="footer-half footer-half-l absolute inset-0 w-full h-full object-contain"
-            style={{
-              filter:
-                "drop-shadow(0 0 22px rgba(56,189,248,0.85)) drop-shadow(0 0 48px rgba(56,189,248,0.5)) drop-shadow(0 0 70px rgba(255,60,60,0.45))",
-            }}
-          />
-          <img
-            src="/brand/footer_logo_blue.png"
-            alt=""
-            className="footer-half footer-half-r absolute inset-0 w-full h-full object-contain"
-            style={{
-              filter:
-                "drop-shadow(0 0 22px rgba(56,189,248,0.85)) drop-shadow(0 0 48px rgba(56,189,248,0.5)) drop-shadow(0 0 70px rgba(255,60,60,0.45))",
-            }}
+            className="footer-emblem-heal w-full h-full object-cover"
           />
         </div>
         {[...Array(7)].map((_, i) => (
