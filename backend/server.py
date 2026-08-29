@@ -1961,115 +1961,113 @@ async def bonus_claim(user: dict = Depends(require_user)):
 # ---------------------------------------------------------------------------
 # Daily Streak Wheel (additional daily reward, separate from Supply Drop)
 # ---------------------------------------------------------------------------
-WHEEL_SEGMENTS = [500, 1000, 2000, 3000, 5000, 8000, 12000, 20000, 50000]
-WHEEL_WEIGHTS = [28, 22, 16, 12, 9, 6, 4, 2, 1]
-WHEEL_COOLDOWN_HOURS = 24
-WHEEL_MEGA = 250000  # Weekend Mega jackpot — only on 7-day streak milestones
-WHEEL_MEGA_WEIGHT = 3
+# ── Wheel of Wealth ──────────────────────────────────────────────────────
+# Cash segments in dollars + two "Better Luck" + one "Spin Again" (13 total).
+WHEEL_OF_WEALTH = [
+    {"label": "$5", "value": 5, "type": "cash"},
+    {"label": "$10", "value": 10, "type": "cash"},
+    {"label": "$15", "value": 15, "type": "cash"},
+    {"label": "$20", "value": 20, "type": "cash"},
+    {"label": "$25", "value": 25, "type": "cash"},
+    {"label": "$30", "value": 30, "type": "cash"},
+    {"label": "$35", "value": 35, "type": "cash"},
+    {"label": "$40", "value": 40, "type": "cash"},
+    {"label": "$45", "value": 45, "type": "cash"},
+    {"label": "$50", "value": 50, "type": "cash"},
+    {"label": "BETTER LUCK", "value": 0, "type": "luck"},
+    {"label": "BETTER LUCK", "value": 0, "type": "luck"},
+    {"label": "SPIN AGAIN", "value": 0, "type": "again"},
+]
+WHEEL_OF_WEALTH_WEIGHTS = [26, 20, 14, 9, 6, 4, 3, 2, 1, 1, 30, 30, 8]
+WHEEL_BIG_DEPOSIT_USD = 500  # a single deposit OVER this earns 1 spin
+WHEEL_MILESTONE_USD = 1000  # every $1000 of lifetime deposits earns 1 spin
 
 
-def _wheel_seconds_left(user: dict) -> int:
-    last = user.get("last_wheel_spin_at")
-    if not last:
-        return 0
-    ld = datetime.fromisoformat(last) if isinstance(last, str) else last
-    if ld.tzinfo is None:
-        ld = ld.replace(tzinfo=timezone.utc)
-    elapsed = datetime.now(timezone.utc) - ld
-    cd = timedelta(hours=WHEEL_COOLDOWN_HOURS)
-    return int((cd - elapsed).total_seconds()) if elapsed < cd else 0
-
-
-def _wheel_next_streak(user: dict) -> int:
-    """The streak the NEXT spin will land on (continue if within 48h else reset)."""
-    last = user.get("last_wheel_spin_at")
-    if not last:
-        return 1
-    ld = datetime.fromisoformat(last) if isinstance(last, str) else last
-    if ld.tzinfo is None:
-        ld = ld.replace(tzinfo=timezone.utc)
-    if datetime.now(timezone.utc) - ld < timedelta(hours=48):
-        return int(user.get("wheel_streak", 0)) + 1
-    return 1
-
-
-def _wheel_pool(next_streak: int):
-    """Return (segments, weights, mega_unlocked). Mega only on 7-day milestones."""
-    segs = list(WHEEL_SEGMENTS)
-    wts = list(WHEEL_WEIGHTS)
-    mega = next_streak % 7 == 0
-    if mega:
-        segs.append(WHEEL_MEGA)
-        wts.append(WHEEL_MEGA_WEIGHT)
-    return segs, wts, mega
+async def _grant_wheel_spins_on_deposit(user_id: str, deposit_usd: float):
+    """Award Wheel of Wealth spins: +1 for any single deposit over $500, and
+    +1 for each $1000 lifetime-deposit milestone newly crossed. Idempotent per
+    deposit because it is called exactly once from each credit path."""
+    u = await db.users.find_one({"user_id": user_id})
+    if not u:
+        return
+    prev_total = float(u.get("total_deposited_usd", 0.0))
+    new_total = prev_total + float(deposit_usd)
+    granted = 1 if float(deposit_usd) > WHEEL_BIG_DEPOSIT_USD else 0
+    granted += int(new_total // WHEEL_MILESTONE_USD) - int(
+        prev_total // WHEEL_MILESTONE_USD
+    )
+    await db.users.update_one(
+        {"user_id": user_id},
+        {
+            "$set": {"total_deposited_usd": round(new_total, 2)},
+            "$inc": {"wheel_spins": max(0, granted)},
+        },
+    )
 
 
 @api.get("/wheel/status")
 async def wheel_status(user: dict = Depends(require_user)):
     fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
-    streak = int(fresh.get("wheel_streak", 0))
-    seconds_left = _wheel_seconds_left(fresh)
-    next_streak = _wheel_next_streak(fresh)
-    segs, _wts, mega = _wheel_pool(next_streak)
+    spins = int(fresh.get("wheel_spins", 0))
+    total_dep = float(fresh.get("total_deposited_usd", 0.0))
     return {
-        "available": seconds_left == 0,
-        "seconds_left": seconds_left,
-        "streak": streak,
-        "segments": segs,
-        "next_streak": next_streak,
-        "next_multiplier": 2 if next_streak % 7 == 0 else 1,
-        "mega_unlocked": mega,
-        "mega_value": WHEEL_MEGA,
+        "available": spins > 0,
+        "spins_available": spins,
+        "segments": [s["label"] for s in WHEEL_OF_WEALTH],
+        "segment_meta": WHEEL_OF_WEALTH,
+        "total_deposited_usd": round(total_dep, 2),
+        "big_deposit_usd": WHEEL_BIG_DEPOSIT_USD,
+        "milestone_usd": WHEEL_MILESTONE_USD,
+        "next_milestone_usd": round(
+            (int(total_dep // WHEEL_MILESTONE_USD) + 1) * WHEEL_MILESTONE_USD, 2
+        ),
     }
 
 
 @api.post("/wheel/spin")
 async def wheel_spin(user: dict = Depends(require_user)):
-    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
-    if _wheel_seconds_left(fresh) > 0:
-        raise HTTPException(status_code=400, detail="Wheel not ready yet")
-    new_streak = _wheel_next_streak(fresh)
-    segs, wts, mega = _wheel_pool(new_streak)
-    # cryptographically-secure weighted segment pick
-    _total = sum(wts)
-    _r = secrets.randbelow(_total)
-    _acc = 0
-    idx = len(segs) - 1
-    for _j, _w in enumerate(wts):
-        _acc += _w
-        if _r < _acc:
-            idx = _j
+    # Atomically consume one available spin (prevents double-spend).
+    claimed = await db.users.find_one_and_update(
+        {"user_id": user["user_id"], "wheel_spins": {"$gte": 1}},
+        {"$inc": {"wheel_spins": -1}},
+    )
+    if not claimed:
+        raise HTTPException(
+            status_code=400,
+            detail="No wheel spins available. Deposit over $500, or reach $1000 in total deposits, to earn a Wheel of Wealth spin.",
+        )
+    wts = WHEEL_OF_WEALTH_WEIGHTS
+    total = sum(wts)
+    r = secrets.randbelow(total)
+    acc = 0
+    idx = len(wts) - 1
+    for j, w in enumerate(wts):
+        acc += w
+        if r < acc:
+            idx = j
             break
-    base = segs[idx]
-    is_mega = mega and idx == len(segs) - 1
-    if is_mega:
-        mult = 1
-        amount = WHEEL_MEGA
-    else:
-        mult = 2 if new_streak % 7 == 0 else 1
-        amount = base * mult
-    now_iso = datetime.now(timezone.utc).isoformat()
-    await db.users.update_one(
-        {"user_id": user["user_id"]},
-        {
-            "$inc": {"balance": amount},
-            "$set": {"last_wheel_spin_at": now_iso, "wheel_streak": new_streak},
-        },
-    )
-    await record_transaction(
-        user["user_id"],
-        "wheel_spin",
-        amount,
-        {"streak": new_streak, "multiplier": mult, "base": base, "mega": is_mega},
-    )
+    seg = WHEEL_OF_WEALTH[idx]
+    amount = 0.0
+    if seg["type"] == "cash":
+        amount = float(seg["value"])
+        await db.users.update_one(
+            {"user_id": user["user_id"]}, {"$inc": {"balance": amount}}
+        )
+        await record_transaction(
+            user["user_id"], "wheel_win", amount, {"segment": seg["label"]}
+        )
+    elif seg["type"] == "again":
+        # Land on SPIN AGAIN → refund the spin we just consumed.
+        await db.users.update_one(
+            {"user_id": user["user_id"]}, {"$inc": {"wheel_spins": 1}}
+        )
     updated = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
     return {
-        "amount": amount,
-        "base": base,
         "segment_index": idx,
-        "multiplier": mult,
-        "streak": new_streak,
-        "mega": is_mega,
+        "label": seg["label"],
+        "type": seg["type"],
+        "amount": amount,
+        "spins_available": int(updated.get("wheel_spins", 0)),
         "balance": round(updated["balance"], 2),
     }
 
@@ -2764,6 +2762,7 @@ async def _credit_if_paid(record):
             },
         )
         await _maybe_pay_referral(record["user_id"])
+        await _grant_wheel_spins_on_deposit(record["user_id"], usd_cents / 100.0)
     else:
         credits = float(record.get("credits", 0))
         await db.users.update_one(
@@ -2782,6 +2781,9 @@ async def _credit_if_paid(record):
             },
         )
         await _maybe_pay_referral(record["user_id"])
+        await _grant_wheel_spins_on_deposit(
+            record["user_id"], record["amount"] / 100.0
+        )
 
 
 @api.get("/payments/status/{session_id}")
@@ -3096,6 +3098,9 @@ async def _credit_crypto_deposit(payment_id: str):
             {"method": "crypto", "currency": t["currency"], "payment_id": payment_id},
         )
         await _maybe_pay_referral(t["user_id"])
+        await _grant_wheel_spins_on_deposit(
+            t["user_id"], t["amount_usd_cents"] / 100.0
+        )
 
 
 @api.post("/webhooks/nowpayments")

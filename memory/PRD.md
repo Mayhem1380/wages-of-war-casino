@@ -296,3 +296,9 @@ REMAINING / NEXT:
 - CRITICAL FIX: auth/login modal rendered 8k-40k px off-screen on mobile (users could not sign up). Root cause: `.hud {position:relative}` overriding shadcn DialogContent `position:fixed`. Fixed in ui/dialog.jsx via inline `position:fixed` + `max-h-[92vh] overflow-y-auto`. Verified computed position=fixed and centered in viewport. See /app/memory/known_bugs.md.
 - Testing agent (iteration_15) verified mobile 390px: no horizontal overflow on /, /lobby, /slots, /cashier; trailer video fits; CONTINUE/SPIN buttons centered; hamburger nav works.
 - STILL PENDING (platform, not code): production deploy pipeline — user reports preview work not reaching live site; refund/billing review escalated to support@emergent.sh (Job ID night-vision-gold).
+
+### 29 Aug 2026 — Wheel of Wealth (deposit-triggered cash wheel)
+- Replaced the daily streak wheel with WHEEL OF WEALTH. Segments: $5-$50 (10 cash) + 2 Better Luck + 1 Spin Again (13). Backend WHEEL_OF_WEALTH + weights in server.py.
+- Spins earned: +1 for any single deposit > $500 (WHEEL_BIG_DEPOSIT_USD); +1 per $1000 lifetime deposits (WHEEL_MILESTONE_USD). Tracked via user.total_deposited_usd + user.wheel_spins. Granted in all 3 deposit-credit paths via _grant_wheel_spins_on_deposit().
+- Endpoints: GET /api/wheel/status, POST /api/wheel/spin (atomic spin consume, secrets-weighted pick). Cash wins credit play `balance` (NOTE: currently play balance, not withdrawable real cash — flagged to user for decision). Spin Again refunds a spin.
+- Frontend DailyWheel.jsx rewritten (route /wheel): shows spins available, earn rules, 13-wedge conic wheel, result states. Tested end-to-end (grant logic + spin + out-of-spins) and screenshotted.
