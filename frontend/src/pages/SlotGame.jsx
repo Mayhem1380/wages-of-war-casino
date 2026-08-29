@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { sfx } from "@/lib/sounds";
 import { BigWinOverlay } from "@/components/BigWinOverlay";
+import { GamblePanel } from "@/components/GamblePanel";
 import {
   Lightning,
   Minus,
@@ -378,6 +379,16 @@ export default function SlotGame() {
               {lastWin > 0 ? `+${fmt(lastWin)}` : "0"}
             </div>
           </div>
+
+          {lastWin > 0 && !spinning && !inFree && (
+            <GamblePanel
+              amount={lastWin}
+              onDone={(finalWin) => {
+                setLastWin(0);
+                refreshUser();
+              }}
+            />
+          )}
         </div>
 
         {/* CONTROLS */}
