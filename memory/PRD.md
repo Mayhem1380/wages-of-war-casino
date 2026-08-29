@@ -302,3 +302,9 @@ REMAINING / NEXT:
 - Spins earned: +1 for any single deposit > $500 (WHEEL_BIG_DEPOSIT_USD); +1 per $1000 lifetime deposits (WHEEL_MILESTONE_USD). Tracked via user.total_deposited_usd + user.wheel_spins. Granted in all 3 deposit-credit paths via _grant_wheel_spins_on_deposit().
 - Endpoints: GET /api/wheel/status, POST /api/wheel/spin (atomic spin consume, secrets-weighted pick). Cash wins credit play `balance` (NOTE: currently play balance, not withdrawable real cash — flagged to user for decision). Spin Again refunds a spin.
 - Frontend DailyWheel.jsx rewritten (route /wheel): shows spins available, earn rules, 13-wedge conic wheel, result states. Tested end-to-end (grant logic + spin + out-of-spins) and screenshotted.
+
+### 29 Aug 2026 — Cinematic hero reel + original score + fleet pricing
+- Built CinematicReel.jsx (code-based, no video file): 7 timed scenes with Ken-Burns motion + text overlays (WAGES OF WAR carrier -> ELITE NIGHT OPS blackhawk -> 145+ SLOTS apache -> $10 FREE -> CRYPTO -> NEXUS FLEETS $5k+ -> ENLIST NOW). Placed at top of Landing.jsx above the official trailer. 3 cinematic scene images generated (Gemini) -> /brand/cine_carrier.jpg, cine_blackhawk.jpg, cine_apache.jpg.
+- Original royalty-free ORCHESTRAL SCORE synthesised live via Web Audio API (minor-key string pad, Adagio-like swells, Am/F/C/G cycle). Toggled by SOUND button (browser autoplay policy needs a tap). No copyright, no files, no credits. Verified SCORE ON works, no console errors.
+- Fleet Sales pricing updated: $5,000 / $6,800 / $35,000 turnkey (outright) + P.O.A. enterprise.
+- HONEST: could not use the Platoon track (copyright) or generate music; delivered an original synth score instead. User can upload a licensed track to swap in.
