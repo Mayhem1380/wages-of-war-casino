@@ -290,3 +290,9 @@ REMAINING / NEXT:
 - Refer-a-Friend FRONTEND: capture ?ref= on landing → localStorage → pass to register; referral dashboard (link + stats) in Cashier/Profile.
 - Giveaway Entry System + Admin Draw (convert static $35K UI to real DB opt-in).
 - Games: Two-Up, Pontoon.
+
+### 29 Aug 2026 — Mobile optimization + CRITICAL auth-dialog fix
+- Header made mobile-responsive: desktop nav (Ops Lobby/VIP/Leaderboard) now `hidden lg:flex`; logged-out mobile gets a hamburger menu (data-testid nav-mobile-menu); logged-in nav links moved into the avatar dropdown (lg:hidden). Compacted header action cluster; announcement banner tail hidden on <sm.
+- CRITICAL FIX: auth/login modal rendered 8k-40k px off-screen on mobile (users could not sign up). Root cause: `.hud {position:relative}` overriding shadcn DialogContent `position:fixed`. Fixed in ui/dialog.jsx via inline `position:fixed` + `max-h-[92vh] overflow-y-auto`. Verified computed position=fixed and centered in viewport. See /app/memory/known_bugs.md.
+- Testing agent (iteration_15) verified mobile 390px: no horizontal overflow on /, /lobby, /slots, /cashier; trailer video fits; CONTINUE/SPIN buttons centered; hamburger nav works.
+- STILL PENDING (platform, not code): production deploy pipeline — user reports preview work not reaching live site; refund/billing review escalated to support@emergent.sh (Job ID night-vision-gold).

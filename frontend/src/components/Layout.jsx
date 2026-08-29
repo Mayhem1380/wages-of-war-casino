@@ -36,6 +36,7 @@ import {
   SpeakerSimpleHigh,
   SpeakerSimpleSlash,
   Vault as VaultIcon,
+  List as ListIcon,
 } from "@phosphor-icons/react";
 
 function MuteToggle() {
@@ -212,22 +213,24 @@ export function Layout({ children }) {
             <BrandLogo size={38} subtitle={false} />
           </Link>
 
-          <nav className="flex items-center gap-6">
+          <nav className="hidden lg:flex items-center gap-6">
             {navLink("/lobby", "Ops Lobby", NAV.lobby, GameController)}
             {navLink("/vip", "VIP Ranks", NAV.vip, Medal)}
             {navLink("/leaderboard", "Leaderboard", NAV.leaderboard, Trophy)}
           </nav>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <MuteToggle />
             {user ? (
               <>
-                <VerifyBonusButton />
+                <span className="hidden sm:inline-flex">
+                  <VerifyBonusButton />
+                </span>
                 <DailyBonus />
                 <Link
                   to="/wallet"
                   data-testid={NAV.balance}
-                  className="flex items-center gap-2 px-3 py-1.5 hud hud-gold text-gold font-mono text-sm glow-gold"
+                  className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 hud hud-gold text-gold font-mono text-xs sm:text-sm glow-gold"
                 >
                   <Coins size={16} weight="fill" />
                   <span data-testid="balance-value">{fmt(user.balance)}</span>
@@ -263,6 +266,25 @@ export function Layout({ children }) {
                       </p>
                     </div>
                     <DropdownMenuSeparator className="bg-border" />
+                    <DropdownMenuItem
+                      onClick={() => navigate("/lobby")}
+                      className="font-mono text-sm gap-2 cursor-pointer lg:hidden"
+                    >
+                      <GameController size={16} /> Ops Lobby
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => navigate("/vip")}
+                      className="font-mono text-sm gap-2 cursor-pointer lg:hidden"
+                    >
+                      <Medal size={16} /> VIP Ranks
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => navigate("/leaderboard")}
+                      className="font-mono text-sm gap-2 cursor-pointer lg:hidden"
+                    >
+                      <Trophy size={16} /> Leaderboard
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="bg-border lg:hidden" />
                     <DropdownMenuItem
                       data-testid={NAV.profileBtn}
                       onClick={() => navigate("/profile")}
@@ -305,18 +327,52 @@ export function Layout({ children }) {
               </>
             ) : (
               <>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      data-testid="nav-mobile-menu"
+                      aria-label="Menu"
+                      className="lg:hidden flex items-center justify-center w-9 h-9 text-nvg hover:text-gold outline-none"
+                    >
+                      <ListIcon size={24} weight="bold" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="end"
+                    className="bg-[#0a0d0a] border-gold/30 w-48"
+                  >
+                    <DropdownMenuItem
+                      onClick={() => navigate("/lobby")}
+                      className="font-mono text-sm gap-2 cursor-pointer"
+                    >
+                      <GameController size={16} /> Ops Lobby
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => navigate("/vip")}
+                      className="font-mono text-sm gap-2 cursor-pointer"
+                    >
+                      <Medal size={16} /> VIP Ranks
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => navigate("/leaderboard")}
+                      className="font-mono text-sm gap-2 cursor-pointer"
+                    >
+                      <Trophy size={16} /> Leaderboard
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <Button
                   data-testid={NAV.loginBtn}
                   variant="ghost"
                   onClick={() => openAuth("login")}
-                  className="font-stencil tracking-widest uppercase text-foreground/80 hover:text-nvg hover:bg-transparent"
+                  className="hidden sm:inline-flex font-stencil tracking-widest uppercase text-foreground/80 hover:text-nvg hover:bg-transparent"
                 >
                   Login
                 </Button>
                 <Button
                   data-testid={NAV.enlistBtn}
                   onClick={() => openAuth("register")}
-                  className="bg-gold hover:bg-gold/90 text-black font-display text-base tracking-widest px-5 glow-gold"
+                  className="bg-gold hover:bg-gold/90 text-black font-display text-sm sm:text-base tracking-widest px-4 sm:px-5 glow-gold"
                 >
                   ENLIST
                 </Button>
@@ -327,10 +383,10 @@ export function Layout({ children }) {
       </header>
 
       {/* Announcement banner */}
-      <div className="w-full bg-gradient-to-r from-gold/90 via-gold/70 to-yellow-400 text-black font-display text-sm tracking-wide py-2 text-center z-40">
+      <div className="w-full bg-gradient-to-r from-gold/90 via-gold/70 to-yellow-400 text-black font-display text-xs sm:text-sm tracking-wide py-2 text-center z-40">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-8">
           <strong className="uppercase">Best Platform of 2026</strong>
-          <span className="ml-3">
+          <span className="hidden sm:inline ml-3">
             — Everything is competing to be the best online casino in the world;
             our goal is to be number one.
           </span>
