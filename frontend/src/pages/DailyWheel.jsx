@@ -8,16 +8,35 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { sfx } from "@/lib/sounds";
 import { WinCelebration } from "@/components/WinCelebration";
-import { ArrowLeft, Sparkle, Flame, Lightning } from "@phosphor-icons/react";
+import { ArrowLeft, Sparkle, Lightning, Trophy } from "@phosphor-icons/react";
 
-const SEG_COLORS = ["#D4AF37", "#0d1b12", "#F6C64A", "#12241a", "#E0B84A", "#0d1b12", "#F6C64A", "#12241a", "#FFD84E"];
+// Colour a wedge by its segment type.
+const colorFor = (seg, i) => {
+  if (seg.type === "luck") return "#2b2f2b";
+  if (seg.type === "again") return "#1f7a3a";
+  return i % 2 === 0 ? "#D4AF37" : "#0d1b12";
+};
+const shortLabel = (seg) => {
+  if (seg.type === "luck") return "BL";
+  if (seg.type === "again") return "AGAIN";
+  return seg.label;
+};
 
-function fmtCountdown(secs) {
-  const h = Math.floor(secs / 3600);
-  const m = Math.floor((secs % 3600) / 60);
-  const s = secs % 60;
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-}
+const DEFAULT_META = [
+  { label: "$5", value: 5, type: "cash" },
+  { label: "$10", value: 10, type: "cash" },
+  { label: "$15", value: 15, type: "cash" },
+  { label: "$20", value: 20, type: "cash" },
+  { label: "$25", value: 25, type: "cash" },
+  { label: "$30", value: 30, type: "cash" },
+  { label: "$35", value: 35, type: "cash" },
+  { label: "$40", value: 40, type: "cash" },
+  { label: "$45", value: 45, type: "cash" },
+  { label: "$50", value: 50, type: "cash" },
+  { label: "BETTER LUCK", value: 0, type: "luck" },
+  { label: "BETTER LUCK", value: 0, type: "luck" },
+  { label: "SPIN AGAIN", value: 0, type: "again" },
+];
 
 export default function DailyWheel() {
   const navigate = useNavigate();
@@ -27,15 +46,12 @@ export default function DailyWheel() {
   const [rotation, setRotation] = useState(0);
   const [win, setWin] = useState(null);
   const [celebrate, setCelebrate] = useState(false);
-  const [countdown, setCountdown] = useState(0);
-  const segsRef = useRef([]);
+  const segAngleRef = useRef(0);
 
   const load = useCallback(async () => {
     try {
       const { data } = await api.get("/wheel/status");
       setStatus(data);
-      setCountdown(data.seconds_left || 0);
-      segsRef.current = data.segments || [];
     } catch (e) {
       console.warn("wheel status failed", e);
     }
@@ -45,25 +61,18 @@ export default function DailyWheel() {
     if (user) load();
   }, [user, load]);
 
-  useEffect(() => {
-    if (countdown <= 0) return;
-    const t = setInterval(() => setCountdown((c) => Math.max(0, c - 1)), 1000);
-    return () => clearInterval(t);
-  }, [countdown]);
-
-  const segments = status?.segments || [500, 1000, 2000, 3000, 5000, 8000, 12000, 20000, 50000];
-  const segCount = segments.length;
+  const segMeta = status?.segment_meta || DEFAULT_META;
+  const segCount = segMeta.length;
   const segAngle = 360 / segCount;
-  const megaUnlocked = !!status?.mega_unlocked;
-  const megaIdx = megaUnlocked ? segCount - 1 : -1;
-  const segColor = (i) =>
-    i === megaIdx ? "#ff2d2d" : SEG_COLORS[i % SEG_COLORS.length];
+  segAngleRef.current = segAngle;
+  const spins = status?.spins_available || 0;
+  const canSpin = spins > 0;
 
   const doSpin = async () => {
     if (!user) return openAuth("register");
     if (spinning) return;
-    if (countdown > 0) {
-      toast.error("Wheel not ready yet");
+    if (!canSpin) {
+      toast.error("No spins yet — deposit over $500 or reach $1000 total deposits");
       return;
     }
     setSpinning(true);
@@ -72,7 +81,6 @@ export default function DailyWheel() {
     try {
       const { data } = await api.post("/wheel/spin");
       const idx = data.segment_index;
-      // land the winning segment centre under the top pointer
       const target =
         rotation -
         (rotation % 360) +
@@ -82,11 +90,16 @@ export default function DailyWheel() {
       setTimeout(async () => {
         setSpinning(false);
         setWin(data);
-        setCelebrate(true);
-        sfx.bigWin?.();
-        toast.success(
-          `+${fmt(data.amount)} credits${data.multiplier > 1 ? ` (x${data.multiplier} streak!)` : ""}`,
-        );
+        if (data.type === "cash") {
+          setCelebrate(true);
+          sfx.bigWin?.();
+          toast.success(`You won ${fmt(data.amount)}! Added to your balance.`);
+        } else if (data.type === "again") {
+          sfx.spin?.();
+          toast("SPIN AGAIN — you keep your spin!", { icon: "🔄" });
+        } else {
+          toast("Better luck next time, soldier.");
+        }
         await refreshUser();
         await load();
       }, 4200);
@@ -97,17 +110,13 @@ export default function DailyWheel() {
     }
   };
 
-  const streak = status?.streak || 0;
-  const nextMult = status?.next_multiplier || 1;
-  const ready = countdown <= 0;
-
   return (
     <div
       data-testid={WHEEL.root}
       className="relative min-h-screen"
       style={{
         backgroundImage:
-          "linear-gradient(rgba(6,8,6,0.75), rgba(3,5,4,0.9)), url(/brand/warmap_bg.jpg)",
+          "linear-gradient(rgba(6,8,6,0.78), rgba(3,5,4,0.92)), url(/brand/warmap_bg.jpg)",
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundAttachment: "fixed",
@@ -115,7 +124,7 @@ export default function DailyWheel() {
     >
       <WinCelebration
         show={celebrate}
-        intensity={win?.mega || win?.multiplier > 1 ? "big" : "small"}
+        intensity="big"
         onDone={() => setCelebrate(false)}
         testId="wheel-celebration"
       />
@@ -127,53 +136,43 @@ export default function DailyWheel() {
           <ArrowLeft size={16} /> RETURN TO LOBBY
         </button>
 
-        <div className="text-center mb-8">
+        <div className="text-center mb-6">
           <p className="font-mono text-xs tracking-[0.4em] text-gold/70">
-            // DAILY SUPPLY WHEEL
+            // CASH REWARD
           </p>
           <h1 className="font-display text-5xl sm:text-6xl tracking-wide gold-gradient">
-            STREAK WHEEL
+            WHEEL OF WEALTH
           </h1>
-          <p className="text-muted-foreground mt-2">
-            One free spin every day. Keep your streak alive — every 7th day pays{" "}
-            <span className="text-gold">DOUBLE</span>.
+          <p className="text-muted-foreground mt-2 max-w-xl mx-auto">
+            Win real cash back — <span className="text-gold">$5 up to $50</span>,
+            no wagering, no terms.
           </p>
         </div>
 
-        {/* Streak bar */}
-        <div className="flex items-center justify-center gap-2 mb-8" data-testid={WHEEL.streak}>
-          {Array.from({ length: 7 }).map((_, i) => {
-            const filled = i < streak % 7 || (streak > 0 && streak % 7 === 0);
-            return (
-              <div
-                key={i}
-                className={`w-9 h-9 flex items-center justify-center border font-mono text-xs ${
-                  filled
-                    ? "border-gold bg-gold/20 text-gold glow-gold"
-                    : "border-border text-muted-foreground"
-                }`}
-              >
-                {i === 6 ? <Flame size={16} weight="fill" /> : i + 1}
-              </div>
-            );
-          })}
-          <span className="ml-3 font-mono text-sm text-foreground/80">
-            Day <span className="text-gold">{streak || 0}</span> streak
-          </span>
-        </div>
-
-        {megaUnlocked && (
-          <div className="text-center mb-6">
-            <span className="inline-flex items-center gap-2 px-5 py-2 border border-alert bg-alert/15 text-alert font-display tracking-widest animate-pulse">
-              <Flame size={18} weight="fill" /> MEGA JACKPOT LIVE —{" "}
-              {fmt(status.mega_value)} ON THE WHEEL
-            </span>
+        {/* Spins available + how to earn */}
+        <div className="flex flex-col items-center gap-2 mb-8">
+          <div
+            data-testid="wheel-spins-available"
+            className={`inline-flex items-center gap-2 px-6 py-2.5 hud font-display text-xl tracking-widest ${
+              canSpin
+                ? "hud-gold text-gold glow-gold animate-pulse"
+                : "text-muted-foreground"
+            }`}
+          >
+            <Trophy size={20} weight="fill" /> {spins} SPIN{spins === 1 ? "" : "S"}{" "}
+            AVAILABLE
           </div>
-        )}
+          <p className="font-mono text-[11px] text-muted-foreground tracking-wide text-center">
+            Earn a spin for every deposit over{" "}
+            <span className="text-gold">${status?.big_deposit_usd ?? 500}</span>{" "}
+            — plus a free spin every{" "}
+            <span className="text-gold">${status?.milestone_usd ?? 1000}</span> in
+            total deposits.
+          </p>
+        </div>
 
         {/* Wheel */}
         <div className="relative mx-auto w-[320px] h-[320px] sm:w-[380px] sm:h-[380px]">
-          {/* pointer */}
           <div className="absolute left-1/2 -translate-x-1/2 -top-2 z-20">
             <div
               className="w-0 h-0"
@@ -190,10 +189,10 @@ export default function DailyWheel() {
             style={{
               boxShadow:
                 "0 0 40px rgba(212,175,55,0.4), inset 0 0 40px rgba(0,0,0,0.7)",
-              background: `conic-gradient(${segments
+              background: `conic-gradient(${segMeta
                 .map(
-                  (_, i) =>
-                    `${segColor(i)} ${i * segAngle}deg ${(i + 1) * segAngle}deg`,
+                  (seg, i) =>
+                    `${colorFor(seg, i)} ${i * segAngle}deg ${(i + 1) * segAngle}deg`,
                 )
                 .join(", ")})`,
               transform: `rotate(${rotation}deg)`,
@@ -202,26 +201,26 @@ export default function DailyWheel() {
                 : "none",
             }}
           >
-            {segments.map((v, i) => (
+            {segMeta.map((seg, i) => (
               <div
                 key={i}
-                className="absolute left-1/2 top-1/2 origin-left font-display text-sm sm:text-base tracking-wide"
+                className="absolute left-1/2 top-1/2 origin-left font-display text-xs sm:text-sm tracking-wide"
                 style={{
-                  transform: `rotate(${i * segAngle + segAngle / 2}deg) translateX(70px)`,
+                  transform: `rotate(${i * segAngle + segAngle / 2}deg) translateX(64px)`,
                   color:
-                    i === megaIdx
-                      ? "#fff"
-                      : i % 2 === 0
-                        ? "#150c02"
-                        : "#FFD84E",
-                  fontWeight: i === megaIdx ? 800 : undefined,
+                    seg.type === "luck"
+                      ? "#9aa5a0"
+                      : seg.type === "again"
+                        ? "#eafff0"
+                        : i % 2 === 0
+                          ? "#150c02"
+                          : "#FFD84E",
                 }}
               >
-                {i === megaIdx ? "MEGA" : v >= 1000 ? `${v / 1000}K` : v}
+                {shortLabel(seg)}
               </div>
             ))}
           </div>
-          {/* hub */}
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-black border-2 border-gold flex items-center justify-center z-10 glow-gold">
             <Sparkle size={28} weight="fill" className="text-gold" />
           </div>
@@ -231,41 +230,42 @@ export default function DailyWheel() {
         <div className="text-center mt-8 space-y-4">
           <div data-testid={WHEEL.result} className="h-10">
             {win && !spinning && (
-              <p className="font-display text-3xl tracking-wide gold-gradient animate-pop">
-                {win.mega && <span className="text-alert">MEGA JACKPOT · </span>}
-                +{fmt(win.amount)}{" "}
-                {win.multiplier > 1 && !win.mega && (
-                  <span className="text-gold">· x{win.multiplier} STREAK</span>
+              <p className="font-display text-3xl tracking-wide animate-pop">
+                {win.type === "cash" ? (
+                  <span className="gold-gradient">+{fmt(win.amount)} CASH</span>
+                ) : win.type === "again" ? (
+                  <span className="text-nvg">SPIN AGAIN — FREE RE-SPIN</span>
+                ) : (
+                  <span className="text-muted-foreground">BETTER LUCK NEXT TIME</span>
                 )}
               </p>
             )}
           </div>
 
-          {ready ? (
+          <Button
+            data-testid={WHEEL.spin}
+            onClick={doSpin}
+            disabled={spinning || (!canSpin && !!user)}
+            className="h-14 px-10 bg-gold hover:bg-gold/90 text-black font-display text-xl tracking-widest glow-gold gap-2 disabled:opacity-50"
+          >
+            <Lightning size={22} weight="fill" />
+            {spinning
+              ? "SPINNING…"
+              : !user
+                ? "ENLIST TO SPIN"
+                : canSpin
+                  ? "SPIN THE WHEEL"
+                  : "NO SPINS YET"}
+          </Button>
+
+          {!canSpin && user && !spinning && (
             <Button
-              data-testid={WHEEL.spin}
-              onClick={doSpin}
-              disabled={spinning}
-              className="h-14 px-10 bg-gold hover:bg-gold/90 text-black font-display text-xl tracking-widest glow-gold gap-2"
+              variant="ghost"
+              onClick={() => navigate("/cashier")}
+              className="block mx-auto font-mono text-xs text-gold/80 hover:text-gold"
             >
-              <Lightning size={22} weight="fill" />
-              {spinning ? "SPINNING…" : "SPIN THE WHEEL"}
+              → Make a deposit to earn a spin
             </Button>
-          ) : (
-            <div className="space-y-1">
-              <p className="font-mono text-xs text-muted-foreground tracking-widest">
-                NEXT FREE SPIN IN
-              </p>
-              <p
-                data-testid={WHEEL.timer}
-                className="font-display text-3xl tracking-widest text-nvg"
-              >
-                {fmtCountdown(countdown)}
-              </p>
-              <p className="font-mono text-[11px] text-gold/70">
-                Come back tomorrow to keep your streak (x{nextMult} on day 7).
-              </p>
-            </div>
           )}
 
           <p className="font-mono text-xs text-muted-foreground">
