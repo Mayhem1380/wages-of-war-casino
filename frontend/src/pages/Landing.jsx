@@ -6,6 +6,7 @@ import { BRAND, fmt } from "@/data/gameMeta";
 import { LANDING } from "@/constants/testIds";
 import api from "@/lib/api";
 import { AnimatedShowcase } from "@/components/AnimatedShowcase";
+import { CinematicReel } from "@/components/CinematicReel";
 import { GiveawayAlert } from "@/components/GiveawayAlert";
 import {
   Coins,
@@ -117,7 +118,10 @@ export default function Landing() {
 
   return (
     <div data-testid={LANDING.hero}>
-      {/* OFFICIAL TRAILER — top of page */}
+      {/* CINEMATIC HERO REEL — top of page */}
+      <CinematicReel onEnlist={primaryCta} />
+
+      {/* OFFICIAL TRAILER */}
       <section
         data-testid="official-trailer-section"
         className="relative bg-black border-b-2 border-gold/20"
