@@ -32,6 +32,7 @@ export default function SlotGame() {
   const [grid, setGrid] = useState([[], [], [], [], []]);
   const [bet, setBet] = useState(100);
   const [spinning, setSpinning] = useState(false);
+  const [buying, setBuying] = useState(false);
   const [reelStop, setReelStop] = useState([false, false, false, false, false]);
   const [winCells, setWinCells] = useState(new Set());
   const [lastWin, setLastWin] = useState(0);
@@ -128,6 +129,46 @@ export default function SlotGame() {
       toast.error(e.response?.data?.detail || "Spin failed");
     }
   };
+
+  const buyFeature = async () => {
+    if (!user) {
+      openAuth("register");
+      return;
+    }
+    if (spinning || (free && free.active) || buying || !machine) return;
+    const cost = bet * 100;
+    if (user.balance < cost) {
+      toast.error(`Need ${fmt(cost)} credits to buy the feature`);
+      return;
+    }
+    setBuying(true);
+    sfx.prime();
+    try {
+      const { data } = await api.post("/games/slots/buy-bonus", {
+        machine_id: id,
+        bet,
+      });
+      await refreshUser();
+      sfx.scatter();
+      toast.success(
+        `FEATURE BOUGHT — ${data.free_session.spins_left} FREE SPINS!`,
+      );
+      setFree({
+        active: true,
+        spinsLeft: data.free_session.spins_left,
+        multiplier: 1,
+        total: 0,
+        done: false,
+        sessionId: data.free_session.session_id,
+      });
+      setTimeout(() => runFree(data.free_session.session_id), 1200);
+    } catch (e) {
+      toast.error(e.response?.data?.detail || "Buy feature failed");
+    } finally {
+      setBuying(false);
+    }
+  };
+
 
   const triggerNearMiss = (data) => {
     if (data.scatter_count === 2) {
@@ -442,7 +483,46 @@ export default function SlotGame() {
                 </button>
               ))}
             </div>
+            <p className="font-mono text-[10px] tracking-widest text-nvg/70 mt-4 mb-2">
+              COIN DENOMINATION
+            </p>
+            <div className="grid grid-cols-4 gap-2">
+              {[
+                { c: "1¢", v: 20 },
+                { c: "2¢", v: 40 },
+                { c: "5¢", v: 100 },
+                { c: "10¢", v: 200 },
+              ].map(({ c, v }) => (
+                <button
+                  key={c}
+                  data-testid={`denom-${c}`}
+                  onClick={() => setBet(v)}
+                  disabled={inFree}
+                  className={`font-display text-sm py-2 border transition-colors disabled:opacity-40 ${
+                    bet === v
+                      ? "border-gold text-gold bg-gold/10 glow-gold"
+                      : "border-border text-muted-foreground hover:border-gold hover:text-gold"
+                  }`}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
           </div>
+
+          {machine?.free_spins > 0 && (
+            <button
+              data-testid="buy-feature-btn"
+              onClick={buyFeature}
+              disabled={spinning || inFree || buying}
+              className="w-full h-14 border-2 border-nvg text-nvg font-display text-lg tracking-widest hover:bg-nvg hover:text-black transition-colors flex items-center justify-center gap-2 disabled:opacity-40"
+            >
+              <Sparkle size={20} weight="fill" />
+              {buying
+                ? "BUYING…"
+                : `BUY FEATURE · ${fmt(bet * 100)}`}
+            </button>
+          )}
 
           <div className="hidden lg:block">
           {free && free.done ? (
