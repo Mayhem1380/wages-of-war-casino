@@ -308,3 +308,8 @@ REMAINING / NEXT:
 - Original royalty-free ORCHESTRAL SCORE synthesised live via Web Audio API (minor-key string pad, Adagio-like swells, Am/F/C/G cycle). Toggled by SOUND button (browser autoplay policy needs a tap). No copyright, no files, no credits. Verified SCORE ON works, no console errors.
 - Fleet Sales pricing updated: $5,000 / $6,800 / $35,000 turnkey (outright) + P.O.A. enterprise.
 - HONEST: could not use the Platoon track (copyright) or generate music; delivered an original synth score instead. User can upload a licensed track to swap in.
+
+### 29 Aug 2026 — Gamble feature UI on slots
+- GamblePanel.jsx: after any win on SlotGame, players can gamble the win on Red/Black (2x, 50%) or a suit (4x, 25%), with re-gamble of winnings + Collect. Wired into SlotGame.jsx under LAST PAYOUT (gated lastWin>0 && !spinning && !inFree). Backend /api/games/gamble already existed (secure secrets RNG); tested: color 2x, suit 4x, lose=0, over-balance=400.
+- Shown on standard slot machines. Flagship hold&win slots can get the panel next if desired.
+- PENDING (next dedicated build): live 5-min WARKINO digital-draw screen + wins ticker on lobby (uses user-supplied draw-table image).
