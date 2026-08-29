@@ -134,17 +134,17 @@ export default function FleetSales() {
   const pricing = [
     {
       name: "10-Slot Pack",
-      note: "10 custom slot machines · deploy-ready",
+      note: "10 custom slot machines + gaming · deploy-ready",
       price: "$5,000",
     },
     {
       name: "Startup Build",
-      note: "Full platform · front + backend",
-      price: "$5,800",
+      note: "Full platform + gaming · front + backend",
+      price: "$6,800",
     },
     {
-      name: "Platform Complete",
-      note: "Turnkey casino · real-money & compliance",
+      name: "Turnkey Platform",
+      note: "Turnkey casino with gaming · real-money & compliance · outright",
       price: "$35,000",
     },
     {
