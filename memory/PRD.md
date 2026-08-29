@@ -313,3 +313,9 @@ REMAINING / NEXT:
 - GamblePanel.jsx: after any win on SlotGame, players can gamble the win on Red/Black (2x, 50%) or a suit (4x, 25%), with re-gamble of winnings + Collect. Wired into SlotGame.jsx under LAST PAYOUT (gated lastWin>0 && !spinning && !inFree). Backend /api/games/gamble already existed (secure secrets RNG); tested: color 2x, suit 4x, lose=0, over-balance=400.
 - Shown on standard slot machines. Flagship hold&win slots can get the panel next if desired.
 - PENDING (next dedicated build): live 5-min WARKINO digital-draw screen + wins ticker on lobby (uses user-supplied draw-table image).
+
+### 29 Aug 2026 — Coin denominations + Buy Feature on slots
+- SlotGame.jsx: added COIN DENOMINATION selector (1c/2c/5c/10c -> bet 20/40/100/200, engine min-bet 20 safe = line-bet x20 paylines). Highlights active denom.
+- BUY FEATURE button (shown when machine.free_spins>0): POST /api/games/slots/buy-bonus charges bet x100 (BUY_FEATURE_COST_MULT), creates a free_spins session, frontend enters free-spin mode and auto-plays. Tested: sweet_ammo bet20 -> 10 spins, cost 2000, balance 10000->8000; insufficient funds -> 400.
+- Gamble panel (GamblePanel.jsx) already wired after wins. All slot reel symbols render as AAA medallions.
+- 30% reserve (PROFIT_RESERVE_PCT) already builds from $0 as deposits land; withdrawals draw only from available = bankroll - 30% of deposits.

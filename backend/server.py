@@ -1464,6 +1464,65 @@ async def slots_spin(payload: SpinInput, user: dict = Depends(require_user)):
     return result
 
 
+BUY_FEATURE_COST_MULT = 100  # buy the free-spins bonus for 100x the total bet
+
+
+@api.post("/games/slots/buy-bonus")
+async def slots_buy_bonus(payload: SpinInput, user: dict = Depends(require_user)):
+    """Buy Feature — pay 100x the bet to instantly trigger the free-spins bonus."""
+    m = SLOT_MACHINES.get(payload.machine_id)
+    if not m:
+        raise HTTPException(status_code=404, detail="Machine not found")
+    if payload.bet < 20:
+        raise HTTPException(status_code=400, detail="Minimum bet is 20 credits")
+    spins = int(m.get("free_spins", 0) or 0)
+    if spins <= 0:
+        raise HTTPException(
+            status_code=400,
+            detail="This machine has no buyable free-spins feature",
+        )
+    cost = round(payload.bet * BUY_FEATURE_COST_MULT, 2)
+    if user.get("balance", 0) < cost:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Need {int(cost)} credits to buy the feature",
+        )
+    updated = await adjust_balance(
+        user["user_id"], delta_balance=-cost, wagered=cost, played=1
+    )
+    await record_transaction(
+        user["user_id"],
+        "buy_feature",
+        -cost,
+        {"machine": payload.machine_id, "bet": payload.bet, "spins": spins},
+    )
+    session_id = str(uuid.uuid4())
+    await db.free_spins.insert_one(
+        {
+            "session_id": session_id,
+            "user_id": user["user_id"],
+            "machine_id": payload.machine_id,
+            "bet": payload.bet,
+            "spins_total": spins,
+            "spins_left": spins,
+            "multiplier": 1,
+            "total_win": 0.0,
+            "active": True,
+            "bought": True,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+    )
+    return {
+        "free_session": {
+            "session_id": session_id,
+            "spins_left": spins,
+            "multiplier": 1,
+        },
+        "cost": cost,
+        "balance": round(updated["balance"], 2),
+    }
+
+
 @api.post("/games/slots/freespin")
 async def slots_freespin(payload: FreeSpinInput, user: dict = Depends(require_user)):
     sess = await db.free_spins.find_one({"session_id": payload.session_id})
