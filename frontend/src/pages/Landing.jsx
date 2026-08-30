@@ -119,6 +119,17 @@ export default function Landing() {
 
   return (
     <div data-testid={LANDING.hero}>
+      {/* NEXUS FLEET banner */}
+      <a
+        href="https://gaming-fleet-hq.preview.emergentagent.com"
+        target="_blank"
+        rel="noopener noreferrer"
+        data-testid="nexus-fleet-banner"
+        className="block w-full bg-gradient-to-r from-black via-[#0b1a12] to-black border-b border-nvg/30 text-center py-2 px-4 font-mono text-[11px] sm:text-xs tracking-[0.25em] text-nvg hover:text-gold transition-colors"
+      >
+        ✈ NEXUS STUDIO MASTER — MOBILE FLEET GAMING SALES · BUY YOUR OWN CASINO PLATFORM →
+      </a>
+
       {/* CINEMATIC HERO REEL — top of page */}
       <CinematicReel onEnlist={primaryCta} />
 

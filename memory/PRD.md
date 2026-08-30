@@ -323,3 +323,8 @@ REMAINING / NEXT:
 ### 29 Aug 2026 — Promo banner screen + rebuild brief backlog
 - PromoScreen.jsx: rotating "Field Broadcast" of 5 user banners (/brand/promo_1..5.png), placed on Landing under CinematicReel. Zero credits (downloads only).
 - REBUILD BRIEF BACKLOG (mostly already built). REMAINING P0/P1: (1) add $500 MAJOR segment to Wheel of Wealth; (2) WARKINO continuous live draw board (runs when idle, balls draw continuously) + wins ticker; (3) payment caps: deposit <$50 -> winnings capped $1500, $50+ -> up to $10000; name-match KYC note; (4) Nexus banner at top linking https://gaming-fleet-hq.preview.emergentagent.com; (5) MGA/B2C/912/2025 + Wages of War Operations Ltd + 18+ legal footer.
+
+### 30 Aug 2026 — WARKINO live draw board + Nexus banner
+- LiveDrawBoard.jsx: always-on WARKINO keno board on Lobby (above Quick Deploy). Draws a ball every 3s, 20 balls/60s round, auto-resets, 80-number grid + last-ball highlight + LIVE WINS ticker. Frontend-only display (runs with no players). Verified rendering + drawing (ball 7/20).
+- Nexus fleet banner (data-testid nexus-fleet-banner) at top of Landing linking https://gaming-fleet-hq.preview.emergentagent.com.
+- STILL DEFERRED (touches live cashier — do fresh): payment caps (<$50 -> $1500 max win; $50+ -> $10000), name-match KYC; $500 MAJOR wheel segment; MGA legal footer.
