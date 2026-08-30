@@ -7,6 +7,7 @@ import { LOBBY } from "@/constants/testIds";
 import { SymbolTile } from "@/components/SymbolTile";
 import { AnimatedShowcase } from "@/components/AnimatedShowcase";
 import { LobbyHype } from "@/components/LobbyHype";
+import { LiveDrawBoard } from "@/components/LiveDrawBoard";
 import {
   Target,
   CaretRight,
@@ -187,6 +188,9 @@ export default function Lobby() {
           Ranked by deployment popularity. Highest-value targets first.
         </p>
       </div>
+
+      {/* WARKINO always-on live draw board */}
+      <LiveDrawBoard />
 
       {/* PLAYER QUICK-DEPLOY LAUNCHPAD */}
       <div className="mb-10" data-testid="player-command-hub">
