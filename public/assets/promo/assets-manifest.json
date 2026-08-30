@@ -1,0 +1,46 @@
+{
+  "folder": "public/assets/promo",
+  "files": [
+    {
+      "name": "warkino-special-forces.png",
+      "size_kb": 1800
+    },
+    {
+      "name": "signup-get-10.png",
+      "size_kb": 1600
+    },
+    {
+      "name": "giveaway-35k.jpg",
+      "size_kb": 162
+    },
+    {
+      "name": "casino-lobby-full.png",
+      "size_kb": 1500
+    },
+    {
+      "name": "features-banner.png",
+      "size_kb": 1400
+    },
+    {
+      "name": "slot-cards-3.png",
+      "size_kb": 1400
+    },
+    {
+      "name": "warkino-hud.png",
+      "size_kb": 1500
+    },
+    {
+      "name": "crypto-currency-promo.png",
+      "size_kb": 2100
+    },
+    {
+      "name": "140-slots-promo.png",
+      "size_kb": 2000
+    },
+    {
+      "name": "second-chance-bonus.png",
+      "size_kb": 2000
+    }
+  ],
+  "note": "All files downloaded and ready for push"
+}
