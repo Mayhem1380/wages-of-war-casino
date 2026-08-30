@@ -7,6 +7,7 @@ import { LANDING } from "@/constants/testIds";
 import api from "@/lib/api";
 import { AnimatedShowcase } from "@/components/AnimatedShowcase";
 import { CinematicReel } from "@/components/CinematicReel";
+import { PromoScreen } from "@/components/PromoScreen";
 import { GiveawayAlert } from "@/components/GiveawayAlert";
 import {
   Coins,
@@ -120,6 +121,9 @@ export default function Landing() {
     <div data-testid={LANDING.hero}>
       {/* CINEMATIC HERO REEL — top of page */}
       <CinematicReel onEnlist={primaryCta} />
+
+      {/* PROMO BROADCAST — user banners */}
+      <PromoScreen />
 
       {/* OFFICIAL TRAILER */}
       <section

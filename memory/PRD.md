@@ -319,3 +319,7 @@ REMAINING / NEXT:
 - BUY FEATURE button (shown when machine.free_spins>0): POST /api/games/slots/buy-bonus charges bet x100 (BUY_FEATURE_COST_MULT), creates a free_spins session, frontend enters free-spin mode and auto-plays. Tested: sweet_ammo bet20 -> 10 spins, cost 2000, balance 10000->8000; insufficient funds -> 400.
 - Gamble panel (GamblePanel.jsx) already wired after wins. All slot reel symbols render as AAA medallions.
 - 30% reserve (PROFIT_RESERVE_PCT) already builds from $0 as deposits land; withdrawals draw only from available = bankroll - 30% of deposits.
+
+### 29 Aug 2026 — Promo banner screen + rebuild brief backlog
+- PromoScreen.jsx: rotating "Field Broadcast" of 5 user banners (/brand/promo_1..5.png), placed on Landing under CinematicReel. Zero credits (downloads only).
+- REBUILD BRIEF BACKLOG (mostly already built). REMAINING P0/P1: (1) add $500 MAJOR segment to Wheel of Wealth; (2) WARKINO continuous live draw board (runs when idle, balls draw continuously) + wins ticker; (3) payment caps: deposit <$50 -> winnings capped $1500, $50+ -> up to $10000; name-match KYC note; (4) Nexus banner at top linking https://gaming-fleet-hq.preview.emergentagent.com; (5) MGA/B2C/912/2025 + Wages of War Operations Ltd + 18+ legal footer.
