@@ -1,0 +1,82 @@
+name: Download and Commit Promo Assets
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Target branch'
+        required: false
+        default: 'main'
+
+jobs:
+  download-and-commit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch || 'main' }}
+
+      - name: Create promo directory
+        run: mkdir -p public/assets/promo
+
+      - name: Download promo images
+        run: |
+          set -e
+          BASE="https://customer-assets-4nw71qhi.emergentagent.net/wingman/26661921-fcec-4e88-b220-51f0e9eb5377/attachments"
+          
+          echo "Downloading warkino-special-forces.png..."
+          curl -fsSL -o public/assets/promo/warkino-special-forces.png \
+            "${BASE}/e1a662caa0944e43b7c9cedaf2ebe226_1787795499457.png"
+          
+          echo "Downloading signup-get-10.png..."
+          curl -fsSL -o public/assets/promo/signup-get-10.png \
+            "${BASE}/2e4e8bf14f364df6862808f32a285746_1788032136875.png"
+          
+          echo "Downloading giveaway-35k.jpg..."
+          curl -fsSL -o public/assets/promo/giveaway-35k.jpg \
+            "${BASE}/cca3fdf7dfd74960b53efb07fee37fe6_1787381895999~2.jpg"
+          
+          echo "Downloading casino-lobby-full.png..."
+          curl -fsSL -o public/assets/promo/casino-lobby-full.png \
+            "${BASE}/ca4fa31b2c7b4357b9f0334100d8d72d_1787381729908.png"
+          
+          echo "Downloading features-banner.png..."
+          curl -fsSL -o public/assets/promo/features-banner.png \
+            "${BASE}/71b2c54e59c34f56867a1f553ceeaea1_1786816150401.png"
+          
+          echo "Downloading slot-cards-3.png..."
+          curl -fsSL -o public/assets/promo/slot-cards-3.png \
+            "${BASE}/04989be0121b420d8da752c791c2ece8_1786816029817.png"
+          
+          echo "Downloading warkino-hud.png..."
+          curl -fsSL -o public/assets/promo/warkino-hud.png \
+            "${BASE}/108d81b13b9b4d14914a34947e17b741_1788032697897.png"
+          
+          echo "Downloading crypto-currency-promo.png..."
+          curl -fsSL -o public/assets/promo/crypto-currency-promo.png \
+            "${BASE}/eddf9324142a463995e50bde9b29c0ab_1788033376672.png"
+          
+          echo "Downloading 140-slots-promo.png..."
+          curl -fsSL -o public/assets/promo/140-slots-promo.png \
+            "${BASE}/90cfd851ec924437a8201266429fba99_1788032840113.png"
+          
+          echo "Downloading second-chance-bonus.png..."
+          curl -fsSL -o public/assets/promo/second-chance-bonus.png \
+            "${BASE}/b333abe99d264efd866b09b7fd344597_1788033215710.png"
+          
+          echo "All downloads complete!"
+          ls -lh public/assets/promo/
+
+      - name: Commit and push assets
+        run: |
+          git config user.name "Mayhem Bot"
+          git config user.email "mayhem-bot@wagesofwar.com"
+          git add public/assets/promo/
+          git diff --staged --stat
+          git commit -m "Add casino promo assets to public/assets/promo/" || echo "Nothing to commit"
+          git push origin ${{ github.event.inputs.branch || 'main' }}
+          echo "Done! Assets are live at: https://github.com/${{ github.repository }}/tree/main/public/assets/promo"
