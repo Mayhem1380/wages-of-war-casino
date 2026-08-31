@@ -4,6 +4,7 @@ export const NAV = {
   vip: "nav-vip",
   leaderboard: "nav-leaderboard",
   wallet: "nav-wallet",
+  kyc: "nav-kyc",
   balance: "nav-balance",
   bonusBtn: "nav-daily-bonus",
   muteBtn: "nav-mute-btn",
@@ -42,6 +43,8 @@ export const LOBBY = {
   empty: "lobby-empty",
   wheelCard: "lobby-wheel-card",
   tournamentCard: "lobby-tournament-card",
+  championSpotlight: "lobby-champion-spotlight",
+  wheelReady: "lobby-wheel-ready",
 };
 
 export const WHEEL = {

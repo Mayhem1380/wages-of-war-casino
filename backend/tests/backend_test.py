@@ -169,6 +169,8 @@ class TestSlots:
             "vortex_vanguard",
             "redline_reign",
             "crimson_circuit",
+            "warpath_legends",
+            "bull_rush",
         }
         ids = {m["id"] for m in arr}
         assert expected_flagship_ids.issubset(
@@ -187,6 +189,34 @@ class TestSlots:
             "corsair_cannons",
         }
         assert recent.issubset(ids), f"missing recent flagships: {recent - ids}"
+
+    def test_list_slots_includes_requested_new_catalog_entries(self):
+        arr = requests.get(f"{API}/games/slots").json()
+        ids = {m["id"] for m in arr}
+        requested = {
+            "88_roosters",
+            "dragon_deluxe",
+            "polar",
+            "aladdin",
+            "cleopatra_gold",
+            "golden_lotus",
+            "fortune_lions",
+            "eggs_and_gold",
+            "robin_hood",
+            "maya_sun",
+            "book_of_sun",
+            "sun_magic",
+            "apple_2",
+            "book_of_wizard",
+            "power_sun",
+            "sun_of_egypt",
+            "sun_of_egypt_2",
+            "sun_of_egypt_3",
+            "sun_of_egypt_4",
+            "three_pigs",
+        }
+        missing = requested - ids
+        assert not missing, f"missing requested slots: {sorted(missing)}"
 
     def test_slot_detail(self):
         arr = requests.get(f"{API}/games/slots").json()
@@ -379,6 +409,34 @@ class TestPayments:
             headers=auth_headers,
         )
         assert r.status_code == 400
+
+    def test_checkout_duplicate_same_package_is_rejected(self):
+        email = f"test_dup_{uuid.uuid4().hex[:8]}@wowtest.com"
+        pw = "SecretPass123"
+        reg = requests.post(
+            f"{API}/auth/register",
+            json={"email": email, "password": pw, "name": "DupTest"},
+        )
+        assert reg.status_code == 200, reg.text
+        token = reg.json()["token"]
+        headers = {"Authorization": f"Bearer {token}"}
+
+        pkgs = requests.get(f"{API}/payments/packages").json()
+        lookup_key = pkgs[0]["lookup_key"]
+
+        first = requests.post(
+            f"{API}/payments/checkout",
+            json={"lookup_key": lookup_key, "origin_url": BASE_URL},
+            headers=headers,
+        )
+        assert first.status_code == 200, first.text
+
+        second = requests.post(
+            f"{API}/payments/checkout",
+            json={"lookup_key": lookup_key, "origin_url": BASE_URL},
+            headers=headers,
+        )
+        assert second.status_code == 409, second.text
 
 
 # ---------------- CASHBACK ----------------
@@ -776,6 +834,31 @@ class TestAdmin:
             json={"amount": 10, "mode": "delta"},
         )
         assert r.status_code == 403
+
+    def test_public_upgrades_catalog(self):
+        r = requests.get(f"{API}/upgrades")
+        assert r.status_code == 200, r.text
+        packages = r.json()
+        assert isinstance(packages, list) and len(packages) >= 1
+        assert all("id" in p and "name" in p for p in packages)
+
+    def test_admin_upgrades_roundtrip(self, admin_headers):
+        r = requests.get(f"{API}/admin/upgrades", headers=admin_headers)
+        assert r.status_code == 200, r.text
+        packages = r.json()
+        assert isinstance(packages, list) and len(packages) >= 1
+        assert all("id" in p and "name" in p for p in packages)
+
+        updated = [
+            {**packages[0], "active": not packages[0].get("active", False), "published": True}
+        ]
+        r2 = requests.post(
+            f"{API}/admin/upgrades",
+            headers=admin_headers,
+            json=updated,
+        )
+        assert r2.status_code == 200, r2.text
+        assert r2.json()[0]["active"] is updated[0]["active"]
 
 
 # ---------------- FLAGSHIP SLOT / HOLD&WIN ----------------

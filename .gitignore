@@ -30,14 +30,26 @@ next-env.d.ts
 dist/
 dist
 
-# Environment files (comprehensive coverage)
-.env
+# Environment files — the production build REQUIRES these, so they must NOT be ignored.
+# Do NOT re-add blanket .env ignores: it strips backend/.env (Mongo, JWT, Stripe) and
+# frontend/.env from the deployment build context and breaks every publish.
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
-backend/.env
 
+# Private vault / secret storage (never commit real credentials)
+.secrets/
+secrets/
+private/
+vault/
+*.vault
+*.key
+*.pem
+*.p12
+*.crt
+*.csr
+*.pfx
 *token.json*
 *credentials.json*
 
@@ -83,8 +95,7 @@ agenthub/agents/youtube/db
 .cache/
 
 # Generated package manager files
-package-lock.json
-yarn.lock
+# Keep lockfiles tracked so CI installs are reproducible.
 
 memory/test_credentials.md
 
@@ -95,3 +106,10 @@ dist/build_artifacts.zip
 dist/frontend_build.tgz
 frontend/node_modules/.cache/default-development/2.pack
 frontend/node_modules/.cache/default-development/3.pack
+frontend/node_modules/.cache/default-development/1.pack
+wagesofwar_build_20260821165006.tar.gz
+frontend/node_modules/.cache/default-development/6.pack
+frontend/node_modules/.cache/default-development/5.pack
+frontend/node_modules/.cache/default-development/7.pack
+frontend/node_modules/.cache/default-development/4.pack
+frontend/node_modules/.cache/default-development/4.pack

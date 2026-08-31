@@ -37,6 +37,28 @@
   border-color: hsl(var(--border));
 }
 
+button,
+a,
+input,
+select,
+textarea {
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease, background-color 180ms ease, opacity 180ms ease;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(78, 228, 78, 0.46), 0 0 0 5px rgba(78, 228, 78, 0.14);
+  border-color: rgba(78, 228, 78, 0.8);
+}
+
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
 body {
   margin: 0;
   background-color: #050605;
@@ -251,3 +273,6 @@ body {
 
 @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 .animate-spin-slow { animation: spin-slow 9s linear infinite; }
+
+@keyframes pulse-soft { 0%,100% { box-shadow: 0 0 0 rgba(78,228,78,0); } 50% { box-shadow: 0 0 22px rgba(78,228,78,0.25); } }
+.animate-pulse-soft { animation: pulse-soft 2.4s ease-in-out infinite; }

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { sfx } from "@/lib/sounds";
 import { BigWinOverlay } from "@/components/BigWinOverlay";
+import { GamblePanel } from "@/components/GamblePanel";
 import {
   Lightning,
   Minus,
@@ -31,6 +32,7 @@ export default function SlotGame() {
   const [grid, setGrid] = useState([[], [], [], [], []]);
   const [bet, setBet] = useState(100);
   const [spinning, setSpinning] = useState(false);
+  const [buying, setBuying] = useState(false);
   const [reelStop, setReelStop] = useState([false, false, false, false, false]);
   const [winCells, setWinCells] = useState(new Set());
   const [lastWin, setLastWin] = useState(0);
@@ -128,6 +130,46 @@ export default function SlotGame() {
     }
   };
 
+  const buyFeature = async () => {
+    if (!user) {
+      openAuth("register");
+      return;
+    }
+    if (spinning || (free && free.active) || buying || !machine) return;
+    const cost = bet * 100;
+    if (user.balance < cost) {
+      toast.error(`Need ${fmt(cost)} credits to buy the feature`);
+      return;
+    }
+    setBuying(true);
+    sfx.prime();
+    try {
+      const { data } = await api.post("/games/slots/buy-bonus", {
+        machine_id: id,
+        bet,
+      });
+      await refreshUser();
+      sfx.scatter();
+      toast.success(
+        `FEATURE BOUGHT — ${data.free_session.spins_left} FREE SPINS!`,
+      );
+      setFree({
+        active: true,
+        spinsLeft: data.free_session.spins_left,
+        multiplier: 1,
+        total: 0,
+        done: false,
+        sessionId: data.free_session.session_id,
+      });
+      setTimeout(() => runFree(data.free_session.session_id), 1200);
+    } catch (e) {
+      toast.error(e.response?.data?.detail || "Buy feature failed");
+    } finally {
+      setBuying(false);
+    }
+  };
+
+
   const triggerNearMiss = (data) => {
     if (data.scatter_count === 2) {
       sfx.nearMiss();
@@ -222,7 +264,7 @@ export default function SlotGame() {
   return (
     <div
       data-testid={SLOT.root}
-      className="max-w-6xl mx-auto px-4 sm:px-8 py-8"
+      className="max-w-6xl mx-auto px-4 sm:px-8 pt-8 pb-28 lg:pb-8"
       style={{
         background: art.bg
           ? `linear-gradient(rgba(6, 10, 8, 0.78), rgba(6, 10, 8, 0.94)), url(${art.bg}) center/cover no-repeat fixed`
@@ -378,6 +420,16 @@ export default function SlotGame() {
               {lastWin > 0 ? `+${fmt(lastWin)}` : "0"}
             </div>
           </div>
+
+          {lastWin > 0 && !spinning && !inFree && (
+            <GamblePanel
+              amount={lastWin}
+              onDone={(finalWin) => {
+                setLastWin(0);
+                refreshUser();
+              }}
+            />
+          )}
         </div>
 
         {/* CONTROLS */}
@@ -431,8 +483,48 @@ export default function SlotGame() {
                 </button>
               ))}
             </div>
+            <p className="font-mono text-[10px] tracking-widest text-nvg/70 mt-4 mb-2">
+              COIN DENOMINATION
+            </p>
+            <div className="grid grid-cols-4 gap-2">
+              {[
+                { c: "1¢", v: 20 },
+                { c: "2¢", v: 40 },
+                { c: "5¢", v: 100 },
+                { c: "10¢", v: 200 },
+              ].map(({ c, v }) => (
+                <button
+                  key={c}
+                  data-testid={`denom-${c}`}
+                  onClick={() => setBet(v)}
+                  disabled={inFree}
+                  className={`font-display text-sm py-2 border transition-colors disabled:opacity-40 ${
+                    bet === v
+                      ? "border-gold text-gold bg-gold/10 glow-gold"
+                      : "border-border text-muted-foreground hover:border-gold hover:text-gold"
+                  }`}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
           </div>
 
+          {machine?.free_spins > 0 && (
+            <button
+              data-testid="buy-feature-btn"
+              onClick={buyFeature}
+              disabled={spinning || inFree || buying}
+              className="w-full h-14 border-2 border-nvg text-nvg font-display text-lg tracking-widest hover:bg-nvg hover:text-black transition-colors flex items-center justify-center gap-2 disabled:opacity-40"
+            >
+              <Sparkle size={20} weight="fill" />
+              {buying
+                ? "BUYING…"
+                : `BUY FEATURE · ${fmt(bet * 100)}`}
+            </button>
+          )}
+
+          <div className="hidden lg:block">
           {free && free.done ? (
             <Button
               data-testid={SLOT.freeCollect}
@@ -456,6 +548,7 @@ export default function SlotGame() {
               {inFree ? "FREE FIRE..." : spinning ? "SPINNING..." : "SPIN"}
             </Button>
           )}
+          </div>
 
           <div
             className="hud p-4"
@@ -512,6 +605,33 @@ export default function SlotGame() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Mobile sticky action bar */}
+      <div className="lg:hidden fixed bottom-0 inset-x-0 z-[60] flex items-center gap-3 px-3 py-2.5 bg-black/92 backdrop-blur-md border-t-2 border-gold/40">
+        <div className="flex flex-col leading-none shrink-0">
+          <span className="font-mono text-[9px] text-white/50 tracking-widest">BALANCE</span>
+          <span className="font-mono text-sm text-gold">{fmt(user?.balance || 0)}</span>
+        </div>
+        {free && free.done ? (
+          <Button
+            data-testid="slot-spin-mobile"
+            onClick={collectFree}
+            className="flex-1 h-14 bg-nvg hover:bg-nvg/90 text-black font-display text-xl tracking-widest gap-2 animate-flicker"
+          >
+            <Coins size={22} weight="fill" /> COLLECT {fmt(free.total)}
+          </Button>
+        ) : (
+          <Button
+            data-testid="slot-spin-mobile"
+            onClick={doSpin}
+            disabled={spinning || inFree}
+            className="flex-1 h-14 bg-gold hover:bg-gold/90 text-black font-display text-xl tracking-widest gap-2 disabled:opacity-60"
+          >
+            {inFree ? <Sparkle size={22} weight="fill" /> : <Lightning size={22} weight="fill" />}
+            {inFree ? "FREE FIRE..." : spinning ? "SPINNING..." : "SPIN"}
+          </Button>
+        )}
       </div>
     </div>
   );

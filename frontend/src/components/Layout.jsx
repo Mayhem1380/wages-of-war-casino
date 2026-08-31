@@ -21,6 +21,8 @@ import { NAV } from "@/constants/testIds";
 import { fmt, BRAND } from "@/data/gameMeta";
 import api from "@/lib/api";
 import { toast } from "sonner";
+import { SupportDialog } from "@/components/SupportDialog";
+import { NexusStudioPromo } from "@/components/NexusStudioPromo";
 import {
   Coins,
   Gift,
@@ -34,6 +36,7 @@ import {
   SpeakerSimpleHigh,
   SpeakerSimpleSlash,
   Vault as VaultIcon,
+  List as ListIcon,
 } from "@phosphor-icons/react";
 
 function MuteToggle() {
@@ -202,29 +205,34 @@ export function Layout({ children }) {
         className="fixed inset-0 z-0 pointer-events-none bg-cover bg-center opacity-[0.18]"
         style={{ backgroundImage: "url(/brand/warmap_bg.jpg)" }}
       />
-      {user && <CombatBackground />}
+      {/* War-zone combat scene (muzzle flashes) — shown on entry for everyone */}
+      <CombatBackground />
       <header className="sticky top-0 z-50 border-b-2 border-gold/25 bg-black/85 backdrop-blur-md">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-8 h-16 flex items-center justify-between gap-4">
           <Link to="/" data-testid={NAV.logo}>
             <BrandLogo size={38} subtitle={false} />
           </Link>
 
-          <nav className="flex items-center gap-6">
+          <nav className="hidden lg:flex items-center gap-6">
             {navLink("/lobby", "Ops Lobby", NAV.lobby, GameController)}
-            {navLink("/vip", "VIP Ranks", NAV.vip, Medal)}
             {navLink("/leaderboard", "Leaderboard", NAV.leaderboard, Trophy)}
+            {navLink("/wallet", "Wallet", NAV.wallet, WalletIcon)}
+            {navLink("/kyc", "KYC", NAV.kyc, ShieldCheck)}
+            {navLink("/vip", "VIP Ranks", NAV.vip, Medal)}
           </nav>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <MuteToggle />
             {user ? (
               <>
-                <VerifyBonusButton />
+                <span className="hidden sm:inline-flex">
+                  <VerifyBonusButton />
+                </span>
                 <DailyBonus />
                 <Link
                   to="/wallet"
                   data-testid={NAV.balance}
-                  className="flex items-center gap-2 px-3 py-1.5 hud hud-gold text-gold font-mono text-sm glow-gold"
+                  className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 hud hud-gold text-gold font-mono text-xs sm:text-sm glow-gold"
                 >
                   <Coins size={16} weight="fill" />
                   <span data-testid="balance-value">{fmt(user.balance)}</span>
@@ -260,6 +268,25 @@ export function Layout({ children }) {
                       </p>
                     </div>
                     <DropdownMenuSeparator className="bg-border" />
+                    <DropdownMenuItem
+                      onClick={() => navigate("/lobby")}
+                      className="font-mono text-sm gap-2 cursor-pointer lg:hidden"
+                    >
+                      <GameController size={16} /> Ops Lobby
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => navigate("/vip")}
+                      className="font-mono text-sm gap-2 cursor-pointer lg:hidden"
+                    >
+                      <Medal size={16} /> VIP Ranks
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => navigate("/leaderboard")}
+                      className="font-mono text-sm gap-2 cursor-pointer lg:hidden"
+                    >
+                      <Trophy size={16} /> Leaderboard
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="bg-border lg:hidden" />
                     <DropdownMenuItem
                       data-testid={NAV.profileBtn}
                       onClick={() => navigate("/profile")}
@@ -302,18 +329,52 @@ export function Layout({ children }) {
               </>
             ) : (
               <>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      data-testid="nav-mobile-menu"
+                      aria-label="Menu"
+                      className="lg:hidden flex items-center justify-center w-9 h-9 text-nvg hover:text-gold outline-none"
+                    >
+                      <ListIcon size={24} weight="bold" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="end"
+                    className="bg-[#0a0d0a] border-gold/30 w-48"
+                  >
+                    <DropdownMenuItem
+                      onClick={() => navigate("/lobby")}
+                      className="font-mono text-sm gap-2 cursor-pointer"
+                    >
+                      <GameController size={16} /> Ops Lobby
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => navigate("/vip")}
+                      className="font-mono text-sm gap-2 cursor-pointer"
+                    >
+                      <Medal size={16} /> VIP Ranks
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => navigate("/leaderboard")}
+                      className="font-mono text-sm gap-2 cursor-pointer"
+                    >
+                      <Trophy size={16} /> Leaderboard
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <Button
                   data-testid={NAV.loginBtn}
                   variant="ghost"
                   onClick={() => openAuth("login")}
-                  className="font-stencil tracking-widest uppercase text-foreground/80 hover:text-nvg hover:bg-transparent"
+                  className="hidden sm:inline-flex font-stencil tracking-widest uppercase text-foreground/80 hover:text-nvg hover:bg-transparent"
                 >
                   Login
                 </Button>
                 <Button
                   data-testid={NAV.enlistBtn}
                   onClick={() => openAuth("register")}
-                  className="bg-gold hover:bg-gold/90 text-black font-display text-base tracking-widest px-5 glow-gold"
+                  className="bg-gold hover:bg-gold/90 text-black font-display text-sm sm:text-base tracking-widest px-4 sm:px-5 glow-gold"
                 >
                   ENLIST
                 </Button>
@@ -324,10 +385,10 @@ export function Layout({ children }) {
       </header>
 
       {/* Announcement banner */}
-      <div className="w-full bg-gradient-to-r from-gold/90 via-gold/70 to-yellow-400 text-black font-display text-sm tracking-wide py-2 text-center z-40">
+      <div className="w-full bg-gradient-to-r from-gold/90 via-gold/70 to-yellow-400 text-black font-display text-xs sm:text-sm tracking-wide py-2 text-center z-40">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-8">
           <strong className="uppercase">Best Platform of 2026</strong>
-          <span className="ml-3">
+          <span className="hidden sm:inline ml-3">
             — Everything is competing to be the best online casino in the world;
             our goal is to be number one.
           </span>
@@ -336,7 +397,17 @@ export function Layout({ children }) {
 
       <main className="flex-1 relative z-10">{children}</main>
 
-      <footer className="relative z-10 border-t-2 border-gold/20 bg-black/70 mt-16 overflow-hidden">
+      {/* Nexus Studio — standalone professional band (moved OUT of the underwater footer) */}
+      <section
+        data-testid="nexus-studio-band"
+        className="relative z-10 border-t-2 border-gold/20 bg-gradient-to-b from-[#0b0f0b] via-black to-[#0a0d0a]"
+      >
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-8 py-4">
+          <NexusStudioPromo />
+        </div>
+      </section>
+
+      <footer className="relative z-10 border-t-2 border-gold/20 bg-black/70 overflow-hidden">
         <div
           className="absolute inset-0 pointer-events-none opacity-[0.6]"
           style={{
@@ -356,22 +427,43 @@ export function Layout({ children }) {
           aria-hidden="true"
         />
 
-        {/* Blue glowing casino emblem faded between the diver & shark (breathing) + rising bubbles */}
+        {/* Blue glowing casino emblem faded between the diver & shark + rising bubbles */}
         <style>{`
-          @keyframes wowBreathe { 0%,100%{ opacity:.28; transform:translate(-50%,-50%) scale(1); } 50%{ opacity:.5; transform:translate(-50%,-50%) scale(1.05); } }
           @keyframes wowBubble { 0%{ transform:translateY(0) scale(1); opacity:0; } 12%{ opacity:.55; } 100%{ transform:translateY(-210px) scale(1.5); opacity:0; } }
+          /* SHARK STRIKE: the ROUND blue logo is chomped away (bitten) as the shark
+             lunges, then regrows/heals — looped on the shark's 5s cycle. Stays a
+             perfect circle at every frame (container is rounded-full + overflow-hidden). */
+          .footer-emblem-heal { animation: wowBiteHeal 5s ease-in-out infinite; will-change: clip-path, opacity; }
+          @keyframes wowBiteHeal {
+            0%   { clip-path: inset(0 0 0 0); opacity:.55; }
+            44%  { clip-path: inset(0 0 0 0); opacity:.66; }
+            54%  { clip-path: inset(0 0 0 0); opacity:.66; }
+            62%  { clip-path: inset(0 47% 0 0); opacity:.5; }
+            70%  { clip-path: inset(0 100% 0 0); opacity:.12; }
+            73%  { clip-path: inset(0 100% 0 0); opacity:0; }
+            86%  { clip-path: inset(0 38% 0 0); opacity:.4; }
+            100% { clip-path: inset(0 0 0 0); opacity:.55; }
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .footer-emblem-heal { animation: none !important; opacity:.55 !important; clip-path: none !important; }
+          }
         `}</style>
-        <img
-          src="/brand/footer_logo_blue.png"
-          alt=""
+        {/* Round blue emblem — forced circular so it NEVER renders square; shark chomps it then it heals. */}
+        <div
           aria-hidden="true"
-          className="pointer-events-none absolute left-1/2 top-1/2 w-56 sm:w-80 z-[1]"
+          className="pointer-events-none absolute left-1/2 top-1/2 z-[1] w-56 sm:w-80 aspect-square rounded-full overflow-hidden"
           style={{
-            filter:
-              "drop-shadow(0 0 26px rgba(56,189,248,0.85)) drop-shadow(0 0 60px rgba(14,165,233,0.6))",
-            animation: "wowBreathe 5s ease-in-out infinite",
+            transform: "translate(-50%,-50%)",
+            boxShadow:
+              "0 0 22px rgba(56,189,248,0.85), 0 0 48px rgba(56,189,248,0.5), 0 0 70px rgba(255,60,60,0.45)",
           }}
-        />
+        >
+          <img
+            src="/brand/footer_logo_blue.png"
+            alt=""
+            className="footer-emblem-heal w-full h-full object-cover"
+          />
+        </div>
         {[...Array(7)].map((_, i) => (
           <span
             key={i}
@@ -398,6 +490,28 @@ export function Layout({ children }) {
                 virtual credits for entertainment only. No real-money wagering
                 or payouts.
               </p>
+              <div className="mt-5 max-w-md">
+                <SupportDialog />
+              </div>
+              <div
+                data-testid="footer-hq-contact"
+                className="mt-5 space-y-1 font-mono text-[11px] text-muted-foreground"
+              >
+                <div className="tracking-[0.3em] text-nvg/70 uppercase mb-1">
+                  HQ · Contact
+                </div>
+                <a href="mailto:support@wagesofwarcasino.com" className="block hover:text-nvg transition-colors">
+                  support@wagesofwarcasino.com
+                </a>
+                <a href="mailto:payments@wagesofwarcasino.com" className="block hover:text-nvg transition-colors">
+                  payments@wagesofwarcasino.com · vault &amp; payouts
+                </a>
+                <a href="mailto:compliance@wagesofwarcasino.com" className="block hover:text-nvg transition-colors">
+                  compliance@wagesofwarcasino.com · KYC &amp; compliance
+                </a>
+                <div className="pt-1 text-foreground/80">Wages of War Operations Ltd.</div>
+                <div>Registered Office — Malta (MGA licensed)</div>
+              </div>
               <div className="mt-5 flex items-center gap-4">
                 <img
                   src={BRAND.coin}

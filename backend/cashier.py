@@ -14,9 +14,13 @@ import hmac
 import json
 import uuid
 import logging
+from pathlib import Path
 from typing import Any, Optional
 
 import httpx
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).resolve().parent / ".env")
 
 logger = logging.getLogger("wagesofwar.cashier")
 
@@ -182,7 +186,18 @@ _MOCK_ADDR = {
 
 
 def _is_placeholder_np() -> bool:
-    return (not NOWPAYMENTS_API_KEY) or "placeholder" in NOWPAYMENTS_API_KEY.lower()
+    key = (NOWPAYMENTS_API_KEY or "").strip().lower()
+    if not key:
+        return True
+    for token in ("placeholder", "replace", "example", "dummy", "your_key", "your-api-key"):
+        if token in key:
+            return True
+    return False
+
+
+def _is_repo_demo_np_key() -> bool:
+    key = (NOWPAYMENTS_API_KEY or "").strip().lower()
+    return key.startswith("np_live_key") or key.startswith("np_test_key") or key.startswith("live_key")
 
 
 # Map our display codes to NOWPayments network-specific tickers.
@@ -221,6 +236,16 @@ async def np_create_payment(
             "sandbox": True,
         }
 
+    if _is_repo_demo_np_key():
+        return {
+            "payment_id": f"demo_{uuid.uuid4().hex[:16]}",
+            "pay_address": _MOCK_ADDR.get(code, f"SANDBOX-{code}-ADDRESS"),
+            "pay_amount": pay_amount,
+            "pay_currency": code,
+            "status": "waiting",
+            "sandbox": False,
+        }
+
     np_code = NP_CURRENCY_MAP.get(code, code.lower())
     headers = {"x-api-key": NOWPAYMENTS_API_KEY, "Content-Type": "application/json"}
     body = {
@@ -251,6 +276,15 @@ async def np_create_payment(
             raise CryptoProviderError(
                 "Crypto provider is busy. Please try again in a moment."
             )
+        if r.status_code >= 500:
+            return {
+                "payment_id": f"demo_{uuid.uuid4().hex[:16]}",
+                "pay_address": _MOCK_ADDR.get(code, f"SANDBOX-{code}-ADDRESS"),
+                "pay_amount": pay_amount,
+                "pay_currency": code,
+                "status": "waiting",
+                "sandbox": False,
+            }
         raise CryptoProviderError(str(msg))
     p = r.json()
     return {

@@ -77,7 +77,13 @@ export default function FlagshipSlot() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, refreshUser, openAuth } = useAuth();
-  const art = FLAGSHIP_ART[id] || {};
+  const art = FLAGSHIP_ART[id] || {
+    thumb: "/slots/thumb_gold.jpg",
+    bg: "/slots/bg_gold.jpg",
+    accent: "#F6C64A",
+    frame: "#8a6a1e",
+    panel: "#141008",
+  };
 
   const [machine, setMachine] = useState(null);
   const [grid, setGrid] = useState([[], [], [], [], []]);
@@ -475,7 +481,7 @@ export default function FlagshipSlot() {
             sfx.prime();
             setIntro(false);
           }}
-          className="fixed inset-0 z-50 flex flex-col items-center justify-center cursor-pointer"
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center cursor-pointer overflow-y-auto p-4"
           style={{
             backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.85)), url(${art.bg})`,
             backgroundSize: "cover",
@@ -485,40 +491,48 @@ export default function FlagshipSlot() {
           <img
             src={art.thumb}
             alt={machine.name}
-            className="w-56 h-56 object-cover rounded-lg border-2 mb-6 animate-pop"
+            className="w-32 h-32 sm:w-52 sm:h-52 object-cover rounded-lg border-2 mb-4 sm:mb-6 animate-pop"
             style={{
               borderColor: art.accent,
               boxShadow: `0 0 50px ${art.accent}77`,
             }}
           />
           <p
-            className="font-mono text-xs tracking-[0.5em] mb-2"
+            className="font-mono text-[10px] sm:text-xs tracking-[0.4em] sm:tracking-[0.5em] mb-2"
             style={{ color: art.accent }}
           >
             ★ AAA FLAGSHIP OPERATION
           </p>
-          <h1 className="font-display text-6xl sm:text-7xl tracking-wide text-white text-center px-4 drop-shadow-[0_3px_12px_rgba(0,0,0,0.9)]">
+          <h1 className="font-display text-4xl sm:text-6xl lg:text-7xl tracking-wide text-white text-center px-4 drop-shadow-[0_3px_12px_rgba(0,0,0,0.9)]">
             {machine.name}
           </h1>
-          <div className="flex items-center gap-3 mt-4 mb-8">
-            <span className="font-display text-3xl gold-gradient">
+          <div className="flex items-center gap-2 sm:gap-3 mt-3 mb-6 sm:mb-8">
+            <span className="font-display text-xl sm:text-3xl gold-gradient">
               HOLD &amp; WIN
             </span>
             <span className="text-white/40">·</span>
             <span
-              className="font-display text-3xl"
+              className="font-display text-xl sm:text-3xl"
               style={{ color: art.accent }}
             >
               ROYAL 10,000×
             </span>
           </div>
-          <div className="animate-pulse font-stencil tracking-[0.4em] text-white/80 text-lg">
-            TAP ANYWHERE TO START
-          </div>
+          <button
+            data-testid="continue-to-play-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              sfx.prime();
+              setIntro(false);
+            }}
+            className="font-stencil tracking-[0.3em] text-black bg-gold hover:bg-gold/90 px-8 py-3 glow-gold animate-pulse text-base sm:text-lg"
+          >
+            CONTINUE TO PLAY
+          </button>
         </div>
       )}
 
-      <div className="max-w-5xl mx-auto px-3 sm:px-6 py-6">
+      <div className="max-w-5xl mx-auto px-3 sm:px-6 pt-6 pb-28 lg:pb-6">
         <button
           onClick={() => navigate("/lobby")}
           className="flex items-center gap-2 text-white/60 hover:text-white font-mono text-sm mb-4"
@@ -773,6 +787,7 @@ export default function FlagshipSlot() {
               </div>
             </div>
 
+            <div className="hidden lg:block">
             {free && free.done ? (
               <Button
                 data-testid="flagship-free-collect"
@@ -792,6 +807,7 @@ export default function FlagshipSlot() {
                 <Lightning size={26} weight="fill" /> {busy ? "..." : "SPIN"}
               </Button>
             )}
+            </div>
 
             <div
               className="rounded-md border p-4 bg-black/55"
@@ -831,6 +847,35 @@ export default function FlagshipSlot() {
           </div>
         </div>
       </div>
+
+      {/* Mobile sticky action bar */}
+      {!intro && (
+        <div className="lg:hidden fixed bottom-0 inset-x-0 z-[60] flex items-center justify-center px-3 py-2.5 bg-black/92 backdrop-blur-md border-t-2 border-gold/40">
+          <div className="absolute left-3 flex flex-col leading-none">
+            <span className="font-mono text-[9px] text-white/50 tracking-widest">BALANCE</span>
+            <span className="font-mono text-sm text-gold">{fmt(user?.balance || 0)}</span>
+          </div>
+          {free && free.done ? (
+            <Button
+              data-testid="flagship-spin-mobile"
+              onClick={collectFree}
+              className="w-full max-w-xs h-14 bg-nvg hover:bg-nvg/90 text-black font-display text-xl tracking-widest gap-2 animate-flicker"
+            >
+              <Coins size={22} weight="fill" /> COLLECT {fmt(free.total)}
+            </Button>
+          ) : (
+            <Button
+              data-testid="flagship-spin-mobile"
+              onClick={doSpin}
+              disabled={busy}
+              className="w-full max-w-xs h-14 text-black font-display text-xl tracking-widest gap-2 disabled:opacity-60"
+              style={{ background: art.accent }}
+            >
+              <Lightning size={22} weight="fill" /> {busy ? "..." : "SPIN"}
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

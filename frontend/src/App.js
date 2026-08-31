@@ -17,6 +17,7 @@ import SlotGame from "@/pages/SlotGame";
 import FlagshipSlot from "@/pages/FlagshipSlot";
 import KenoGame from "@/pages/KenoGame";
 import CoinFlipGame from "@/pages/CoinFlipGame";
+import SharkSplitters from "@/pages/SharkSplitters";
 import Wallet from "@/pages/Wallet";
 import Cashier from "@/pages/Cashier";
 import Profile from "@/pages/Profile";
@@ -33,6 +34,7 @@ import DailyWheel from "@/pages/DailyWheel";
 import Tournament from "@/pages/Tournament";
 import { useParams } from "react-router-dom";
 import { FLAGSHIP_IDS } from "@/data/gameMeta";
+import { getAppBasePath } from "@/lib/runtime";
 
 function SlotRoute() {
   const { id } = useParams();
@@ -71,6 +73,7 @@ function AppRouter() {
         <Route path="/slots/:id" element={<SlotRoute />} />
         <Route path="/keno" element={<KenoGame />} />
         <Route path="/coinflip" element={<CoinFlipGame />} />
+        <Route path="/shark" element={<SharkSplitters />} />
         <Route path="/wheel" element={<DailyWheel />} />
         <Route path="/tournament" element={<Tournament />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
@@ -144,10 +147,12 @@ const TOAST_OPTIONS = {
 };
 
 function App() {
+  const basename = getAppBasePath() || undefined;
+
   return (
     <AuthProvider>
       <SoundProvider>
-        <BrowserRouter>
+        <BrowserRouter basename={basename}>
           <AppRouter />
           <Toaster position="top-right" toastOptions={TOAST_OPTIONS} />
         </BrowserRouter>

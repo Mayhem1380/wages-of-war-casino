@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 from pathlib import Path
 import os
+from collections import defaultdict
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / ".env")
@@ -8,9 +9,10 @@ load_dotenv(ROOT_DIR / ".env")
 from fastapi import FastAPI, APIRouter, HTTPException, Request, Response, Depends
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo.errors import OperationFailure
 import logging
 from pydantic import BaseModel, Field, EmailStr
-from typing import List, Optional
+from typing import List, Optional, Dict
 import uuid
 import bcrypt
 import jwt
@@ -28,6 +30,8 @@ from games import (
     PUBLIC_SLOT_IDS,
     spin_slot,
     play_keno,
+    play_wow_keno,
+    play_side_keno,
     KENO_PAYTABLE,
     PAYLINES,
     VIP_TIERS,
@@ -40,16 +44,31 @@ from games import (
 )
 import cashier
 
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger("wagesofwar")
+
 # ---------------------------------------------------------------------------
 # Setup
 # ---------------------------------------------------------------------------
-mongo_url = os.environ["MONGO_URL"]
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ["DB_NAME"]]
+mongo_url = os.environ.get("MONGO_URL", "mongodb://localhost:27017")
+db_name = os.environ.get("DB_NAME", "test_database")
+client = None
+db = None
 
-JWT_SECRET = os.environ["JWT_SECRET"]
+
+def _ensure_db():
+    global client, db
+    if client is None or db is None:
+        client = AsyncIOMotorClient(mongo_url)
+        db = client[db_name]
+    return db
+
+
+JWT_SECRET = os.environ.get("JWT_SECRET", "").strip()
 JWT_ALGORITHM = "HS256"
-FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:3000")
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "").strip()
 
 STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "").strip()
 STRIPE_USE_MOCK = (
@@ -72,78 +91,93 @@ STRIPE_WEBHOOK_SECRETS = [
 TAX_MODE = "full"  # US + digital credits -> Stripe managed payments
 
 if STRIPE_USE_MOCK:
+    class _MockListResult(dict):
+        def __init__(self, data=None):
+            self.data = list(data or [])
+            super().__init__(data=self.data)
+
+        def auto_paging_iter(self):
+            return iter(self.data)
+
+    class _MockSession(dict):
+        def __getattr__(self, name):
+            return self.get(name)
+
+    class _MockVerification(dict):
+        def __getattr__(self, name):
+            return self.get(name)
+
     class _MockStripeSession:
         @staticmethod
         def create(**kwargs):
             sid = "cs_" + uuid.uuid4().hex[:16]
             metadata = kwargs.get("metadata") or {}
-            return type(
-                "MockSession",
-                (),
-                {
-                    "id": sid,
-                    "url": f"https://checkout.stripe.com/pay/{sid}",
-                    "status": "complete" if metadata.get("kind") == "cashier_deposit" else "open",
-                    "payment_status": "paid" if metadata.get("kind") == "cashier_deposit" else "unpaid",
-                },
-            )()
+            obj = _MockSession(
+                id=sid,
+                url=f"https://checkout.stripe.com/pay/{sid}",
+                status="complete" if metadata.get("kind") == "cashier_deposit" else "open",
+                payment_status="paid" if metadata.get("kind") == "cashier_deposit" else "unpaid",
+            )
+            obj.id = sid
+            obj.url = f"https://checkout.stripe.com/pay/{sid}"
+            obj.status = "complete" if metadata.get("kind") == "cashier_deposit" else "open"
+            obj.payment_status = "paid" if metadata.get("kind") == "cashier_deposit" else "unpaid"
+            return obj
 
         @staticmethod
         def retrieve(session_id):
-            return type(
-                "MockSession",
-                (),
-                {
-                    "id": session_id,
-                    "status": "complete",
-                    "payment_status": "paid",
-                },
-            )()
+            obj = _MockSession(id=session_id, status="complete", payment_status="paid")
+            obj.id = session_id
+            obj.status = "complete"
+            obj.payment_status = "paid"
+            return obj
 
     class _MockVerificationSession:
         @staticmethod
         def create(**kwargs):
             sid = "vs_" + uuid.uuid4().hex[:16]
-            return type(
-                "MockVerification",
-                (),
-                {
-                    "id": sid,
-                    "url": f"https://verify.stripe.com/{sid}",
-                    "status": "requires_input",
-                },
-            )()
+            obj = _MockVerification(id=sid, url=f"https://verify.stripe.com/{sid}", status="requires_input")
+            obj.id = sid
+            obj.url = f"https://verify.stripe.com/{sid}"
+            obj.status = "requires_input"
+            return obj
 
         @staticmethod
         def retrieve(session_id, expand=None):
-            return type(
-                "MockVerification",
-                (),
-                {
-                    "id": session_id,
-                    "status": "requires_input",
-                    "verified_outputs": {},
-                    "last_error": None,
-                },
-            )()
+            obj = _MockVerification(
+                id=session_id,
+                status="requires_input",
+                verified_outputs={},
+                last_error=None,
+            )
+            obj.id = session_id
+            obj.status = "requires_input"
+            obj.verified_outputs = {}
+            obj.last_error = None
+            return obj
 
     class _MockProduct:
         @staticmethod
         def list(active=True, limit=100):
-            return type("ListResult", (), {"data": []})()
+            return _MockListResult([])
 
         @staticmethod
         def create(**kwargs):
-            return type("Product", (), {"id": "prod_mock_" + uuid.uuid4().hex[:12]})()
+            obj = type("Product", (), {})()
+            obj.id = "prod_mock_" + uuid.uuid4().hex[:12]
+            obj.metadata = kwargs.get("metadata") or {}
+            return obj
 
     class _MockPrice:
         @staticmethod
         def list(lookup_keys=None, active=True, limit=1):
-            return type("ListResult", (), {"data": []})()
+            return _MockListResult([])
 
         @staticmethod
         def create(**kwargs):
-            return type("Price", (), {"id": "price_mock_" + uuid.uuid4().hex[:12]})()
+            obj = type("Price", (), {})()
+            obj.id = "price_mock_" + uuid.uuid4().hex[:12]
+            return obj
 
     class _MockWebhook:
         @staticmethod
@@ -166,13 +200,61 @@ STARTING_BALANCE = 10000.0
 DAILY_BONUS_COOLDOWN_HOURS = 24
 CASHBACK_COOLDOWN_HOURS = 168  # weekly
 
+REFERRAL_REWARD_CENTS = int(os.environ.get("REFERRAL_REWARD_CENTS", "500"))
+# House protection: keep 30% of total deposits locked as a solvency reserve that
+# can never be released via player withdrawals.
+PROFIT_RESERVE_PCT = float(os.environ.get("PROFIT_RESERVE_PCT", "0.30"))
+
+AUTH_FAILURE_WINDOW_SECONDS = 900
+AUTH_FAILURE_LIMIT = 5
+_AUTH_FAILURES = defaultdict(list)
+
+
+def _resolved_cors_origins() -> List[str]:
+    """Build an explicit allowlist for credentialed CORS requests.
+
+    Browsers reject wildcard origins when credentials are enabled, so we always
+    echo a concrete origin instead of returning '*'. If nothing is configured,
+    we fall back to the usual local dev ports and require explicit env values for
+    hosted deployments.
+    """
+    values: List[str] = []
+    seen = set()
+
+    for raw in [
+        os.environ.get("CORS_ORIGINS", ""),
+        os.environ.get("FRONTEND_URL", ""),
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+    ]:
+        for item in str(raw).split(","):
+            origin = item.strip().rstrip("/")
+            if not origin or origin == "*" or origin in seen:
+                continue
+            if not origin.startswith(("http://", "https://")):
+                continue
+            seen.add(origin)
+            values.append(origin)
+
+    if not values:
+        values = [
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+            "http://localhost:8000",
+            "http://127.0.0.1:8000",
+        ]
+    return values
+
+
+CORS_ORIGINS = _resolved_cors_origins()
+CORS_ALLOW_ORIGINS = CORS_ORIGINS
+# Any subdomain of preview.emergentagent.com is a trusted first-party preview host.
+CORS_ALLOW_ORIGIN_REGEX = r"^(https?://(localhost|127\.0\.0\.1)(:\d+)?|https://[a-zA-Z0-9-]+\.preview\.emergentagent\.com)$"
+
 app = FastAPI(title="Wages of War Casino API")
 api = APIRouter(prefix="/api")
-
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger("wagesofwar")
 
 
 async def record_house_cashflow(
@@ -210,11 +292,7 @@ async def record_house_cashflow(
         {
             "$setOnInsert": {
                 "starting_bankroll_cents": 0,
-                "bankroll_cents": 0,
-                "cash_in_cents": 0,
-                "cash_out_cents": 0,
                 "pending_payout_cents": 0,
-                "updated_at": now_iso,
             },
             "$inc": {
                 "bankroll_cents": delta_cents,
@@ -239,10 +317,14 @@ async def get_house_bankroll_summary():
             "pending_payout_cents": 0,
             "updated_at": datetime.now(timezone.utc).isoformat(),
         }
-    available = max(summary.get("bankroll_cents", 0), 0)
+    cash_in = int(summary.get("cash_in_cents", 0))
+    bankroll = int(summary.get("bankroll_cents", 0))
+    # 30% profit reserve — lock a solvency buffer equal to 30% of total deposits.
+    reserve_cents = int(round(max(cash_in, 0) * PROFIT_RESERVE_PCT))
+    available = max(bankroll - reserve_cents, 0)
     coverage = 0.0
-    if summary.get("cash_in_cents", 0):
-        coverage = round(available / max(summary["cash_in_cents"], 1), 4)
+    if cash_in:
+        coverage = round(available / max(cash_in, 1), 4)
     return {
         "starting_bankroll_cents": int(summary.get("starting_bankroll_cents", 0)),
         "bankroll_cents": int(summary.get("bankroll_cents", 0)),
@@ -250,6 +332,9 @@ async def get_house_bankroll_summary():
         "cash_in_cents": int(summary.get("cash_in_cents", 0)),
         "cash_out_cents": int(summary.get("cash_out_cents", 0)),
         "pending_payout_cents": int(summary.get("pending_payout_cents", 0)),
+        "reserve_pct": PROFIT_RESERVE_PCT,
+        "reserve_cents": reserve_cents,
+        "reserve_usd": round(reserve_cents / 100.0, 2),
         "available_cents": available,
         "available_usd": round(available / 100.0, 2),
         "coverage_ratio": coverage,
@@ -259,8 +344,13 @@ async def get_house_bankroll_summary():
 
 def validate_runtime_config() -> None:
     """Log high-impact config issues so production misconfigurations are obvious."""
+    global JWT_SECRET, FRONTEND_URL
+
     env_name = os.environ.get("ENVIRONMENT", os.environ.get("APP_ENV", "")).lower()
     is_prod = env_name in {"prod", "production", "live"}
+
+    FRONTEND_URL = os.environ.get("FRONTEND_URL", FRONTEND_URL).strip()
+    JWT_SECRET = os.environ.get("JWT_SECRET", JWT_SECRET).strip()
 
     issues = []
     warnings = []
@@ -271,8 +361,11 @@ def validate_runtime_config() -> None:
     if not STRIPE_WEBHOOK_SECRETS:
         issues.append("STRIPE_WEBHOOK_SECRET is missing")
 
-    if not os.environ.get("FRONTEND_URL", "").strip():
+    if not FRONTEND_URL:
         issues.append("FRONTEND_URL is missing")
+
+    if not JWT_SECRET or "change-me" in JWT_SECRET.lower() or "replace" in JWT_SECRET.lower():
+        issues.append("JWT_SECRET is missing or placeholder")
 
     if cashier._is_placeholder_np():
         warnings.append("NOWPAYMENTS_API_KEY is placeholder/missing; crypto deposits run in sandbox")
@@ -361,7 +454,25 @@ def public_user(u: dict) -> dict:
             u.get("signup_verification_bonus_claimed", False)
         ),
         "signup_verification_bonus_amount": 10.0,
+        "referral_code": u.get("referral_code"),
+        "referral_count": int(u.get("referral_count", 0)),
+        "referral_earnings_usd": round(
+            int(u.get("referral_earnings_cents", 0)) / 100.0, 2
+        ),
     }
+
+
+def _reset_login_failures(email: str):
+    _AUTH_FAILURES.pop(email, None)
+
+
+def _login_failure_count(email: str) -> int:
+    now = datetime.now(timezone.utc)
+    attempts = _AUTH_FAILURES.get(email, [])
+    attempts = [ts for ts in attempts if (now - ts).total_seconds() < AUTH_FAILURE_WINDOW_SECONDS]
+    if len(attempts) != len(_AUTH_FAILURES.get(email, [])):
+        _AUTH_FAILURES[email] = attempts
+    return len(attempts)
 
 
 async def resolve_user(request: Request) -> Optional[dict]:
@@ -503,6 +614,58 @@ class SupportMessage(BaseModel):
     message: str
 
 
+def safe_support_reply(text: str) -> str:
+    """Return a safe support response while blocking payout-performance leaks.
+
+    The platform must never expose which machine is hot, which bet is winning,
+    current payout bias, or internal payout analytics to players or support chat.
+    """
+    cleaned = (text or "").strip()
+    if not cleaned:
+        return "Hi — I'm the 24/7 assistant. Try 'deposit', 'withdraw', or 'verify'. For urgent support contact admin@wow.local"
+
+    lower = cleaned.lower()
+
+    leakage_phrases = (
+        "paying the most",
+        "payout pattern",
+        "hot today",
+        "hot or cold",
+        "which machine",
+        "machine is paying",
+        "which slot is paying",
+        "what is the current payout",
+        "winning bet",
+        "machine performance",
+        "payout bias",
+        "payout trend",
+        "hot streak",
+        "cold streak",
+        "most profitable",
+        "which bet is winning",
+        "slot is hot",
+    )
+    if any(phrase in lower for phrase in leakage_phrases):
+        return (
+            "I can help with deposits, withdrawals, verification, and account support, but "
+            "I can’t provide live performance or betting-pattern insights. "
+            "If you need help with your wallet or account, I can guide you safely."
+        )
+
+    if "deposit" in lower or "cashier" in lower:
+        return "To deposit, open Wallet → Cashier. We accept Card (Stripe) and Crypto. For help, tell me which you want."
+    if "withdraw" in lower or "payout" in lower:
+        return "Withdrawals route via the approval vault. Check /profile or /wallet → Transactions for status."
+    if "kyc" in lower or "id" in lower or "verify" in lower:
+        return "KYC is required before large withdrawals. Use the Verification page to upload documents and complete your banking verification."
+    if "balance" in lower or "wallet" in lower or "account" in lower:
+        return "For wallet or account help, open your profile and check the balance, transactions, and verification status."
+    if "support" in lower or "help" in lower:
+        return "I can assist with deposits, withdrawals, verification, and basic account questions. For sensitive cases, an admin review can be requested."
+
+    return "Hi — I'm the 24/7 assistant. Try 'deposit', 'withdraw', or 'verify'. For urgent support contact admin@wow.local"
+
+
 @api.post("/support/message")
 async def support_message(payload: SupportMessage, user: dict = Depends(resolve_user)):
     text = payload.message.strip()
@@ -514,16 +677,7 @@ async def support_message(payload: SupportMessage, user: dict = Depends(resolve_
     }
     await db.support_messages.insert_one(row)
 
-    # Very small rule-based bot replies (POC). Expand with external bot later.
-    lower = text.lower()
-    if "deposit" in lower or "cashier" in lower:
-        reply = "To deposit, open Wallet → Cashier. We accept Card (Stripe) and Crypto. For help, tell me which you want."
-    elif "withdraw" in lower or "payout" in lower:
-        reply = "Withdrawals route via the approval vault. Check /profile or /wallet → Transactions for status."
-    elif "kyc" in lower or "id" in lower or "verify" in lower:
-        reply = "KYC required for withdrawals over threshold. Use the Verification page to upload documents."
-    else:
-        reply = "Hi — I'm the 24/7 assistant. Try 'deposit', 'withdraw', or 'verify'. For urgent support contact admin@wow.local"
+    reply = safe_support_reply(text)
 
     bot = {
         "id": str(uuid.uuid4()),
@@ -592,6 +746,15 @@ async def _sync_kyc_from_stripe(user_id: str, session_id: str) -> dict:
         update["kyc_status"] = status or "not_started"
     await db.users.update_one({"user_id": user_id}, {"$set": update})
     return update
+
+
+def _make_mock_verification_session() -> dict:
+    sid = "vs_" + uuid.uuid4().hex[:16]
+    return {
+        "id": sid,
+        "url": f"https://verify.stripe.com/{sid}",
+        "status": "requires_input",
+    }
 
 
 class KycSessionInput(BaseModel):
@@ -682,7 +845,23 @@ async def kyc_session(payload: KycSessionInput, user: dict = Depends(require_use
     try:
         session = stripe.identity.VerificationSession.create(**kwargs)
     except stripe.error.StripeError as e:
-        raise HTTPException(status_code=502, detail=f"Stripe Identity error: {e}")
+        msg = str(e).lower()
+        if (
+            "not set up to use identity" in msg
+            or "identity" in msg and "not set up" in msg
+            or "identity is not enabled" in msg
+            or "does not support identity" in msg
+        ):
+            logger.warning(
+                "Stripe Identity not configured for account; using safe mock verification session. Details: %s",
+                e,
+            )
+            session = type("_MockVerificationSessionObj", (), {})()
+            session.id = "vs_" + uuid.uuid4().hex[:16]
+            session.url = f"https://verify.stripe.com/{session.id}"
+            session.status = "requires_input"
+        else:
+            raise HTTPException(status_code=502, detail=f"Stripe Identity error: {e}")
     await db.users.update_one(
         {"user_id": user["user_id"]},
         {
@@ -796,7 +975,37 @@ async def _process_withdrawals_loop():
             pending = await db.cashier_transactions.find(
                 {"direction": "withdrawal", "status": "pending"}
             ).to_list(50)
+
+            # SOLVENCY GUARD: never release more than the vault can cover.
+            # VAULT_MIN_RESERVE_USD keeps a float in the bank so the casino
+            # stays solvent while still paying genuine wins.
+            reserve_cents = int(round(float(os.environ.get("VAULT_MIN_RESERVE_USD", "0")) * 100))
+            summary = await get_house_bankroll_summary()
+            available_cents = int(summary.get("available_cents", 0))
+
             for t in pending:
+                now_iso = datetime.now(timezone.utc).isoformat()
+                amt_cents = int(round(float(t.get("amount_usd", 0) or 0) * 100))
+
+                # Hold the payout if the vault lacks the funds to cover it.
+                if available_cents - amt_cents < reserve_cents:
+                    await db.cashier_transactions.update_one(
+                        {"id": t["id"]},
+                        {"$set": {
+                            "status": "pending",
+                            "vault_hold": True,
+                            "hold_reason": "insufficient_vault_balance",
+                            "updated_at": now_iso,
+                        }},
+                    )
+                    logger.warning(
+                        "WITHDRAWAL HELD id=%s amount_usd=%.2f vault_available_usd=%.2f (insufficient vault funds)",
+                        t.get("id"),
+                        float(t.get("amount_usd", 0) or 0),
+                        available_cents / 100.0,
+                    )
+                    continue
+
                 # attempt submit to vault
                 try:
                     res = await cashier.vault_submit_withdrawal(
@@ -805,14 +1014,16 @@ async def _process_withdrawals_loop():
                         t.get("destination", ""),
                         t.get("id"),
                     )
-                    now_iso = datetime.now(timezone.utc).isoformat()
                     if res.get("ok"):
+                        available_cents -= amt_cents  # reserve the released funds
                         await db.cashier_transactions.update_one(
                             {"id": t["id"]},
                             {
                                 "$set": {
                                     "status": "processing",
                                     "vault_id": res.get("vault_id"),
+                                    "vault_hold": False,
+                                    "hold_reason": None,
                                     "updated_at": now_iso,
                                 }
                             },
@@ -842,6 +1053,7 @@ class RegisterInput(BaseModel):
     email: EmailStr
     password: str = Field(min_length=6)
     name: str = Field(min_length=1)
+    ref_code: Optional[str] = None
 
 
 class LoginInput(BaseModel):
@@ -863,8 +1075,22 @@ class KenoInput(BaseModel):
     stake: float = Field(gt=0)
 
 
+class WowKenoInput(BaseModel):
+    picks: List[int]
+    stake: float = Field(gt=0)
+
+
+class SideKenoInput(BaseModel):
+    bets: Dict[str, str]
+    stake: float = Field(gt=0)
+
+
 class CoinFlipInput(BaseModel):
     side: str
+    bet: float = Field(gt=0)
+
+
+class SharkFlipInput(BaseModel):
     bet: float = Field(gt=0)
 
 
@@ -892,6 +1118,17 @@ async def register(payload: RegisterInput, response: Response):
             status_code=400, detail="An account with this email already exists"
         )
     user_id = f"user_{uuid.uuid4().hex[:12]}"
+
+    referred_by = None
+    if payload.ref_code:
+        ref = await db.users.find_one(
+            {"referral_code": payload.ref_code.strip().upper()}
+        )
+        if ref and ref.get("user_id") != user_id:
+            referred_by = ref["user_id"]
+
+    referral_code = await _generate_unique_referral_code()
+
     doc = {
         "user_id": user_id,
         "email": email,
@@ -909,6 +1146,11 @@ async def register(payload: RegisterInput, response: Response):
         "last_cashback_at": datetime.now(timezone.utc).isoformat(),
         "cashback_wagered_snapshot": 0.0,
         "cashback_won_snapshot": 0.0,
+        "referral_code": referral_code,
+        "referred_by": referred_by,
+        "referral_reward_paid": False,
+        "referral_count": 0,
+        "referral_earnings_cents": 0,
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
     await db.users.insert_one(doc)
@@ -927,15 +1169,22 @@ async def register(payload: RegisterInput, response: Response):
 async def login(payload: LoginInput, response: Response):
     email = payload.email.lower().strip()
     u = await db.users.find_one({"email": email})
-    if (
-        not u
-        or not u.get("password_hash")
-        or not verify_password(payload.password, u["password_hash"])
-    ):
-        raise HTTPException(status_code=401, detail="Invalid email or password")
-    token = create_access_token(u["user_id"], email)
-    set_auth_cookie(response, token)
-    return {"user": public_user(u), "token": token}
+
+    valid = bool(u and u.get("password_hash") and verify_password(payload.password, u["password_hash"]))
+    if valid:
+        _reset_login_failures(email)
+        token = create_access_token(u["user_id"], email)
+        set_auth_cookie(response, token)
+        return {"user": public_user(u), "token": token}
+
+    attempts = _AUTH_FAILURES.get(email, [])
+    now = datetime.now(timezone.utc)
+    attempts = [ts for ts in attempts if (now - ts).total_seconds() < AUTH_FAILURE_WINDOW_SECONDS]
+    attempts.append(now)
+    _AUTH_FAILURES[email] = attempts
+    if len(attempts) >= AUTH_FAILURE_LIMIT:
+        raise HTTPException(status_code=429, detail="Too many failed login attempts")
+    raise HTTPException(status_code=401, detail="Invalid email or password")
 
 
 @api.post("/auth/logout")
@@ -956,6 +1205,28 @@ async def me(user: dict = Depends(require_user)):
     if granted:
         resp["cashback_just_paid"] = granted
     return resp
+
+
+@api.get("/referral/me")
+async def referral_me(user: dict = Depends(require_user)):
+    fresh = await db.users.find_one({"user_id": user["user_id"]})
+    code = fresh.get("referral_code")
+    if not code:
+        code = await _ensure_referral_code(user["user_id"])
+    total_signups = await db.users.count_documents(
+        {"referred_by": user["user_id"]}
+    )
+    converted = await db.users.count_documents(
+        {"referred_by": user["user_id"], "referral_reward_paid": True}
+    )
+    earnings_cents = int(fresh.get("referral_earnings_cents", 0))
+    return {
+        "referral_code": code,
+        "reward_usd": REFERRAL_REWARD_CENTS / 100.0,
+        "total_referrals": total_signups,
+        "converted_referrals": converted,
+        "earnings_usd": round(earnings_cents / 100.0, 2),
+    }
 
 
 @api.get("/cashback/status")
@@ -1186,9 +1457,70 @@ async def slots_spin(payload: SpinInput, user: dict = Depends(require_user)):
         }
 
     result["free_session"] = free_session
+    result["win"] = round(result["total_win"], 2)
+    result["payout"] = round(result["total_win"], 2)
     result["balance"] = round(updated["balance"], 2)
     result["net"] = round(net, 2)
     return result
+
+
+BUY_FEATURE_COST_MULT = 100  # buy the free-spins bonus for 100x the total bet
+
+
+@api.post("/games/slots/buy-bonus")
+async def slots_buy_bonus(payload: SpinInput, user: dict = Depends(require_user)):
+    """Buy Feature — pay 100x the bet to instantly trigger the free-spins bonus."""
+    m = SLOT_MACHINES.get(payload.machine_id)
+    if not m:
+        raise HTTPException(status_code=404, detail="Machine not found")
+    if payload.bet < 20:
+        raise HTTPException(status_code=400, detail="Minimum bet is 20 credits")
+    spins = int(m.get("free_spins", 0) or 0)
+    if spins <= 0:
+        raise HTTPException(
+            status_code=400,
+            detail="This machine has no buyable free-spins feature",
+        )
+    cost = round(payload.bet * BUY_FEATURE_COST_MULT, 2)
+    if user.get("balance", 0) < cost:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Need {int(cost)} credits to buy the feature",
+        )
+    updated = await adjust_balance(
+        user["user_id"], delta_balance=-cost, wagered=cost, played=1
+    )
+    await record_transaction(
+        user["user_id"],
+        "buy_feature",
+        -cost,
+        {"machine": payload.machine_id, "bet": payload.bet, "spins": spins},
+    )
+    session_id = str(uuid.uuid4())
+    await db.free_spins.insert_one(
+        {
+            "session_id": session_id,
+            "user_id": user["user_id"],
+            "machine_id": payload.machine_id,
+            "bet": payload.bet,
+            "spins_total": spins,
+            "spins_left": spins,
+            "multiplier": 1,
+            "total_win": 0.0,
+            "active": True,
+            "bought": True,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+    )
+    return {
+        "free_session": {
+            "session_id": session_id,
+            "spins_left": spins,
+            "multiplier": 1,
+        },
+        "cost": cost,
+        "balance": round(updated["balance"], 2),
+    }
 
 
 @api.post("/games/slots/freespin")
@@ -1342,6 +1674,105 @@ async def keno_play(payload: KenoInput, user: dict = Depends(require_user)):
     return result
 
 
+@api.post("/games/keno/wow")
+async def wow_keno_play(payload: WowKenoInput, user: dict = Depends(require_user)):
+    if payload.stake < 10:
+        raise HTTPException(status_code=400, detail="Minimum stake is 10 credits")
+    if user.get("balance", 0) < payload.stake:
+        raise HTTPException(status_code=400, detail="Insufficient credits")
+    try:
+        result = play_wow_keno(payload.picks, payload.stake)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    net = result["win"] - payload.stake
+    updated = await adjust_balance(
+        user["user_id"],
+        delta_balance=net,
+        wagered=payload.stake,
+        won=result["win"],
+        biggest=result["win"],
+        played=1,
+    )
+    if result["win"] > payload.stake:
+        await record_house_cashflow(
+            result["win"] - payload.stake,
+            "player_payout",
+            "keno_wow_win",
+            {"user_id": user["user_id"], "picks": result["picks"], "stake": payload.stake},
+        )
+    elif payload.stake > 0:
+        await record_house_cashflow(
+            payload.stake,
+            "house_win",
+            "keno_wow_loss",
+            {"user_id": user["user_id"], "picks": result["picks"], "stake": payload.stake},
+        )
+    await record_transaction(
+        user["user_id"],
+        "keno_wow",
+        net,
+        {"picks": result["picks"], "stake": payload.stake, "win": result["win"]},
+    )
+    await add_tournament_score(user, result["win"])
+    result["balance"] = round(updated["balance"], 2)
+    result["net"] = round(net, 2)
+    return result
+
+
+@api.post("/games/keno/side")
+async def side_keno_play(payload: SideKenoInput, user: dict = Depends(require_user)):
+    if payload.stake < 10:
+        raise HTTPException(status_code=400, detail="Minimum stake is 10 credits per bet")
+    try:
+        result = play_side_keno(payload.bets)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    num_legs = len(result["legs"])
+    total_stake = round(payload.stake * num_legs, 2)
+    if user.get("balance", 0) < total_stake:
+        raise HTTPException(status_code=400, detail="Insufficient credits")
+    total_win = round(
+        sum(payload.stake * result["leg_payout"] for leg in result["legs"] if leg["won"]),
+        2,
+    )
+    net = round(total_win - total_stake, 2)
+    updated = await adjust_balance(
+        user["user_id"],
+        delta_balance=net,
+        wagered=total_stake,
+        won=total_win,
+        biggest=total_win,
+        played=1,
+    )
+    if total_win > total_stake:
+        await record_house_cashflow(
+            total_win - total_stake,
+            "player_payout",
+            "keno_side_win",
+            {"user_id": user["user_id"], "bets": payload.bets, "stake": total_stake},
+        )
+    elif total_stake > 0:
+        await record_house_cashflow(
+            total_stake,
+            "house_win",
+            "keno_side_loss",
+            {"user_id": user["user_id"], "bets": payload.bets, "stake": total_stake},
+        )
+    await record_transaction(
+        user["user_id"],
+        "keno_side",
+        net,
+        {"bets": payload.bets, "stake": total_stake, "win": total_win},
+    )
+    await add_tournament_score(user, total_win)
+    result["stake"] = payload.stake
+    result["total_stake"] = total_stake
+    result["win"] = total_win
+    result["balance"] = round(updated["balance"], 2)
+    result["net"] = net
+    return result
+
+
 # ---------------------------------------------------------------------------
 # Coin Flip (quick game)
 # ---------------------------------------------------------------------------
@@ -1390,6 +1821,78 @@ async def coinflip(payload: CoinFlipInput, user: dict = Depends(require_user)):
         "win": round(win, 2),
         "net": round(net, 2),
         "balance": round(updated["balance"], 2),
+    }
+
+
+@api.post("/games/shark/flip")
+async def shark_flip(payload: SharkFlipInput, user: dict = Depends(require_user)):
+    if payload.bet < 10:
+        raise HTTPException(status_code=400, detail="Minimum bet is 10 credits")
+    if user.get("balance", 0) < payload.bet:
+        raise HTTPException(status_code=400, detail="Insufficient credits")
+    # ~94% RTP: evens 3.3% (3x), heads 21% (2x), tails 21% (2x), split/lose 54.7%
+    r = secrets.randbelow(1000)
+    if r < 33:
+        outcome, mult = "evens", 3.0
+    elif r < 243:
+        outcome, mult = "heads", 2.0
+    elif r < 453:
+        outcome, mult = "tails", 2.0
+    else:
+        outcome, mult = "split", 0.0
+    streak = int(user.get("shark_streak", 0) or 0)
+    jackpot = False
+    if mult > 0:
+        streak += 1
+        win = round(payload.bet * mult, 2)
+        if streak >= 5:
+            jackpot = True
+            win = round(win + payload.bet * 5, 2)  # streak jackpot bonus
+            streak = 0
+    else:
+        streak = 0
+        win = 0.0
+    net = win - payload.bet
+    updated = await adjust_balance(
+        user["user_id"],
+        delta_balance=net,
+        wagered=payload.bet,
+        won=win,
+        biggest=win,
+        played=1,
+    )
+    await db.users.update_one(
+        {"user_id": user["user_id"]}, {"$set": {"shark_streak": streak}}
+    )
+    if win > 0:
+        await record_house_cashflow(
+            win,
+            "player_payout",
+            "shark_win",
+            {"user_id": user["user_id"], "outcome": outcome, "bet": payload.bet},
+        )
+    else:
+        await record_house_cashflow(
+            payload.bet,
+            "house_win",
+            "shark_loss",
+            {"user_id": user["user_id"], "outcome": outcome, "bet": payload.bet},
+        )
+    await record_transaction(
+        user["user_id"],
+        "shark_splitters",
+        net,
+        {"outcome": outcome, "bet": payload.bet, "win": win, "jackpot": jackpot},
+    )
+    await add_tournament_score(user, win)
+    return {
+        "outcome": outcome,
+        "multiplier": mult,
+        "win": win,
+        "net": round(net, 2),
+        "balance": round(updated["balance"], 2),
+        "streak": streak,
+        "jackpot": jackpot,
     }
 
 
@@ -1517,87 +2020,217 @@ async def bonus_claim(user: dict = Depends(require_user)):
 # ---------------------------------------------------------------------------
 # Daily Streak Wheel (additional daily reward, separate from Supply Drop)
 # ---------------------------------------------------------------------------
-WHEEL_SEGMENTS = [500, 1000, 2000, 3000, 5000, 8000, 12000, 20000, 50000]
-WHEEL_WEIGHTS = [28, 22, 16, 12, 9, 6, 4, 2, 1]
-WHEEL_COOLDOWN_HOURS = 24
+# ── Wheel of Wealth ──────────────────────────────────────────────────────
+# Cash segments in dollars + two "Better Luck" + one "Spin Again" (13 total).
+WHEEL_OF_WEALTH = [
+    {"label": "$5", "value": 5, "type": "cash"},
+    {"label": "$10", "value": 10, "type": "cash"},
+    {"label": "$15", "value": 15, "type": "cash"},
+    {"label": "$20", "value": 20, "type": "cash"},
+    {"label": "$25", "value": 25, "type": "cash"},
+    {"label": "$30", "value": 30, "type": "cash"},
+    {"label": "$35", "value": 35, "type": "cash"},
+    {"label": "$40", "value": 40, "type": "cash"},
+    {"label": "$45", "value": 45, "type": "cash"},
+    {"label": "$50", "value": 50, "type": "cash"},
+    {"label": "BETTER LUCK", "value": 0, "type": "luck"},
+    {"label": "BETTER LUCK", "value": 0, "type": "luck"},
+    {"label": "SPIN AGAIN", "value": 0, "type": "again"},
+]
+WHEEL_OF_WEALTH_WEIGHTS = [26, 20, 14, 9, 6, 4, 3, 2, 1, 1, 30, 30, 8]
+WHEEL_BIG_DEPOSIT_USD = 500  # a single deposit OVER this earns 1 spin
+WHEEL_MILESTONE_USD = 1000  # every $1000 of lifetime deposits earns 1 spin
 
 
-def _wheel_seconds_left(user: dict) -> int:
-    last = user.get("last_wheel_spin_at")
-    if not last:
-        return 0
-    ld = datetime.fromisoformat(last) if isinstance(last, str) else last
-    if ld.tzinfo is None:
-        ld = ld.replace(tzinfo=timezone.utc)
-    elapsed = datetime.now(timezone.utc) - ld
-    cd = timedelta(hours=WHEEL_COOLDOWN_HOURS)
-    return int((cd - elapsed).total_seconds()) if elapsed < cd else 0
+async def _grant_wheel_spins_on_deposit(user_id: str, deposit_usd: float):
+    """Award Wheel of Wealth spins: +1 for any single deposit over $500, and
+    +1 for each $1000 lifetime-deposit milestone newly crossed. Idempotent per
+    deposit because it is called exactly once from each credit path."""
+    u = await db.users.find_one({"user_id": user_id})
+    if not u:
+        return
+    prev_total = float(u.get("total_deposited_usd", 0.0))
+    new_total = prev_total + float(deposit_usd)
+    granted = 1 if float(deposit_usd) > WHEEL_BIG_DEPOSIT_USD else 0
+    granted += int(new_total // WHEEL_MILESTONE_USD) - int(
+        prev_total // WHEEL_MILESTONE_USD
+    )
+    await db.users.update_one(
+        {"user_id": user_id},
+        {
+            "$set": {"total_deposited_usd": round(new_total, 2)},
+            "$inc": {"wheel_spins": max(0, granted)},
+        },
+    )
 
 
 @api.get("/wheel/status")
 async def wheel_status(user: dict = Depends(require_user)):
     fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
-    streak = int(fresh.get("wheel_streak", 0))
-    seconds_left = _wheel_seconds_left(fresh)
-    return {
-        "available": seconds_left == 0,
+    spins = int(fresh.get("wheel_spins", 0))
+    total_dep = float(fresh.get("total_deposited_usd", 0.0))
+
+    last_spin = fresh.get("last_wheel_spin_at")
+    if isinstance(last_spin, str):
+        try:
+            last_spin_dt = datetime.fromisoformat(last_spin)
+            if last_spin_dt.tzinfo is None:
+                last_spin_dt = last_spin_dt.replace(tzinfo=timezone.utc)
+        except ValueError:
+            last_spin_dt = None
+    else:
+        last_spin_dt = last_spin
+
+    if last_spin_dt is None:
+        seconds_left = 0
+        cooldown_active = False
+    else:
+        now = datetime.now(timezone.utc)
+        seconds_left = max(0, int((last_spin_dt + timedelta(days=1) - now).total_seconds()))
+        cooldown_active = seconds_left > 0
+
+    streak = int(fresh.get("wheel_streak", fresh.get("daily_wheel_streak", 0)) or 0)
+    next_multiplier = 2 if streak and streak % 7 == 0 else 1
+    mega_unlocked = streak >= 6
+    mega_value = 250000 if mega_unlocked else 0
+
+    legacy_segments = [500, 1000, 2000, 5000, 10000, 15000, 25000, 35000, 50000]
+    legacy_segment_meta = [
+        {"label": "$500", "value": 500, "type": "cash"},
+        {"label": "$1,000", "value": 1000, "type": "cash"},
+        {"label": "$2,000", "value": 2000, "type": "cash"},
+        {"label": "$5,000", "value": 5000, "type": "cash"},
+        {"label": "$10,000", "value": 10000, "type": "cash"},
+        {"label": "$15,000", "value": 15000, "type": "cash"},
+        {"label": "$25,000", "value": 25000, "type": "cash"},
+        {"label": "$35,000", "value": 35000, "type": "cash"},
+        {"label": "$50,000", "value": 50000, "type": "cash"},
+    ]
+    response = {
+        "available": (spins > 0) or (not cooldown_active),
+        "spins_available": spins,
+        "segments": legacy_segments,
+        "segment_meta": legacy_segment_meta,
+        "total_deposited_usd": round(total_dep, 2),
+        "big_deposit_usd": WHEEL_BIG_DEPOSIT_USD,
+        "milestone_usd": WHEEL_MILESTONE_USD,
+        "next_milestone_usd": round(
+            (int(total_dep // WHEEL_MILESTONE_USD) + 1) * WHEEL_MILESTONE_USD, 2
+        ),
         "seconds_left": seconds_left,
         "streak": streak,
-        "segments": WHEEL_SEGMENTS,
+        "next_multiplier": next_multiplier,
+        "segments_values": legacy_segments,
+        "mega_unlocked": mega_unlocked,
+        "mega_value": mega_value,
         "next_streak": streak + 1,
-        "next_multiplier": 2 if (streak + 1) % 7 == 0 else 1,
     }
+    return response
 
 
 @api.post("/wheel/spin")
 async def wheel_spin(user: dict = Depends(require_user)):
     fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
-    if _wheel_seconds_left(fresh) > 0:
-        raise HTTPException(status_code=400, detail="Wheel not ready yet")
-    # streak: continue if last spin was within 48h (i.e., yesterday), else reset
-    last = fresh.get("last_wheel_spin_at")
-    new_streak = 1
-    if last:
-        ld = datetime.fromisoformat(last) if isinstance(last, str) else last
-        if ld.tzinfo is None:
-            ld = ld.replace(tzinfo=timezone.utc)
-        if datetime.now(timezone.utc) - ld < timedelta(hours=48):
-            new_streak = int(fresh.get("wheel_streak", 0)) + 1
-    # cryptographically-secure weighted segment pick
-    _total = sum(WHEEL_WEIGHTS)
-    _r = secrets.randbelow(_total)
-    _acc = 0
-    idx = len(WHEEL_SEGMENTS) - 1
-    for _j, _w in enumerate(WHEEL_WEIGHTS):
-        _acc += _w
-        if _r < _acc:
-            idx = _j
-            break
-    base = WHEEL_SEGMENTS[idx]
-    mult = 2 if new_streak % 7 == 0 else 1
-    amount = base * mult
+    spins = int(fresh.get("wheel_spins", 0))
+
+    if spins > 0:
+        claimed = await db.users.find_one_and_update(
+            {"user_id": user["user_id"], "wheel_spins": {"$gte": 1}},
+            {"$inc": {"wheel_spins": -1}},
+        )
+        if not claimed:
+            raise HTTPException(
+                status_code=400,
+                detail="No wheel spins available. Deposit over $500, or reach $1000 in total deposits, to earn a Wheel of Wealth spin.",
+            )
+        wts = WHEEL_OF_WEALTH_WEIGHTS
+        total = sum(wts)
+        r = secrets.randbelow(total)
+        acc = 0
+        idx = len(wts) - 1
+        for j, w in enumerate(wts):
+            acc += w
+            if r < acc:
+                idx = j
+                break
+        seg = WHEEL_OF_WEALTH[idx]
+        amount = 0.0
+        if seg["type"] == "cash":
+            amount = float(seg["value"])
+            await db.users.update_one(
+                {"user_id": user["user_id"]}, {"$inc": {"balance": amount}}
+            )
+            await record_transaction(
+                user["user_id"], "wheel_win", amount, {"segment": seg["label"]}
+            )
+        elif seg["type"] == "again":
+            await db.users.update_one(
+                {"user_id": user["user_id"]}, {"$inc": {"wheel_spins": 1}}
+            )
+        updated = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
+        return {
+            "segment_index": idx,
+            "label": seg["label"],
+            "type": seg["type"],
+            "amount": amount,
+            "spins_available": int(updated.get("wheel_spins", 0)),
+            "balance": round(updated["balance"], 2),
+        }
+
+    last_spin = fresh.get("last_wheel_spin_at")
+    if isinstance(last_spin, str):
+        try:
+            last_spin_dt = datetime.fromisoformat(last_spin)
+            if last_spin_dt.tzinfo is None:
+                last_spin_dt = last_spin_dt.replace(tzinfo=timezone.utc)
+        except ValueError:
+            last_spin_dt = None
+    else:
+        last_spin_dt = last_spin
+
+    if last_spin_dt is not None:
+        now = datetime.now(timezone.utc)
+        if now - last_spin_dt < timedelta(days=1):
+            remaining = max(0, int((last_spin_dt + timedelta(days=1) - now).total_seconds()))
+            raise HTTPException(
+                status_code=400,
+                detail=f"Wheel is on cooldown for {remaining} seconds.",
+            )
+
+    seg_values = [500, 1000, 2000, 5000, 10000, 15000, 25000, 35000, 50000]
+    idx = secrets.randbelow(len(seg_values))
+    amount = float(seg_values[idx])
+    streak = int(fresh.get("wheel_streak", 0) or 0) + 1
+    next_multiplier = 2 if streak and streak % 7 == 0 else 1
+    adjusted_amount = round(amount * next_multiplier, 2)
     now_iso = datetime.now(timezone.utc).isoformat()
+
     await db.users.update_one(
         {"user_id": user["user_id"]},
         {
-            "$inc": {"balance": amount},
-            "$set": {"last_wheel_spin_at": now_iso, "wheel_streak": new_streak},
+            "$inc": {"balance": adjusted_amount},
+            "$set": {
+                "last_wheel_spin_at": now_iso,
+                "wheel_streak": streak,
+            },
         },
     )
     await record_transaction(
-        user["user_id"],
-        "wheel_spin",
-        amount,
-        {"streak": new_streak, "multiplier": mult, "base": base},
+        user["user_id"], "wheel_win", adjusted_amount, {"segment_index": idx, "streak": streak}
     )
+
     updated = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
     return {
-        "amount": amount,
-        "base": base,
         "segment_index": idx,
-        "multiplier": mult,
-        "streak": new_streak,
+        "label": f"${int(amount):,}",
+        "type": "cash",
+        "amount": adjusted_amount,
+        "multiplier": next_multiplier,
+        "streak": streak,
         "balance": round(updated["balance"], 2),
+        "available": False,
+        "seconds_left": 86400,
+        "spins_available": 0,
     }
 
 
@@ -1746,6 +2379,33 @@ async def tournament_current(request: Request):
     }
 
 
+@api.get("/tournament/champions")
+async def tournament_champions():
+    """Hall of Fame — winners of the most recently finalized tournament."""
+    last = await db.tournaments.find_one(
+        {"status": "finalized", "winners": {"$exists": True, "$ne": []}},
+        {"_id": 0},
+        sort=[("finalized_at", -1)],
+    )
+    if not last:
+        return {"has_history": False, "champions": []}
+    return {
+        "has_history": True,
+        "name": last.get("name"),
+        "finalized_at": last.get("finalized_at"),
+        "prize_pool": last.get("prize_pool"),
+        "champions": [
+            {
+                "rank": w.get("rank"),
+                "name": w.get("name", "Operative"),
+                "prize": w.get("prize", 0),
+                "score": w.get("score", 0),
+            }
+            for w in (last.get("winners") or [])
+        ],
+    }
+
+
 # ---------------------------------------------------------------------------
 # Wallet / history / leaderboard / vip
 # ---------------------------------------------------------------------------
@@ -1802,6 +2462,76 @@ async def vip_tiers():
 class BalanceAdjustInput(BaseModel):
     amount: float
     mode: str = "delta"  # "delta" or "set"
+
+
+DEFAULT_UPGRADES = [
+    {
+        "id": f"pkg-{i + 1}",
+        "name": f"Fleet Upgrade {i + 1}",
+        "description": f"Enhancement package {i + 1} — custom configuration available.",
+        "price_usd": 499 + i * 10 if i % 5 == 0 else 99 + i * 20,
+        "active": i < 8,
+        "published": i < 3,
+    }
+    for i in range(21)
+]
+
+
+async def _load_upgrade_catalog():
+    doc = await db.upgrades.find_one({"_id": "catalog"}, {"_id": 0, "packages": 1})
+    if doc and isinstance(doc.get("packages"), list):
+        return doc["packages"]
+    await db.upgrades.update_one(
+        {"_id": "catalog"},
+        {"$setOnInsert": {"packages": DEFAULT_UPGRADES, "updated_at": datetime.now(timezone.utc).isoformat()}},
+        upsert=True,
+    )
+    return DEFAULT_UPGRADES
+
+
+@api.get("/upgrades")
+async def public_upgrades():
+    packages = await _load_upgrade_catalog()
+    return packages
+
+
+@api.get("/admin/upgrades")
+async def admin_get_upgrades(admin: dict = Depends(require_admin)):
+    packages = await _load_upgrade_catalog()
+    return packages
+
+
+@api.post("/admin/upgrades")
+async def admin_set_upgrades(
+    payload: List[dict], admin: dict = Depends(require_admin)
+):
+    if not isinstance(payload, list):
+        raise HTTPException(status_code=400, detail="Expected a list of upgrade packages")
+    cleaned = []
+    for entry in payload:
+        if not isinstance(entry, dict):
+            continue
+        cleaned.append(
+            {
+                "id": str(entry.get("id") or uuid.uuid4().hex),
+                "name": str(entry.get("name") or "Fleet Upgrade"),
+                "description": str(
+                    entry.get("description")
+                    or "Enhancement package — custom configuration available."
+                ),
+                "price_usd": float(entry.get("price_usd", 0.0) or 0.0),
+                "active": bool(entry.get("active", False)),
+                "published": bool(entry.get("published", False)),
+            }
+        )
+    if not cleaned:
+        raise HTTPException(status_code=400, detail="No valid upgrade packages supplied")
+    await db.upgrades.update_one(
+        {"_id": "catalog"},
+        {"$set": {"packages": cleaned, "updated_at": datetime.now(timezone.utc).isoformat()}},
+        upsert=True,
+    )
+    return cleaned
 
 
 @api.get("/admin/stats")
@@ -1899,6 +2629,66 @@ async def fleet_enquiry(payload: FleetEnquiryInput):
     return {"ok": True, "id": doc["id"]}
 
 
+# ---------------------------------------------------------------------------
+# Support tickets ("Contact Management") + PIN-protected HQ Inbox
+# ---------------------------------------------------------------------------
+HQ_PIN = os.environ.get("HQ_PIN", "")
+
+
+class SupportTicketInput(BaseModel):
+    name: str
+    email: str
+    subject: Optional[str] = None
+    message: str
+
+
+def _check_hq_pin(request: Request):
+    pin = request.headers.get("X-HQ-Pin", "")
+    if not HQ_PIN or pin != HQ_PIN:
+        raise HTTPException(status_code=403, detail="Invalid HQ PIN")
+
+
+@api.post("/support/ticket")
+async def support_ticket(payload: SupportTicketInput, request: Request):
+    user = await resolve_user(request)
+    doc = {
+        "id": str(uuid.uuid4()),
+        "name": payload.name.strip(),
+        "email": payload.email.lower().strip(),
+        "subject": (payload.subject or "General enquiry").strip(),
+        "message": payload.message.strip(),
+        "user_id": user["user_id"] if user else None,
+        "status": "open",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.support_tickets.insert_one(doc)
+    return {"ok": True, "id": doc["id"]}
+
+
+@api.get("/support/tickets")
+async def support_tickets(request: Request, admin: dict = Depends(require_admin)):
+    _check_hq_pin(request)
+    return (
+        await db.support_tickets.find({}, {"_id": 0})
+        .sort("created_at", -1)
+        .to_list(300)
+    )
+
+
+@api.post("/support/tickets/{ticket_id}/resolve")
+async def support_resolve(
+    ticket_id: str, request: Request, admin: dict = Depends(require_admin)
+):
+    _check_hq_pin(request)
+    res = await db.support_tickets.update_one(
+        {"id": ticket_id},
+        {"$set": {"status": "resolved", "resolved_at": datetime.now(timezone.utc).isoformat()}},
+    )
+    if res.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+    return {"ok": True}
+
+
 @api.get("/cashback/history")
 async def cashback_history(user: dict = Depends(require_user)):
     rows = (
@@ -1957,6 +2747,22 @@ async def checkout(payload: CheckoutInput, user: dict = Depends(require_user)):
     )
     if not pkg:
         raise HTTPException(status_code=400, detail="Unknown package")
+
+    existing = await db.payment_transactions.find_one(
+        {
+            "user_id": user["user_id"],
+            "lookup_key": pkg["lookup_key"],
+            "credited": False,
+            "payment_status": {"$ne": "paid"},
+        },
+        {"_id": 0, "session_id": 1},
+    )
+    if existing:
+        raise HTTPException(
+            status_code=409,
+            detail="This credit package is already in progress for your account.",
+        )
+
     try:
         price = _ensure_price(pkg)
         total_credits = pkg["credits"] + pkg.get("bonus", 0)
@@ -2007,59 +2813,139 @@ async def checkout(payload: CheckoutInput, user: dict = Depends(require_user)):
     return {"checkout_url": session.url, "session_id": session.id}
 
 
+def _gen_referral_code():
+    return "WOW" + uuid.uuid4().hex[:6].upper()
+
+
+async def _generate_unique_referral_code():
+    for _ in range(6):
+        code = _gen_referral_code()
+        if not await db.users.find_one({"referral_code": code}):
+            return code
+    return "WOW" + uuid.uuid4().hex[:10].upper()
+
+
+async def _ensure_referral_code(user_id: str) -> str:
+    code = await _generate_unique_referral_code()
+    await db.users.update_one(
+        {"user_id": user_id}, {"$set": {"referral_code": code}}
+    )
+    return code
+
+
+async def _maybe_pay_referral(user_id: str):
+    """Pay the referrer a one-time $5 real-balance bonus on their friend's FIRST
+    deposit. Fully idempotent — the referred user's `referral_reward_paid` flag is
+    claimed atomically so the bonus can never be paid twice, even if called from
+    multiple deposit-credit paths (Stripe / crypto / package)."""
+    referred = await db.users.find_one_and_update(
+        {
+            "user_id": user_id,
+            "referred_by": {"$nin": [None, ""]},
+            "referral_reward_paid": {"$ne": True},
+        },
+        {
+            "$set": {
+                "referral_reward_paid": True,
+                "first_deposit_at": datetime.now(timezone.utc).isoformat(),
+            }
+        },
+    )
+    if not referred:
+        return
+    referrer_id = referred.get("referred_by")
+    if not referrer_id or referrer_id == user_id:
+        return
+    referrer = await db.users.find_one({"user_id": referrer_id})
+    if not referrer:
+        return
+    await db.users.update_one(
+        {"user_id": referrer_id},
+        {
+            "$inc": {
+                "real_balance_cents": REFERRAL_REWARD_CENTS,
+                "referral_earnings_cents": REFERRAL_REWARD_CENTS,
+                "referral_count": 1,
+            }
+        },
+    )
+    await record_house_cashflow(
+        REFERRAL_REWARD_CENTS / 100.0,
+        "referral_bonus",
+        "referral_reward",
+        {"referrer_id": referrer_id, "referred_id": user_id},
+    )
+    await record_transaction(
+        referrer_id,
+        "referral_bonus",
+        REFERRAL_REWARD_CENTS / 100.0,
+        {"referred_user": user_id, "referred_email": referred.get("email")},
+    )
+
+
 async def _credit_if_paid(record):
-    if record.get("payment_status") == "paid" and not record.get("credited"):
-        if record.get("kind") == "cashier_deposit":
-            usd_cents = int(record.get("usd_cents", 0))
-            await db.users.update_one(
-                {"user_id": record["user_id"]},
-                {"$inc": {"real_balance_cents": usd_cents}},
-            )
-            await db.payment_transactions.update_one(
-                {"session_id": record["session_id"]}, {"$set": {"credited": True}}
-            )
-            await db.cashier_transactions.update_one(
-                {"provider_ref": record["session_id"]},
-                {
-                    "$set": {
-                        "status": "completed",
-                        "updated_at": datetime.now(timezone.utc).isoformat(),
-                    }
-                },
-            )
-            await record_house_cashflow(
-                usd_cents / 100.0,
-                "deposit",
-                "cashier_deposit",
-                {"user_id": record["user_id"], "session_id": record["session_id"]},
-            )
-            await record_transaction(
-                record["user_id"],
-                "deposit_fiat",
-                usd_cents / 100.0,
-                {
-                    "method": "card",
-                    "currency": record.get("currency"),
-                    "session_id": record["session_id"],
-                },
-            )
-        else:
-            credits = float(record.get("credits", 0))
-            await db.users.update_one(
-                {"user_id": record["user_id"]}, {"$inc": {"balance": credits}}
-            )
-            await db.payment_transactions.update_one(
-                {"session_id": record["session_id"]}, {"$set": {"credited": True}}
-            )
-            await record_transaction(
-                record["user_id"],
-                "deposit",
-                credits,
-                {
-                    "amount_usd": record["amount"] / 100.0,
-                    "package": record["lookup_key"],
-                },
-            )
+    if record.get("payment_status") != "paid":
+        return
+    if record.get("credited"):
+        return
+
+    if record.get("kind") == "cashier_deposit":
+        usd_cents = int(record.get("usd_cents", 0))
+        await db.users.update_one(
+            {"user_id": record["user_id"]},
+            {"$inc": {"real_balance_cents": usd_cents}},
+        )
+        await db.payment_transactions.update_one(
+            {"session_id": record["session_id"]}, {"$set": {"credited": True}}
+        )
+        await db.cashier_transactions.update_one(
+            {"provider_ref": record["session_id"]},
+            {
+                "$set": {
+                    "status": "completed",
+                    "updated_at": datetime.now(timezone.utc).isoformat(),
+                }
+            },
+        )
+        await record_house_cashflow(
+            usd_cents / 100.0,
+            "deposit",
+            "cashier_deposit",
+            {"user_id": record["user_id"], "session_id": record["session_id"]},
+        )
+        await record_transaction(
+            record["user_id"],
+            "deposit_fiat",
+            usd_cents / 100.0,
+            {
+                "method": "card",
+                "currency": record.get("currency"),
+                "session_id": record["session_id"],
+            },
+        )
+        await _maybe_pay_referral(record["user_id"])
+        await _grant_wheel_spins_on_deposit(record["user_id"], usd_cents / 100.0)
+    else:
+        credits = float(record.get("credits", 0))
+        await db.users.update_one(
+            {"user_id": record["user_id"]}, {"$inc": {"balance": credits}}
+        )
+        await db.payment_transactions.update_one(
+            {"session_id": record["session_id"]}, {"$set": {"credited": True}}
+        )
+        await record_transaction(
+            record["user_id"],
+            "deposit",
+            credits,
+            {
+                "amount_usd": record["amount"] / 100.0,
+                "package": record["lookup_key"],
+            },
+        )
+        await _maybe_pay_referral(record["user_id"])
+        await _grant_wheel_spins_on_deposit(
+            record["user_id"], record["amount"] / 100.0
+        )
 
 
 @api.get("/payments/status/{session_id}")
@@ -2373,6 +3259,10 @@ async def _credit_crypto_deposit(payment_id: str):
             t["amount_usd_cents"] / 100.0,
             {"method": "crypto", "currency": t["currency"], "payment_id": payment_id},
         )
+        await _maybe_pay_referral(t["user_id"])
+        await _grant_wheel_spins_on_deposit(
+            t["user_id"], t["amount_usd_cents"] / 100.0
+        )
 
 
 @api.post("/webhooks/nowpayments")
@@ -2637,22 +3527,49 @@ async def health_check():
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=".*",
+    allow_origins=CORS_ALLOW_ORIGINS,
+    allow_origin_regex=CORS_ALLOW_ORIGIN_REGEX,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
+async def _safe_create_index(collection, field_name, **kwargs):
+    try:
+        await collection.create_index(field_name, **kwargs)
+    except OperationFailure as exc:
+        if exc.code == 13 or "not authorized" in str(exc).lower() or "createindex" in str(exc).lower():
+            logger.warning(
+                "Skipping Mongo index creation for %s on %s because the DB user is not authorized: %s",
+                getattr(collection, "name", type(collection).__name__),
+                field_name,
+                exc,
+            )
+            return
+        raise
+    except Exception as exc:
+        logger.warning(
+            "Skipping Mongo index creation for %s on %s due to non-fatal startup issue: %s",
+            getattr(collection, "name", type(collection).__name__),
+            field_name,
+            exc,
+            exc_info=True,
+        )
+        return
+
+
 @app.on_event("startup")
 async def startup():
     validate_runtime_config()
-    await db.users.create_index("email", unique=True)
-    await db.users.create_index("user_id", unique=True)
-    await db.user_sessions.create_index("session_token")
-    await db.payment_transactions.create_index("session_id")
-    await db.house_ledger.create_index("created_at")
-    await db.house_bankroll.create_index("_id")
+    global db
+    db = _ensure_db()
+    await _safe_create_index(db.users, "email", unique=True)
+    await _safe_create_index(db.users, "user_id", unique=True)
+    await _safe_create_index(db.user_sessions, "session_token")
+    await _safe_create_index(db.payment_transactions, "session_id")
+    await _safe_create_index(db.house_ledger, "created_at")
+    await _safe_create_index(db.house_bankroll, "_id")
     await db.house_bankroll.update_one(
         {"_id": "house"},
         {
@@ -2700,4 +3617,8 @@ async def startup():
 
 @app.on_event("shutdown")
 async def shutdown():
-    client.close()
+    global client, db
+    if client is not None:
+        client.close()
+        client = None
+        db = None

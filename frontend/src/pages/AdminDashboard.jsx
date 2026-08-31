@@ -25,13 +25,17 @@ import OpsAssistanceButton from "@/components/OpsAssistanceButton";
 import AdScreen from "@/components/AdScreen";
 import UpgradesPanel from "@/components/UpgradesPanel";
 import PublishPanel from "@/components/PublishPanel";
+import CommandHub from "@/components/CommandHub";
 
 export default function AdminDashboard() {
   const { user } = useAuth();
-  const [tab, setTab] = useState("overview");
+  const [tab, setTab] = useState("hub");
   const [stats, setStats] = useState(null);
   const [players, setPlayers] = useState([]);
   const [enquiries, setEnquiries] = useState([]);
+  const [hqPin, setHqPin] = useState("");
+  const [hqUnlocked, setHqUnlocked] = useState(false);
+  const [tickets, setTickets] = useState([]);
   const [search, setSearch] = useState("");
   const [payTxns, setPayTxns] = useState([]);
   const [paySummary, setPaySummary] = useState(null);
@@ -131,6 +135,39 @@ export default function AdminDashboard() {
     }
   };
 
+  const unlockHq = async () => {
+    if (!hqPin.trim()) return;
+    try {
+      const { data } = await api.get("/support/tickets", {
+        headers: { "X-HQ-Pin": hqPin },
+      });
+      setTickets(data);
+      setHqUnlocked(true);
+    } catch (e) {
+      toast.error(
+        e.response?.status === 403
+          ? "Incorrect HQ PIN"
+          : "Could not open HQ Inbox",
+      );
+    }
+  };
+
+  const resolveTicket = async (id) => {
+    try {
+      await api.post(
+        `/support/tickets/${id}/resolve`,
+        {},
+        { headers: { "X-HQ-Pin": hqPin } },
+      );
+      setTickets((ts) =>
+        ts.map((t) => (t.id === id ? { ...t, status: "resolved" } : t)),
+      );
+      toast.success("Ticket marked resolved");
+    } catch (e) {
+      toast.error("Could not update ticket");
+    }
+  };
+
   const stat = (Icon, label, value) => (
     <div className="hud p-5">
       <Icon size={26} weight="fill" className="text-nvg" />
@@ -185,11 +222,15 @@ export default function AdminDashboard() {
       </div>
 
       <div className="flex flex-wrap gap-2 mb-8">
+        {tabBtn("hub", "Command Hub")}
         {tabBtn("overview", "Overview")}
         {tabBtn("players", "Players")}
         {tabBtn("payments", "Payments")}
         {tabBtn("enquiries", "Fleet Enquiries")}
+        {tabBtn("hq", "HQ Inbox")}
       </div>
+
+      {tab === "hub" && <CommandHub />}
 
       {tab === "overview" && stats && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -430,6 +471,85 @@ export default function AdminDashboard() {
           {enquiries.length === 0 && (
             <div className="p-5 font-mono text-sm text-muted-foreground">
               No enquiries yet.
+            </div>
+          )}
+        </div>
+      )}
+
+      {tab === "hq" && (
+        <div>
+          {!hqUnlocked ? (
+            <div className="hud max-w-sm mx-auto p-6 text-center space-y-4">
+              <ShieldCheck size={36} weight="fill" className="text-gold mx-auto" />
+              <div>
+                <p className="font-display text-2xl gold-gradient tracking-wide">
+                  HQ INBOX
+                </p>
+                <p className="font-mono text-xs text-muted-foreground">
+                  Enter your HQ PIN to view support messages.
+                </p>
+              </div>
+              <Input
+                data-testid="hq-pin-input"
+                type="password"
+                value={hqPin}
+                onChange={(e) => setHqPin(e.target.value)}
+                placeholder="HQ PIN"
+                className="text-center tracking-[0.4em]"
+                onKeyDown={(e) => e.key === "Enter" && unlockHq()}
+              />
+              <Button
+                data-testid="hq-unlock-btn"
+                onClick={unlockHq}
+                className="w-full bg-gold hover:bg-gold/90 text-black font-display tracking-widest"
+              >
+                UNLOCK HQ
+              </Button>
+            </div>
+          ) : (
+            <div className="hud divide-y divide-border" data-testid="hq-inbox">
+              {tickets.map((tk) => (
+                <div key={tk.id} className="px-5 py-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="font-stencil tracking-wide text-foreground">
+                      {tk.name}
+                      <span
+                        className={`ml-2 text-[10px] font-mono px-2 py-0.5 ${
+                          tk.status === "resolved"
+                            ? "bg-nvg/20 text-nvg"
+                            : "bg-gold/20 text-gold"
+                        }`}
+                      >
+                        {(tk.status || "open").toUpperCase()}
+                      </span>
+                    </span>
+                    <span className="font-mono text-[10px] text-muted-foreground">
+                      {new Date(tk.created_at).toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="font-mono text-[11px] text-nvg">{tk.email}</div>
+                  <p className="text-sm text-foreground/80 mt-1 font-semibold">
+                    {tk.subject}
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {tk.message}
+                  </p>
+                  {tk.status !== "resolved" && (
+                    <Button
+                      data-testid={`hq-resolve-${tk.id}`}
+                      onClick={() => resolveTicket(tk.id)}
+                      className="mt-2 h-8 bg-nvg hover:bg-nvg/90 text-black font-mono text-xs tracking-widest gap-1"
+                    >
+                      <Check size={14} weight="bold" /> MARK RESOLVED
+                    </Button>
+                  )}
+                </div>
+              ))}
+              {tickets.length === 0 && (
+                <div className="p-5 font-mono text-sm text-muted-foreground">
+                  No support messages yet.
+                </div>
+              )}
             </div>
           )}
         </div>

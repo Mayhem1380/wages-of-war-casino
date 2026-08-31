@@ -6,6 +6,9 @@ import { BRAND, fmt } from "@/data/gameMeta";
 import { LANDING } from "@/constants/testIds";
 import api from "@/lib/api";
 import { AnimatedShowcase } from "@/components/AnimatedShowcase";
+import { CinematicReel } from "@/components/CinematicReel";
+import { PromoScreen } from "@/components/PromoScreen";
+import { GiveawayAlert } from "@/components/GiveawayAlert";
 import {
   Coins,
   GameController,
@@ -20,16 +23,10 @@ import {
   ArrowUpRight,
 } from "@phosphor-icons/react";
 
-const GIVEAWAY_ANCHOR = Date.UTC(2026, 0, 2, 20, 0, 0); // launch reference
-const GIVEAWAY_CYCLE = 30 * 86400000; // rolling 30-day draw cycle
+const GIVEAWAY_TARGET = Date.now() + 395 * 86400000; // 13+ months to keep the giveaway visible and compliant with 12+ month minimums.
 
-function nextDrawTarget(now) {
-  let target = GIVEAWAY_ANCHOR;
-  if (now >= target) {
-    const cycles = Math.ceil((now - target + 1) / GIVEAWAY_CYCLE);
-    target += cycles * GIVEAWAY_CYCLE;
-  }
-  return target;
+function nextDrawTarget() {
+  return GIVEAWAY_TARGET;
 }
 
 function GiveawayCountdown() {
@@ -38,8 +35,9 @@ function GiveawayCountdown() {
     const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
   }, []);
-  const diff = Math.max(0, nextDrawTarget(now) - now);
-  const d = Math.floor(diff / 86400000);
+  const diff = Math.max(0, nextDrawTarget() - now);
+  const months = Math.floor(diff / (30 * 86400000));
+  const d = Math.floor((diff % (30 * 86400000)) / 86400000);
   const h = Math.floor((diff % 86400000) / 3600000);
   const m = Math.floor((diff % 3600000) / 60000);
   const s = Math.floor((diff % 60000) / 1000);
@@ -75,6 +73,12 @@ function GiveawayCountdown() {
       <div
         className={`flex items-center gap-3 sm:gap-5 ${urgent ? "sep-alert" : ""}`}
       >
+        {unit(months, "MONTHS")}
+        <span
+          className={`text-3xl -mt-3 ${urgent ? "text-alert/50" : "text-gold/40"}`}
+        >
+          :
+        </span>
         {unit(d, "DAYS")}
         <span
           className={`text-3xl -mt-3 ${urgent ? "text-alert/50" : "text-gold/40"}`}
@@ -115,6 +119,57 @@ export default function Landing() {
 
   return (
     <div data-testid={LANDING.hero}>
+      {/* NEXUS FLEET banner */}
+      <a
+        href="https://gaming-fleet-hq.preview.emergentagent.com"
+        target="_blank"
+        rel="noopener noreferrer"
+        data-testid="nexus-fleet-banner"
+        className="block w-full bg-gradient-to-r from-black via-[#0b1a12] to-black border-b border-nvg/30 text-center py-2 px-4 font-mono text-[11px] sm:text-xs tracking-[0.25em] text-nvg hover:text-gold transition-colors"
+      >
+        ✈ NEXUS STUDIO MASTER — MOBILE FLEET GAMING SALES · BUY YOUR OWN CASINO PLATFORM →
+      </a>
+
+      {/* CINEMATIC HERO REEL — top of page */}
+      <CinematicReel onEnlist={primaryCta} />
+
+      {/* PROMO BROADCAST — user banners */}
+      <PromoScreen />
+
+      {/* OFFICIAL TRAILER */}
+      <section
+        data-testid="official-trailer-section"
+        className="relative bg-black border-b-2 border-gold/20"
+      >
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-8 py-6 sm:py-8">
+          <div className="flex items-center gap-3 mb-3">
+            <span className="font-mono text-[10px] sm:text-xs tracking-[0.4em] text-gold animate-flicker">
+              // OFFICIAL TRAILER
+            </span>
+            <div className="flex-1 h-px bg-gold/20" />
+            <span className="font-mono text-[10px] sm:text-xs tracking-[0.3em] text-nvg/70">
+              WAGES OF WAR CASINO
+            </span>
+          </div>
+          <div
+            className="relative overflow-hidden rounded-md border-2 border-gold/30 glow-gold"
+            style={{ boxShadow: "0 0 40px rgba(212,175,55,0.25)" }}
+          >
+            <video
+              data-testid="official-trailer-video"
+              src="/brand/official_trailer.mp4"
+              poster={BRAND.hero}
+              autoPlay
+              muted
+              loop
+              playsInline
+              controls
+              className="w-full max-h-[70vh] object-contain bg-black"
+            />
+          </div>
+        </div>
+      </section>
+
       {/* HERO */}
       <section className="relative overflow-hidden">
         <div
@@ -126,7 +181,7 @@ export default function Landing() {
           src={BRAND.coinNightOps}
           alt="Wages of War Casino — Night Ops Edition"
           data-testid="hero-nightops-coin"
-          className="absolute top-4 right-4 sm:top-8 sm:right-8 w-24 sm:w-36 md:w-48 lg:w-56 z-20 animate-coin-intro pointer-events-none select-none"
+          className="absolute top-3 right-3 sm:top-8 sm:right-8 w-16 sm:w-36 md:w-48 lg:w-56 z-20 animate-coin-intro pointer-events-none select-none"
           style={{ filter: "drop-shadow(0 0 34px rgba(212,175,55,0.5))" }}
         />
         <div className="relative max-w-[1400px] mx-auto px-4 sm:px-8 pt-16 pb-20 sm:pt-24 sm:pb-28 md:pt-32 md:pb-40">
@@ -202,7 +257,7 @@ export default function Landing() {
       <section className="border-y border-gold/20 bg-black/50">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-8 grid grid-cols-2 md:grid-cols-4">
           {[
-            { Icon: GameController, label: "SLOT MACHINES", value: "Elite" },
+            { Icon: GameController, label: "SLOT MACHINES", value: "145 Elite" },
             { Icon: Target, label: "WARHEAD KENO", value: "5000x Max" },
             { Icon: Medal, label: "VIP RANKS", value: "8 Tiers" },
             { Icon: Gift, label: "DAILY SUPPLY DROP", value: "Every 24h" },
@@ -226,6 +281,8 @@ export default function Landing() {
       </section>
 
       {/* INTRO VIDEO */}
+      <GiveawayAlert />
+
       <section className="max-w-[1400px] mx-auto px-4 sm:px-8 pt-16">
         <div className="mb-6">
           <p className="font-mono text-xs tracking-[0.4em] text-nvg/70">
@@ -235,7 +292,40 @@ export default function Landing() {
             MISSION BRIEFING
           </h2>
         </div>
-        <AnimatedShowcase testId="home-intro-video" variant="promo" />
+        <div
+          data-testid="home-intro-video"
+          className="hud hud-gold relative overflow-hidden aspect-video"
+        >
+          <video
+            src="/brand/wages_of_war_casino_promo_final.mp4"
+            poster={BRAND.hero}
+            controls
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          <span className="absolute top-3 left-3 flex items-center gap-2 font-mono text-[10px] tracking-widest text-nvg/80 bg-black/50 px-2 py-1 pointer-events-none">
+            ● OFFICIAL ADVERTISEMENT
+          </span>
+        </div>
+        <div
+          data-testid="promo-voiceover-bar"
+          className="mt-3 flex items-center gap-3 hud px-3 py-2"
+        >
+          <span className="font-mono text-[10px] tracking-widest text-nvg/80 whitespace-nowrap">
+            ◉ RADIO BROADCAST
+          </span>
+          <audio
+            data-testid="promo-voiceover"
+            src="/brand/wages_of_war_voiceover.mp3"
+            controls
+            preload="metadata"
+            className="w-full h-9"
+          />
+        </div>
       </section>
 
       {/* NIGHT VISION GOLD */}
