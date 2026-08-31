@@ -1,0 +1,52 @@
+{
+  "summary": "Frontend-only mobile-viewport verification (390x844) of the Wages of War casino after the mobile centering + sticky SPIN bar + Keno live board changes. Logged in as admin (admin@wagesofwarcasino.com). Verified horizontal-overflow on Landing/Lobby/Flagship slot/Basic slot/Keno (all OK, scrollWidth == innerWidth == 390, window.scrollX stays 0 after scrollTo(500,0)); sticky mobile SPIN bars render in-viewport on both slot types; desktop (1440x900) hides the mobile bar and shows only the in-panel SPIN; Keno live draw board auto-draws 20 unique balls and switches to a NEXT DRAW countdown; footer Nexus pricing band shows $5,000 / $5,800 / $35,000 without overlapping the underwater/shark scene. ONE CRITICAL DEFECT: the ChatWidget floating 'OPS ASSISTANT' panel sits on top of the sticky SPIN bar on mobile and swallows the tap, so a real user CANNOT spin on mobile.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "ChatWidget vs mobile sticky SPIN bar (FlagshipSlot / SlotGame)",
+        "issue": "CRITICAL: ChatWidget root <div class='fixed right-4 bottom-6 z-50'> (collapsed header, w-80 = 320px tall 48px) occupies x 54-374, y 772-820 on a 390x844 viewport. The sticky SPIN bar (z-40) button occupies x 80-378, y 778-834. document.elementFromPoint at the SPIN button centre returns the ChatWidget header DIV, so Playwright normal click times out ('subtree intercepts pointer events') and even a forced click at those coordinates lands on the chat widget: balance stayed 999,950 and NO /api/games/slots/spin request fired. Dispatching btn.click() via JS DOES spin (200 on /api/games/slots/spin, balance 999,950 -> 999,858 basic, -> 999,758 flagship), proving the handler is fine and only the overlay blocks it. Fix: raise the spin bar above the widget (z-index) and/or offset ChatWidget (bottom-24 / hide on lg:hidden game routes).",
+        "selector": "[data-testid=\"flagship-spin-mobile\"], [data-testid=\"slot-spin-mobile\"], div.fixed.right-4.bottom-6",
+        "priority": "CRITICAL"
+      },
+      {
+        "component": "Landing hero (mobile 390px)",
+        "issue": "Large ghost watermark text 'WAGES OF WAR CASINO' sits directly behind/over the three CTA buttons (ENLIST / CLAIM $10 / ENTER LOBBY), hurting legibility; the round award emblem overlaps and clips the 'NIGHT-VISION OPS' badge chip.",
+        "selector": "[data-testid=\"landing-hero\"]",
+        "priority": "MEDIUM"
+      }
+    ],
+    "integration_issues": [
+      {
+        "flow": "Mobile slot spin (flagship + basic)",
+        "issue": "User-level tap on the sticky SPIN bar never reaches the button (chat widget overlay), so no spin API call is made. Spin only works via programmatic click or on desktop. Same root cause as the critical UI bug above.",
+        "affected_selectors": ["[data-testid=\"flagship-spin-mobile\"]", "[data-testid=\"slot-spin-mobile\"]"]
+      }
+    ],
+    "design_issues": [
+      {
+        "screen": "All mobile pages",
+        "issues": ["ChatWidget collapsed bar (320px wide) permanently covers the bottom ~50px strip of the page on a 390px viewport, obscuring the sticky action bar and bottom content on Keno/Lobby too. Consider a small circular launcher on mobile instead of a 320px bar."]
+      }
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [
+    "CRITICAL: Make the mobile sticky SPIN bar tappable — bump its z-index above the ChatWidget (z-50+) and/or move ChatWidget up (bottom-24 on mobile) or hide it on slot routes at <lg widths.",
+    "Verify after fix with a real (non-forced) tap that /api/games/slots/spin fires and balance changes on mobile.",
+    "Optional: reduce landing-hero watermark opacity / z-order so mobile CTA text stays legible; stop the award emblem clipping the badge chips."
+  ],
+  "critical_code_review_comments": [
+    "ChatWidget.jsx calls fetch(\"/api/support/message\") with a relative URL instead of process.env.REACT_APP_BACKEND_URL — works only because the preview proxies /api on the same origin; violates the env-var rule.",
+    "ChatWidget.jsx has no data-testid on its container/toggle/input/send controls, making the blocking overlay hard to assert in tests.",
+    "Stacking-context conflict: game action bars use z-40 while global floating widgets use z-50; define a documented z-index scale so fixed bottom controls always win."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "not tested", "frontend": "67% (4 of 6 requested checks fully pass; 2 mobile SPIN-tap checks fail due to chat-widget overlay)" },
+  "seed_data_creation": "None. Used seeded admin account; a few play-money spins consumed (~460 credits) from the 1,000,000 admin balance.",
+  "should_call_test_agent_after_fix": true,
+  "should_main_agent_self_test": false,
+  "test_credentials": "admin@wagesofwarcasino.com / WagesOfWar2025! (from /app/memory/test_credentials.md) — login verified working on mobile viewport",
+  "context_for_next_testing_agent": "Horizontal-overflow fix is confirmed good on mobile (390x844): Landing/Lobby/slots/Keno all scrollWidth=390=innerWidth and window.scrollX stays 0. Keno live board verified: 20 unique balls revealed at ~450ms each, keno-live-status shows 'LIVE KENO DRAW · #0001', keno-live-countdown shows 'NEXT DRAW 01:56' after DRAW COMPLETE. Desktop 1440x900: flagship-spin-mobile / slot-spin-mobile hidden, in-panel flagship-spin and slot-spin-btn visible and clickable (balance changed). Footer Nexus band prices $5,000/$5,800/$35,000 present, no overlap with shark scene. Note gates_of_glory IS a flagship id — use mega_moolah / starburst / divine_fortune for the non-flagship SlotGame page. Remaining blocker: ChatWidget overlay over the mobile sticky spin bars.",
+  "rca_of_the_issue": "ChatWidget renders a fixed 320px-wide collapsed panel at right-4/bottom-6 with z-50. The new mobile sticky action bars in FlagshipSlot.jsx (line ~845) and SlotGame.jsx (line ~520) are fixed bottom-0 with z-40, so they render UNDER the chat widget. On a 390px viewport the widget covers x 54-374 of the 80-378 wide SPIN button, i.e. essentially the whole tap target, and receives the pointer event instead. Reproduce: mobile 390x844 -> login -> /slots/mega_moolah -> tap [data-testid=slot-spin-mobile] -> Playwright reports 'ChatWidget subtree intercepts pointer events', balance unchanged, no spin request in network log."
+}

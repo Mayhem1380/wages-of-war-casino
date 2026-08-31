@@ -12,6 +12,7 @@ import { useAuth } from "@/context/AuthContext";
 import { AUTHD } from "@/constants/testIds";
 import { GoogleLogo, Fingerprint } from "@phosphor-icons/react";
 import { toast } from "sonner";
+import { getAppOriginUrl } from "@/lib/runtime";
 
 export function AuthDialog() {
   const { authOpen, setAuthOpen, authMode, setAuthMode, login, register } =
@@ -56,7 +57,13 @@ export function AuthDialog() {
         className="hud hud-gold border-gold/40 bg-[#0a0d0a] sm:max-w-md"
       >
         <DialogHeader>
-          <DialogTitle className="font-display text-3xl tracking-wide gold-gradient">
+          <img
+            src="/brand/winged_emblem.png"
+            alt="Wages of War — Night Ops"
+            data-testid="auth-winged-emblem"
+            className="w-20 h-20 object-contain mx-auto mb-2 drop-shadow-[0_0_18px_rgba(201,162,75,0.5)]"
+          />
+          <DialogTitle className="font-display text-3xl tracking-wide gold-gradient text-center">
             {isRegister ? "ENLIST FOR DUTY" : "OPERATIVE ACCESS"}
           </DialogTitle>
           <DialogDescription className="font-mono text-xs text-nvg/70 tracking-widest">

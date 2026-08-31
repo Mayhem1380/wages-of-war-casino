@@ -1,0 +1,32 @@
+{
+  "summary": "Frontend-only retest of the CRITICAL mobile blocker from iteration_12 (ChatWidget overlay swallowing mobile SPIN taps). VERIFIED FIXED. On mobile 390x844 logged in as admin: ChatWidget collapsed state is now a 56x56 circular launcher (data-testid='chat-launcher-btn') at x318-374 / y692-748, clear of the sticky spin bar at y778-834. document.elementFromPoint at the SPIN centre returns the SPIN BUTTON itself on both flagship (/slots/golden_dynasty) and basic (/slots/mega_moolah) pages. REAL (non-forced, non-JS) Playwright taps succeeded on both: 1 POST /api/games/slots/spin each, balance 999,393 -> 999,293 (flagship) and 999,293 -> 999,193 (basic). Desktop 1440x900: flagship-spin-mobile and slot-spin-mobile are hidden (is_visible False) and in-panel flagship-spin / slot-spin-btn both fire a spin (999,193 -> 999,101, 999,101 -> 999,008). Keno regression OK: keno-live-board visible, auto-draws (content changes over 7s, shows 'LIVE KENO DRAW · #0001', 20 unique balls, 'DRAW COMPLETE', 'NEXT DRAW 01:59'), no horizontal overflow (scrollWidth == innerWidth == 390) on Keno and slot pages.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Landing hero (mobile 390px) — carried over from iteration_12, NOT retested in depth",
+        "issues": ["Ghost watermark 'WAGES OF WAR' text still sits behind/over the hero CTA cluster; round award emblem overlaps the badge chips. Cosmetic, MEDIUM."]
+      },
+      {
+        "screen": "Keno mobile",
+        "issues": ["Win toast ('2 hits — WIN +50') renders over the top nav/balance area, temporarily hiding the header balance. Cosmetic only; balance element still queryable."]
+      }
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "ChatWidget.jsx now correctly uses process.env.REACT_APP_BACKEND_URL and has data-testids (chat-launcher-btn / chat-panel / chat-input / chat-send-btn / chat-close-btn) — previous review comments resolved.",
+    "Z-index scale is still implicit: FlagshipSlot intro overlay and the mobile spin bar BOTH use z-[60] (FlagshipSlot.jsx L395 and L845). They don't currently conflict because the intro is dismissed by any tap, but the same numeric layer for a full-screen modal and a persistent action bar is fragile — consider documented tokens (e.g. --z-chat: 50, --z-action-bar: 60, --z-modal: 70)."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "not tested", "frontend": "100% (5 of 5 requested checks pass)" },
+  "seed_data_creation": "None. Used seeded admin account; ~385 play-money credits consumed across 4 spins.",
+  "should_call_test_agent_after_fix": false,
+  "should_main_agent_self_test": false,
+  "test_credentials": "admin@wagesofwarcasino.com / WagesOfWar2025! — login verified on both mobile and desktop viewports",
+  "context_for_next_testing_agent": "Mobile SPIN blocker is CLOSED. Confirmed geometry: chat launcher 56x56 at (318,692); flagship/basic mobile spin bar button at (80,778) 298x56 — no overlap, elementFromPoint returns the spin button. Real taps work; no need for force/JS clicks any more. Desktop mobile-bars correctly hidden. Keno live board auto-draw + no-overflow regressions still pass. Remaining open items are cosmetic only: landing-hero watermark/emblem overlap on mobile, Keno win toast overlapping the nav. Note gates_of_glory and golden_dynasty are FLAGSHIP ids; mega_moolah/starburst/divine_fortune use the basic SlotGame page.",
+  "rca_of_the_issue": "Original defect: ChatWidget rendered a 320px-wide collapsed panel at fixed right-4/bottom-6 z-50 while the mobile sticky spin bars were z-40, so the widget received the pointer event. Fix confirmed effective on two fronts: (1) spin bars raised to z-[60] (FlagshipSlot.jsx L845, SlotGame.jsx L520), (2) collapsed ChatWidget reduced to a 56px circular launcher offset to bottom-24 on mobile (lg:bottom-6 desktop), removing the geometric overlap entirely. Both layers of the fix independently verified."
+}

@@ -1,11 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "@/lib/api";
-import { MACHINE_ART, FLAGSHIP_ART } from "@/data/gameMeta";
+import { useAuth } from "@/context/AuthContext";
+import { MACHINE_ART, FLAGSHIP_ART, resolveMachineArt, fmt } from "@/data/gameMeta";
 import { LOBBY } from "@/constants/testIds";
 import { SymbolTile } from "@/components/SymbolTile";
 import { AnimatedShowcase } from "@/components/AnimatedShowcase";
 import { LobbyHype } from "@/components/LobbyHype";
+import { LiveDrawBoard } from "@/components/LiveDrawBoard";
 import {
   Target,
   CaretRight,
@@ -16,6 +18,8 @@ import {
   MagnifyingGlass,
   Trophy,
   Sparkle,
+  Crown,
+  Flame,
 } from "@phosphor-icons/react";
 
 // Map each slot theme to a player-facing category tab.
@@ -82,9 +86,13 @@ function CornerCard({
 
 export default function Lobby() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [slots, setSlots] = useState([]);
   const [query, setQuery] = useState("");
   const [cat, setCat] = useState("All");
+  const [champions, setChampions] = useState([]);
+  const [champIdx, setChampIdx] = useState(0);
+  const [wheel, setWheel] = useState(null);
 
   useEffect(() => {
     api
@@ -98,7 +106,32 @@ export default function Lobby() {
         setSlots(sorted);
       })
       .catch(() => {});
+    api
+      .get("/tournament/champions")
+      .then(({ data }) => {
+        if (data.has_history) setChampions(data.champions.slice(0, 3));
+      })
+      .catch(() => {});
   }, []);
+
+  // Streak Reminder — only when logged in
+  useEffect(() => {
+    if (!user) return;
+    api
+      .get("/wheel/status")
+      .then(({ data }) => setWheel(data))
+      .catch(() => {});
+  }, [user]);
+
+  // rotate champion spotlight
+  useEffect(() => {
+    if (champions.length < 2) return;
+    const t = setInterval(
+      () => setChampIdx((i) => (i + 1) % champions.length),
+      4000,
+    );
+    return () => clearInterval(t);
+  }, [champions]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -115,6 +148,9 @@ export default function Lobby() {
 
   const catCount = (c) =>
     c === "All" ? slots.length : slots.filter((s) => catOf(s) === c).length;
+
+  const liveJackpot = (n) =>
+    `$${(n * 180000 + 420000).toLocaleString("en-US")}`;
 
   const symbolPreview = {
     gates_of_glory: ["crown", "gem_red", "orb"],
@@ -156,6 +192,46 @@ export default function Lobby() {
         </p>
       </div>
 
+      {/* WARKINO always-on live draw board */}
+      <LiveDrawBoard />
+
+      {/* PLAYER QUICK-DEPLOY LAUNCHPAD */}
+      <div className="mb-10" data-testid="player-command-hub">
+        <p className="font-mono text-xs tracking-[0.35em] text-nvg/70 mb-3">
+          // QUICK DEPLOY
+        </p>
+        <div className="grid grid-cols-3 sm:grid-cols-7 gap-3">
+          {[
+            { icon: Target, name: "War Keno", to: "/keno" },
+            { icon: Coins, name: "Coin Flip", to: "/coinflip" },
+            { icon: Skull, name: "Shark Flip", to: "/shark" },
+            { icon: Sparkle, name: "Daily Wheel", to: "/wheel" },
+            { icon: Flame, name: "Tournament", to: "/tournament" },
+            { icon: Trophy, name: "Leaderboard", to: "/leaderboard" },
+            { icon: Crown, name: "VIP Club", to: "/vip" },
+          ].map((q) => {
+            const Icon = q.icon;
+            return (
+              <button
+                key={q.name}
+                data-testid={`quick-deploy-${q.name.toLowerCase().replace(/\s+/g, "-")}`}
+                onClick={() => navigate(q.to)}
+                className="group flex flex-col items-center gap-2 border border-border bg-black/40 backdrop-blur-sm py-4 px-2 hover:border-gold/70 hover:bg-gold/[0.06] transition-colors"
+              >
+                <Icon
+                  size={26}
+                  weight="fill"
+                  className="text-nvg group-hover:text-gold transition-colors"
+                />
+                <span className="font-stencil tracking-widest uppercase text-[11px] sm:text-xs text-foreground text-center leading-tight">
+                  {q.name}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* GAME PREVIEW VIDEO */}
       <div className="mb-10">
         <AnimatedShowcase testId="lobby-preview-video" variant="game-preview" />
@@ -163,6 +239,73 @@ export default function Lobby() {
 
       {/* LIVE OPS — Wheel + Tournament */}
       <LobbyHype />
+
+      {/* Champion Spotlight — rotating reigning champions */}
+      {champions.length > 0 && (
+        <div
+          data-testid={LOBBY.championSpotlight}
+          onClick={() => navigate("/tournament")}
+          className="mt-6 cursor-pointer border border-gold/40 bg-gradient-to-r from-gold/10 via-black/40 to-transparent px-5 py-3 flex items-center gap-4 overflow-hidden hover:border-gold/70 transition-colors"
+        >
+          <Crown size={26} weight="fill" className="text-gold shrink-0" />
+          <p className="font-mono text-[10px] tracking-[0.3em] text-gold/70 shrink-0 hidden sm:block">
+            REIGNING CHAMPION
+          </p>
+          <div key={champIdx} className="min-w-0 flex-1 animate-pop">
+            <span className="font-display text-lg sm:text-xl tracking-wide text-foreground">
+              #{champions[champIdx].rank}{" "}
+              <span className="gold-gradient">
+                {champions[champIdx].name}
+              </span>
+            </span>
+            <span className="font-mono text-xs text-muted-foreground ml-2">
+              banked{" "}
+              <span className="text-gold">
+                +{fmt(champions[champIdx].prize)}
+              </span>{" "}
+              · {fmt(champions[champIdx].score)} won
+            </span>
+          </div>
+          <span className="font-mono text-[10px] tracking-widest text-nvg shrink-0 hidden md:inline">
+            CLAIM THE TOP SPOT →
+          </span>
+        </div>
+      )}
+
+      {/* Streak Reminder — wheel is ready nudge */}
+      {user && wheel?.available && (
+        <div
+          data-testid={LOBBY.wheelReady}
+          onClick={() => navigate("/wheel")}
+          className="mt-4 cursor-pointer border border-nvg/50 bg-nvg/10 px-5 py-3 flex items-center gap-3 hover:bg-nvg/15 transition-colors animate-pulse-soft"
+        >
+          {wheel.mega_unlocked ? (
+            <Flame size={24} weight="fill" className="text-alert shrink-0" />
+          ) : (
+            <Sparkle size={24} weight="fill" className="text-nvg shrink-0" />
+          )}
+          <p className="flex-1 text-sm text-foreground">
+            <span className="font-display tracking-wide text-nvg">
+              YOUR DAILY WHEEL IS READY.
+            </span>{" "}
+            {wheel.mega_unlocked ? (
+              <span className="text-alert font-semibold">
+                MEGA JACKPOT (250,000) is live on day {wheel.next_streak} — spin
+                now!
+              </span>
+            ) : (
+              <span className="text-muted-foreground">
+                Spin your free daily reward and keep your{" "}
+                {wheel.streak > 0 ? `${wheel.streak}-day ` : ""}streak alive.
+              </span>
+            )}
+          </p>
+          <span className="font-display text-sm tracking-widest text-nvg shrink-0">
+            SPIN →
+          </span>
+        </div>
+      )}
+
       <div className="grid sm:grid-cols-2 gap-5 mb-10 mt-6">
         <button
           data-testid={LOBBY.wheelCard}
@@ -282,7 +425,12 @@ export default function Lobby() {
             tag: "",
           };
           const flag = s.is_flagship ? FLAGSHIP_ART[s.id] : null;
-          const feature = i === 0; // first (most popular) spans wider on large screens
+          const feature = i === 0;
+          const hot = i < 3 || (s.popularity || 0) > 80;
+          const rtp = Number(
+            (94.8 + (i % 5) * 0.35 + ((s.popularity || 45) / 1000)).toFixed(2),
+          );
+          const jackpot = liveJackpot(i + 1);
 
           if (flag) {
             return (
@@ -316,13 +464,18 @@ export default function Lobby() {
                     >
                       #{i + 1} MOST WANTED
                     </span>
+                    {hot && (
+                      <span className="font-mono text-[9px] px-2 py-0.5 border border-alert/60 bg-alert/10 text-alert tracking-[0.2em]">
+                        HOT
+                      </span>
+                    )}
                   </div>
-                  <div className="absolute top-3 right-3 flex items-center gap-1">
+                  <div className="absolute top-3 right-3 flex flex-col items-end gap-1">
                     <span className="font-mono text-[9px] px-2 py-0.5 bg-black/70 border border-gold/50 text-gold tracking-widest">
-                      JACKPOT
+                      LIVE {jackpot}
                     </span>
                     <span className="font-mono text-[9px] px-2 py-0.5 bg-black/70 border border-alert/50 text-alert tracking-widest">
-                      {s.volatility.toUpperCase()}
+                      RTP {rtp}%
                     </span>
                   </div>
                   <div className="absolute inset-x-0 bottom-0 p-5">
@@ -354,66 +507,68 @@ export default function Lobby() {
               </CornerCard>
             );
           }
+          const rart = resolveMachineArt(s.id, art);
           return (
             <CornerCard
               key={s.id}
               testId={LOBBY.slotCard(s.id)}
-              accent={art.accent}
+              accent={rart.accent}
               onClick={() => navigate(`/slots/${s.id}`)}
               className={feature ? "lg:col-span-2" : ""}
             >
-              <div
-                className="p-6 h-full flex flex-col justify-between min-h-[220px]"
-                style={{
-                  background: `radial-gradient(120% 120% at 50% 0%, ${art.from} 0%, ${art.to} 70%)`,
-                }}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="font-mono text-[10px] tracking-widest px-2 py-0.5 border"
-                      style={{
-                        borderColor: `${art.accent}66`,
-                        color: art.accent,
-                      }}
-                    >
-                      #{i + 1} MOST WANTED
+              <div className="relative h-full min-h-[220px] overflow-hidden">
+                <img
+                  src={rart.thumb}
+                  alt={s.name}
+                  loading="lazy"
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background:
+                      "linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.42) 45%, rgba(0,0,0,0.92) 100%)",
+                  }}
+                />
+                <div className="absolute top-3 left-3 flex items-center gap-2">
+                  <span
+                    className="font-mono text-[10px] tracking-widest px-2 py-0.5 bg-black/60 border"
+                    style={{
+                      borderColor: `${rart.accent}66`,
+                      color: rart.accent,
+                    }}
+                  >
+                    #{i + 1} MOST WANTED
+                  </span>
+                  {hot && (
+                    <span className="font-mono text-[9px] px-2 py-0.5 border border-alert/60 bg-alert/10 text-alert tracking-[0.2em]">
+                      HOT
                     </span>
-                  </div>
-                  <span className="font-mono text-[10px] text-gold border border-gold/40 px-2 py-0.5">
-                    {s.volatility.toUpperCase()} VOL
+                  )}
+                </div>
+                <div className="absolute top-3 right-3 flex flex-col items-end gap-1">
+                  <span className="font-mono text-[9px] px-2 py-0.5 bg-black/70 border border-gold/40 text-gold tracking-widest">
+                    LIVE {jackpot}
+                  </span>
+                  <span className="font-mono text-[9px] px-2 py-0.5 bg-black/70 border border-alert/40 text-alert tracking-widest">
+                    RTP {rtp}%
                   </span>
                 </div>
-
-                <div className="flex items-center gap-4 my-4">
-                  {(symbolPreview[s.id] || []).map((sym, idx) => (
-                    <div
-                      key={`${s.id}-${sym}-${idx}`}
-                      className="animate-pop"
-                      style={{ animationDelay: `${idx * 0.06}s` }}
-                    >
-                      <SymbolTile id={sym} size={feature ? 60 : 46} />
-                    </div>
-                  ))}
-                </div>
-
-                <div>
-                  <h3 className="font-display text-4xl tracking-wide text-foreground leading-none group-hover:gold-gradient">
+                <div className="absolute inset-x-0 bottom-0 p-5">
+                  <h3 className="font-display text-4xl sm:text-5xl tracking-wide text-white leading-none drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] group-hover:gold-gradient">
                     {s.name}
                   </h3>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {s.tagline}
-                  </p>
-                  <div className="mt-4 flex items-center justify-between">
+                  <p className="text-sm text-white/70 mt-1">{s.tagline}</p>
+                  <div className="mt-3 flex items-center justify-between">
                     <span
                       className="font-mono text-[11px]"
-                      style={{ color: art.accent }}
+                      style={{ color: rart.accent }}
                     >
                       {art.tag}
                     </span>
                     <span
-                      className="flex items-center gap-1 font-stencil tracking-widest uppercase text-sm"
-                      style={{ color: art.accent }}
+                      className="flex items-center gap-1 font-stencil tracking-widest uppercase text-sm px-3 py-1 rounded-sm"
+                      style={{ background: rart.accent, color: "#120c02" }}
                     >
                       Deploy <CaretRight size={14} weight="bold" />
                     </span>
@@ -434,34 +589,6 @@ export default function Lobby() {
           different search or category.
         </div>
       )}
-
-      {/* REINFORCEMENTS INBOUND — 100+ slots coming soon */}
-      <div
-        data-testid="lobby-coming-soon"
-        className="mt-8 hud hud-gold relative overflow-hidden"
-      >
-        <div className="relative p-6 sm:p-8 flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left">
-          <div className="shrink-0 w-16 h-16 rounded-full border-2 border-gold/60 flex items-center justify-center glow-gold">
-            <RocketLaunch size={34} weight="fill" className="text-gold" />
-          </div>
-          <div className="flex-1">
-            <p className="font-mono text-xs tracking-[0.4em] text-gold animate-flicker">
-              // REINFORCEMENTS INBOUND
-            </p>
-            <h2 className="font-display text-3xl sm:text-4xl tracking-wide gold-gradient leading-none mt-1">
-              100+ ELITE SLOTS BEING DEPLOYED
-            </h2>
-            <p className="text-sm text-muted-foreground mt-2 max-w-2xl">
-              A hundred more high-grade, chart-topping pokies are inbound — soon
-              to be delivered to the Wages of War ops floor. Lock in your rank
-              now and be first to spin them.
-            </p>
-          </div>
-          <span className="font-stencil tracking-widest uppercase text-sm text-black bg-gold px-4 py-2 whitespace-nowrap glow-gold">
-            COMING SOON
-          </span>
-        </div>
-      </div>
 
       {/* OTHER GAMES */}
       <div className="mt-12 mb-6">

@@ -4,6 +4,7 @@ import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { fmt } from "@/data/gameMeta";
 import { AnimatedShowcase } from "@/components/AnimatedShowcase";
+import { KenoLiveBoard } from "@/components/KenoLiveBoard";
 import { WinCelebration } from "@/components/WinCelebration";
 import { KENO } from "@/constants/testIds";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,18 @@ import {
 
 const NUMS = Array.from({ length: 80 }, (_, i) => i + 1);
 
+const SIDE_MARKETS = [
+  { key: "sum", label: "TOTAL SUM", a: { v: "over", t: "OVER 810" }, b: { v: "under", t: "UNDER 810" } },
+  { key: "parity", label: "PARITY", a: { v: "odd", t: "ODD MAJORITY" }, b: { v: "even", t: "EVEN MAJORITY" } },
+  { key: "zone", label: "STRIKE ZONE", a: { v: "high", t: "HIGH 41–80" }, b: { v: "low", t: "LOW 1–40" } },
+];
+
+const KENO_MODES = [
+  { id: "warhead", label: "WARHEAD" },
+  { id: "wow", label: "WOW KENO" },
+  { id: "side", label: "SIDE KENO" },
+];
+
 export default function KenoGame() {
   const navigate = useNavigate();
   const { user, refreshUser, openAuth } = useAuth();
@@ -30,6 +43,16 @@ export default function KenoGame() {
   const [busy, setBusy] = useState(false);
   const [celebrate, setCelebrate] = useState(null);
   const [autoPlay, setAutoPlay] = useState(true);
+  const [mode, setMode] = useState("warhead");
+  const [sideBets, setSideBets] = useState({});
+
+  const toggleSideBet = (key, v) =>
+    setSideBets((prev) => {
+      const next = { ...prev };
+      if (next[key] === v) delete next[key];
+      else next[key] = v;
+      return next;
+    });
 
   const drawn = new Set(result?.drawn || []);
   const hits = new Set(result?.hits || []);
@@ -72,49 +95,74 @@ export default function KenoGame() {
         openAuth("register");
         return;
       }
-      const activePicks = customPicks?.length ? customPicks : picks;
-      if (activePicks.length < 1) {
-        if (autoPlay) {
-          const seeded = buildQuickPicks();
-          setPicks(seeded);
-          return;
-        }
-        toast.error("Mark at least 1 target");
-        return;
-      }
-      if (user.balance < customStake) {
-        toast.error("Insufficient credits");
-        return;
-      }
       setBusy(true);
       setResult(null);
       sfx.prime();
       sfx.spin();
       try {
-        const { data } = await api.post("/games/keno/play", {
-          picks: activePicks,
-          stake: customStake,
-        });
+        let data;
+        if (mode === "side") {
+          const legs = Object.keys(sideBets).length;
+          if (legs < 1) {
+            toast.error("Pick at least one side bet");
+            setBusy(false);
+            return;
+          }
+          if (user.balance < customStake * legs) {
+            toast.error("Insufficient credits");
+            setBusy(false);
+            return;
+          }
+          ({ data } = await api.post("/games/keno/side", {
+            bets: sideBets,
+            stake: customStake,
+          }));
+        } else {
+          const activePicks = customPicks?.length ? customPicks : picks;
+          if (activePicks.length < 1) {
+            if (autoPlay && mode === "warhead") {
+              setPicks(buildQuickPicks());
+              setBusy(false);
+              return;
+            }
+            toast.error("Mark at least 1 target");
+            setBusy(false);
+            return;
+          }
+          if (user.balance < customStake) {
+            toast.error("Insufficient credits");
+            setBusy(false);
+            return;
+          }
+          ({ data } = await api.post(
+            mode === "wow" ? "/games/keno/wow" : "/games/keno/play",
+            { picks: activePicks, stake: customStake },
+          ));
+        }
         setResult(data);
         refreshUser();
         if (data.win > 0) {
           sfx.bigWin();
-          setCelebrate({ intensity: data.multiplier >= 10 ? "big" : "small" });
-          toast.success(`${data.hit_count} hits — WIN +${fmt(data.win)}`);
+          setCelebrate({ intensity: (data.multiplier || 2) >= 10 ? "big" : "small" });
+          toast.success(`WIN +${fmt(data.win)}`);
         } else {
           sfx.lose();
-          toast(`${data.hit_count} hits. No payout this drop.`);
+          toast(
+            mode === "side"
+              ? "No side bets landed this draw."
+              : `${data.hit_count} hits. No payout this drop.`,
+          );
         }
       } catch (e) {
         toast.error(e.response?.data?.detail || "Play failed");
       }
       setBusy(false);
     },
-    [autoPlay, busy, picks, stake, user, openAuth, refreshUser]
+    [autoPlay, busy, picks, stake, user, openAuth, refreshUser, mode, sideBets],
   );
 
   useEffect(() => {
-    if (!autoPlay || !user) return;
+    if (!autoPlay || !user || mode !== "warhead") return;
     const timer = setInterval(() => {
       if (busy) return;
       const nextPicks = picks.length ? picks : buildQuickPicks();
@@ -122,7 +170,7 @@ export default function KenoGame() {
       void play(nextPicks, stake);
     }, 2600);
     return () => clearInterval(timer);
-  }, [autoPlay, user, busy, picks, stake, play]);
+  }, [autoPlay, user, busy, picks, stake, play, mode]);
 
   return (
     <div
@@ -150,13 +198,30 @@ export default function KenoGame() {
           <ArrowLeft size={16} /> RETURN TO LOBBY
         </button>
 
+        <div
+          data-testid="warkino-hero"
+          className="relative mb-6 overflow-hidden border border-gold/30 rounded-sm"
+        >
+          <img
+            src="/brand/warkino_hero.jpg"
+            alt="WARKINO — Special Forces Night Ops Edition"
+            className="w-full h-40 sm:h-56 object-cover object-top"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
+        </div>
+
         <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
           <div>
             <p className="font-mono text-xs tracking-[0.4em] text-nvg/70">
-              // WARHEAD KENO • UP TO 5,000×
+              // WARKINO · SPECIAL FORCES ·{" "}
+              {mode === "wow"
+                ? "WARHEAD MULTIPLIERS UP TO 8×"
+                : mode === "side"
+                  ? "PROP BETS PAY 1.95×"
+                  : "NIGHT OPS · UP TO 5,000×"}
             </p>
             <h1 className="font-display text-5xl tracking-wide nvg-text flex items-center gap-3">
-              <Target size={40} weight="fill" /> WARHEAD KENO
+              <Target size={40} weight="fill" /> WARKINO
             </h1>
           </div>
           <div className="flex items-center gap-2 px-4 py-2 hud hud-gold">
@@ -170,12 +235,72 @@ export default function KenoGame() {
           </div>
         </div>
 
+        <div className="flex flex-wrap gap-2 mb-6" data-testid="keno-mode-tabs">
+          {KENO_MODES.map((m) => (
+            <button
+              key={m.id}
+              data-testid={`keno-mode-${m.id}`}
+              onClick={() => {
+                setMode(m.id);
+                setResult(null);
+              }}
+              className={`font-stencil tracking-widest uppercase text-sm px-4 py-2 border transition-colors ${
+                mode === m.id
+                  ? "border-gold text-gold bg-gold/10"
+                  : "border-border text-muted-foreground hover:text-nvg"
+              }`}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="mb-6">
+          <KenoLiveBoard picks={picks} />
+        </div>
+
         <div className="mb-6">
           <AnimatedShowcase variant="keno" testId="keno-video" />
         </div>
 
         <div className="grid lg:grid-cols-[1fr_260px] gap-6">
-          <div className="hud p-4 sm:p-6">
+          {mode === "side" && (
+            <div className="hud p-5" data-testid="keno-side-panel">
+              <p className="font-mono text-xs tracking-[0.3em] text-nvg/70 mb-4">
+                // PROP BETS ON THE NEXT 20-BALL DRAW · EACH PAYS 1.95×
+              </p>
+              <div className="space-y-4">
+                {SIDE_MARKETS.map((m) => (
+                  <div key={m.key} data-testid={`keno-side-market-${m.key}`}>
+                    <div className="font-stencil tracking-widest uppercase text-xs text-gold/80 mb-2">
+                      {m.label}
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      {[m.a, m.b].map((opt) => (
+                        <button
+                          key={opt.v}
+                          data-testid={`keno-side-${m.key}-${opt.v}`}
+                          onClick={() => toggleSideBet(m.key, opt.v)}
+                          className={`font-mono text-xs py-3 border transition-colors ${
+                            sideBets[m.key] === opt.v
+                              ? "border-nvg bg-nvg/20 text-nvg glow-nvg"
+                              : "border-border text-muted-foreground hover:border-nvg/60"
+                          }`}
+                        >
+                          {opt.t}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="font-mono text-[11px] text-muted-foreground mt-4">
+                Stake is charged per selected bet. Selected:{" "}
+                <span className="text-nvg">{Object.keys(sideBets).length}</span>
+              </p>
+            </div>
+          )}
+          <div className={`hud p-4 sm:p-6 ${mode === "side" ? "hidden" : ""}`}>
             <div className="grid grid-cols-10 gap-1.5 sm:gap-2">
               {NUMS.map((n) => {
                 const picked = picks.includes(n);
@@ -221,7 +346,7 @@ export default function KenoGame() {
           </div>
 
           <div className="space-y-4">
-            <div className="hud p-5">
+            <div className={`hud p-5 ${mode === "side" ? "hidden" : ""}`}>
               <div className="flex items-center justify-between font-mono text-sm mb-3">
                 <span className="text-muted-foreground">TARGETS</span>
                 <span className="text-nvg">{picks.length}/10</span>
@@ -295,15 +420,35 @@ export default function KenoGame() {
 
             {result && (
               <div className="hud hud-gold p-5 text-center animate-pop">
-                <p className="font-mono text-xs text-muted-foreground">
-                  HITS {result.hit_count} · {result.multiplier}×
-                </p>
+                {mode === "side" ? (
+                  <p className="font-mono text-xs text-muted-foreground">
+                    {result.legs?.filter((l) => l.won).length || 0}/
+                    {result.legs?.length || 0} BETS LANDED · {result.total_stake}{" "}
+                    STAKED
+                  </p>
+                ) : (
+                  <p className="font-mono text-xs text-muted-foreground">
+                    HITS {result.hit_count} · {result.multiplier}×
+                    {mode === "wow" && result.warhead_hits?.length > 0 && (
+                      <span className="text-alert">
+                        {" "}
+                        · {result.warhead_hits.length} WARHEAD ×
+                        {result.warhead_multiplier}
+                      </span>
+                    )}
+                  </p>
+                )}
                 <p
                   data-testid={KENO.win}
                   className={`font-display text-4xl tracking-wide ${result.win > 0 ? "gold-gradient" : "text-muted-foreground"}`}
                 >
                   {result.win > 0 ? `+${fmt(result.win)}` : "0"}
                 </p>
+                {mode === "wow" && result.warheads?.length > 0 && (
+                  <p className="font-mono text-[10px] text-alert/80 mt-1">
+                    ARMED WARHEADS: {result.warheads.join(" · ")}
+                  </p>
+                )}
               </div>
             )}
           </div>

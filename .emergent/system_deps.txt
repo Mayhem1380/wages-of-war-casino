@@ -1,2 +1,5 @@
 cron=3.0pl1-162
+docker-compose=1.29.2-3
+docker.io=20.10.24+dfsg1-1+deb12u1+b6
 ffmpeg=7:5.1.9-0+deb12u1
+gh=2.23.0+dfsg1-1

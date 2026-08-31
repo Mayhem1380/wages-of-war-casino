@@ -101,3 +101,44 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+## user_problem_statement: {"problem_statement": "The app still has a live CORS credential issue where the backend responds with a wildcard Access-Control-Allow-Origin when credentials are enabled, causing browsers to reject the request and preventing the app from working correctly in preview. The fix needs to enforce explicit origins and verify the backend/frontend still run cleanly."}
+## backend:
+  - task: "Fix credentialed CORS policy"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        -working: true
+        -agent: "main"
+        -comment: "Updated the explicit origin allowlist logic and removed wildcard-origin behavior for credentialed CORS requests."
+## frontend:
+  - task: "Verify app build remains healthy"
+    implemented: true
+    working: "NA"
+    file: "frontend/"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        -working: "NA"
+        -agent: "main"
+        -comment: "Frontend build should be verified after the backend CORS fix to confirm no regressions."
+## metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: false
+## test_plan:
+  current_focus:
+    - "Verify explicit CORS origins are returned without wildcard values"
+    - "Run the narrow backend regression and frontend production build"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+## agent_communication:
+    -agent: "main"
+    -message: "I fixed the credentialed CORS policy by removing wildcard origins and will verify the regression and frontend build with the smallest relevant checks."

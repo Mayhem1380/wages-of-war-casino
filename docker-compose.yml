@@ -8,12 +8,24 @@ services:
       - ./backend/.env
     environment:
       PORT: 8000
+      MONGO_URL: ${MONGO_URL:-mongodb://localhost:27017}
+      DB_NAME: ${DB_NAME:-test_database}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000,http://localhost:8000,http://127.0.0.1:8000}
+      FRONTEND_URL: ${FRONTEND_URL:-}
+      JWT_SECRET: ${JWT_SECRET:-}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
       STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY:-}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
       STRIPE_ACCOUNT_ID: ${STRIPE_ACCOUNT_ID:-}
+      STRIPE_MODE: ${STRIPE_MODE:-test}
       NOWPAYMENTS_API_KEY: ${NOWPAYMENTS_API_KEY:-}
       NOWPAYMENTS_IPN_SECRET: ${NOWPAYMENTS_IPN_SECRET:-}
+      NOWPAYMENTS_BASE_URL: ${NOWPAYMENTS_BASE_URL:-}
+      VAULT_API_URL: ${VAULT_API_URL:-}
+      VAULT_API_KEY: ${VAULT_API_KEY:-}
+      VAULT_PLATFORM: ${VAULT_PLATFORM:-}
     ports:
       - "8000:8000"
   frontend:
