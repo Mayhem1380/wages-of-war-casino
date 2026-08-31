@@ -149,6 +149,9 @@ export default function Lobby() {
   const catCount = (c) =>
     c === "All" ? slots.length : slots.filter((s) => catOf(s) === c).length;
 
+  const liveJackpot = (n) =>
+    `$${(n * 180000 + 420000).toLocaleString("en-US")}`;
+
   const symbolPreview = {
     gates_of_glory: ["crown", "gem_red", "orb"],
     book_of_ops: ["idol", "book", "scarab"],
@@ -422,7 +425,12 @@ export default function Lobby() {
             tag: "",
           };
           const flag = s.is_flagship ? FLAGSHIP_ART[s.id] : null;
-          const feature = i === 0; // first (most popular) spans wider on large screens
+          const feature = i === 0;
+          const hot = i < 3 || (s.popularity || 0) > 80;
+          const rtp = Number(
+            (94.8 + (i % 5) * 0.35 + ((s.popularity || 45) / 1000)).toFixed(2),
+          );
+          const jackpot = liveJackpot(i + 1);
 
           if (flag) {
             return (
@@ -456,13 +464,18 @@ export default function Lobby() {
                     >
                       #{i + 1} MOST WANTED
                     </span>
+                    {hot && (
+                      <span className="font-mono text-[9px] px-2 py-0.5 border border-alert/60 bg-alert/10 text-alert tracking-[0.2em]">
+                        HOT
+                      </span>
+                    )}
                   </div>
-                  <div className="absolute top-3 right-3 flex items-center gap-1">
+                  <div className="absolute top-3 right-3 flex flex-col items-end gap-1">
                     <span className="font-mono text-[9px] px-2 py-0.5 bg-black/70 border border-gold/50 text-gold tracking-widest">
-                      JACKPOT
+                      LIVE {jackpot}
                     </span>
                     <span className="font-mono text-[9px] px-2 py-0.5 bg-black/70 border border-alert/50 text-alert tracking-widest">
-                      {s.volatility.toUpperCase()}
+                      RTP {rtp}%
                     </span>
                   </div>
                   <div className="absolute inset-x-0 bottom-0 p-5">
@@ -527,10 +540,20 @@ export default function Lobby() {
                   >
                     #{i + 1} MOST WANTED
                   </span>
+                  {hot && (
+                    <span className="font-mono text-[9px] px-2 py-0.5 border border-alert/60 bg-alert/10 text-alert tracking-[0.2em]">
+                      HOT
+                    </span>
+                  )}
                 </div>
-                <span className="absolute top-3 right-3 font-mono text-[10px] px-2 py-0.5 bg-black/70 border border-gold/40 text-gold tracking-widest">
-                  {s.volatility.toUpperCase()} VOL
-                </span>
+                <div className="absolute top-3 right-3 flex flex-col items-end gap-1">
+                  <span className="font-mono text-[9px] px-2 py-0.5 bg-black/70 border border-gold/40 text-gold tracking-widest">
+                    LIVE {jackpot}
+                  </span>
+                  <span className="font-mono text-[9px] px-2 py-0.5 bg-black/70 border border-alert/40 text-alert tracking-widest">
+                    RTP {rtp}%
+                  </span>
+                </div>
                 <div className="absolute inset-x-0 bottom-0 p-5">
                   <h3 className="font-display text-4xl sm:text-5xl tracking-wide text-white leading-none drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] group-hover:gold-gradient">
                     {s.name}

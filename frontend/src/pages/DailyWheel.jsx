@@ -14,11 +14,13 @@ import { ArrowLeft, Sparkle, Lightning, Trophy } from "@phosphor-icons/react";
 const colorFor = (seg, i) => {
   if (seg.type === "luck") return "#2b2f2b";
   if (seg.type === "again") return "#1f7a3a";
+  if (seg.type === "major") return "#7a5cff";
   return i % 2 === 0 ? "#D4AF37" : "#0d1b12";
 };
 const shortLabel = (seg) => {
   if (seg.type === "luck") return "BL";
   if (seg.type === "again") return "AGAIN";
+  if (seg.type === "major") return "$500";
   return seg.label;
 };
 
@@ -33,9 +35,10 @@ const DEFAULT_META = [
   { label: "$40", value: 40, type: "cash" },
   { label: "$45", value: 45, type: "cash" },
   { label: "$50", value: 50, type: "cash" },
-  { label: "BETTER LUCK", value: 0, type: "luck" },
-  { label: "BETTER LUCK", value: 0, type: "luck" },
   { label: "SPIN AGAIN", value: 0, type: "again" },
+  { label: "$500 MAJOR", value: 500, type: "major" },
+  { label: "BETTER LUCK", value: 0, type: "luck" },
+  { label: "BETTER LUCK", value: 0, type: "luck" },
 ];
 
 export default function DailyWheel() {
@@ -72,7 +75,7 @@ export default function DailyWheel() {
     if (!user) return openAuth("register");
     if (spinning) return;
     if (!canSpin) {
-      toast.error("No spins yet — deposit over $500 or reach $1000 total deposits");
+      toast.error("No spins yet — make a $500 deposit or reach $1,000 total deposits for one free spin.");
       return;
     }
     setSpinning(true);

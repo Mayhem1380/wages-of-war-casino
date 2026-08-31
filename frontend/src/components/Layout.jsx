@@ -215,8 +215,10 @@ export function Layout({ children }) {
 
           <nav className="hidden lg:flex items-center gap-6">
             {navLink("/lobby", "Ops Lobby", NAV.lobby, GameController)}
-            {navLink("/vip", "VIP Ranks", NAV.vip, Medal)}
             {navLink("/leaderboard", "Leaderboard", NAV.leaderboard, Trophy)}
+            {navLink("/wallet", "Wallet", NAV.wallet, WalletIcon)}
+            {navLink("/kyc", "KYC", NAV.kyc, ShieldCheck)}
+            {navLink("/vip", "VIP Ranks", NAV.vip, Medal)}
           </nav>
 
           <div className="flex items-center gap-2 sm:gap-3">
