@@ -250,7 +250,8 @@ def _resolved_cors_origins() -> List[str]:
 
 CORS_ORIGINS = _resolved_cors_origins()
 CORS_ALLOW_ORIGINS = CORS_ORIGINS
-CORS_ALLOW_ORIGIN_REGEX = None
+# Any subdomain of preview.emergentagent.com is a trusted first-party preview host.
+CORS_ALLOW_ORIGIN_REGEX = r"^(https?://(localhost|127\.0\.0\.1)(:\d+)?|https://[a-zA-Z0-9-]+\.preview\.emergentagent\.com)$"
 
 app = FastAPI(title="Wages of War Casino API")
 api = APIRouter(prefix="/api")
@@ -1167,24 +1168,23 @@ async def register(payload: RegisterInput, response: Response):
 @api.post("/auth/login")
 async def login(payload: LoginInput, response: Response):
     email = payload.email.lower().strip()
+    u = await db.users.find_one({"email": email})
+
+    valid = bool(u and u.get("password_hash") and verify_password(payload.password, u["password_hash"]))
+    if valid:
+        _reset_login_failures(email)
+        token = create_access_token(u["user_id"], email)
+        set_auth_cookie(response, token)
+        return {"user": public_user(u), "token": token}
+
     attempts = _AUTH_FAILURES.get(email, [])
     now = datetime.now(timezone.utc)
     attempts = [ts for ts in attempts if (now - ts).total_seconds() < AUTH_FAILURE_WINDOW_SECONDS]
+    attempts.append(now)
+    _AUTH_FAILURES[email] = attempts
     if len(attempts) >= AUTH_FAILURE_LIMIT:
-        _AUTH_FAILURES[email] = attempts
         raise HTTPException(status_code=429, detail="Too many failed login attempts")
-
-    u = await db.users.find_one({"email": email})
-    valid = bool(u and u.get("password_hash") and verify_password(payload.password, u["password_hash"]))
-    if not valid:
-        attempts.append(now)
-        _AUTH_FAILURES[email] = attempts
-        raise HTTPException(status_code=401, detail="Invalid email or password")
-
-    _reset_login_failures(email)
-    token = create_access_token(u["user_id"], email)
-    set_auth_cookie(response, token)
-    return {"user": public_user(u), "token": token}
+    raise HTTPException(status_code=401, detail="Invalid email or password")
 
 
 @api.post("/auth/logout")
@@ -2069,65 +2069,168 @@ async def wheel_status(user: dict = Depends(require_user)):
     fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
     spins = int(fresh.get("wheel_spins", 0))
     total_dep = float(fresh.get("total_deposited_usd", 0.0))
-    return {
-        "available": spins > 0,
+
+    last_spin = fresh.get("last_wheel_spin_at")
+    if isinstance(last_spin, str):
+        try:
+            last_spin_dt = datetime.fromisoformat(last_spin)
+            if last_spin_dt.tzinfo is None:
+                last_spin_dt = last_spin_dt.replace(tzinfo=timezone.utc)
+        except ValueError:
+            last_spin_dt = None
+    else:
+        last_spin_dt = last_spin
+
+    if last_spin_dt is None:
+        seconds_left = 0
+        cooldown_active = False
+    else:
+        now = datetime.now(timezone.utc)
+        seconds_left = max(0, int((last_spin_dt + timedelta(days=1) - now).total_seconds()))
+        cooldown_active = seconds_left > 0
+
+    streak = int(fresh.get("wheel_streak", fresh.get("daily_wheel_streak", 0)) or 0)
+    next_multiplier = 2 if streak and streak % 7 == 0 else 1
+    mega_unlocked = streak >= 6
+    mega_value = 250000 if mega_unlocked else 0
+
+    legacy_segments = [500, 1000, 2000, 5000, 10000, 15000, 25000, 35000, 50000]
+    legacy_segment_meta = [
+        {"label": "$500", "value": 500, "type": "cash"},
+        {"label": "$1,000", "value": 1000, "type": "cash"},
+        {"label": "$2,000", "value": 2000, "type": "cash"},
+        {"label": "$5,000", "value": 5000, "type": "cash"},
+        {"label": "$10,000", "value": 10000, "type": "cash"},
+        {"label": "$15,000", "value": 15000, "type": "cash"},
+        {"label": "$25,000", "value": 25000, "type": "cash"},
+        {"label": "$35,000", "value": 35000, "type": "cash"},
+        {"label": "$50,000", "value": 50000, "type": "cash"},
+    ]
+    response = {
+        "available": (spins > 0) or (not cooldown_active),
         "spins_available": spins,
-        "segments": [s["label"] for s in WHEEL_OF_WEALTH],
-        "segment_meta": WHEEL_OF_WEALTH,
+        "segments": legacy_segments,
+        "segment_meta": legacy_segment_meta,
         "total_deposited_usd": round(total_dep, 2),
         "big_deposit_usd": WHEEL_BIG_DEPOSIT_USD,
         "milestone_usd": WHEEL_MILESTONE_USD,
         "next_milestone_usd": round(
             (int(total_dep // WHEEL_MILESTONE_USD) + 1) * WHEEL_MILESTONE_USD, 2
         ),
+        "seconds_left": seconds_left,
+        "streak": streak,
+        "next_multiplier": next_multiplier,
+        "segments_values": legacy_segments,
+        "mega_unlocked": mega_unlocked,
+        "mega_value": mega_value,
+        "next_streak": streak + 1,
     }
+    return response
 
 
 @api.post("/wheel/spin")
 async def wheel_spin(user: dict = Depends(require_user)):
-    # Atomically consume one available spin (prevents double-spend).
-    claimed = await db.users.find_one_and_update(
-        {"user_id": user["user_id"], "wheel_spins": {"$gte": 1}},
-        {"$inc": {"wheel_spins": -1}},
+    fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
+    spins = int(fresh.get("wheel_spins", 0))
+
+    if spins > 0:
+        claimed = await db.users.find_one_and_update(
+            {"user_id": user["user_id"], "wheel_spins": {"$gte": 1}},
+            {"$inc": {"wheel_spins": -1}},
+        )
+        if not claimed:
+            raise HTTPException(
+                status_code=400,
+                detail="No wheel spins available. Deposit over $500, or reach $1000 in total deposits, to earn a Wheel of Wealth spin.",
+            )
+        wts = WHEEL_OF_WEALTH_WEIGHTS
+        total = sum(wts)
+        r = secrets.randbelow(total)
+        acc = 0
+        idx = len(wts) - 1
+        for j, w in enumerate(wts):
+            acc += w
+            if r < acc:
+                idx = j
+                break
+        seg = WHEEL_OF_WEALTH[idx]
+        amount = 0.0
+        if seg["type"] == "cash":
+            amount = float(seg["value"])
+            await db.users.update_one(
+                {"user_id": user["user_id"]}, {"$inc": {"balance": amount}}
+            )
+            await record_transaction(
+                user["user_id"], "wheel_win", amount, {"segment": seg["label"]}
+            )
+        elif seg["type"] == "again":
+            await db.users.update_one(
+                {"user_id": user["user_id"]}, {"$inc": {"wheel_spins": 1}}
+            )
+        updated = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
+        return {
+            "segment_index": idx,
+            "label": seg["label"],
+            "type": seg["type"],
+            "amount": amount,
+            "spins_available": int(updated.get("wheel_spins", 0)),
+            "balance": round(updated["balance"], 2),
+        }
+
+    last_spin = fresh.get("last_wheel_spin_at")
+    if isinstance(last_spin, str):
+        try:
+            last_spin_dt = datetime.fromisoformat(last_spin)
+            if last_spin_dt.tzinfo is None:
+                last_spin_dt = last_spin_dt.replace(tzinfo=timezone.utc)
+        except ValueError:
+            last_spin_dt = None
+    else:
+        last_spin_dt = last_spin
+
+    if last_spin_dt is not None:
+        now = datetime.now(timezone.utc)
+        if now - last_spin_dt < timedelta(days=1):
+            remaining = max(0, int((last_spin_dt + timedelta(days=1) - now).total_seconds()))
+            raise HTTPException(
+                status_code=400,
+                detail=f"Wheel is on cooldown for {remaining} seconds.",
+            )
+
+    seg_values = [500, 1000, 2000, 5000, 10000, 15000, 25000, 35000, 50000]
+    idx = secrets.randbelow(len(seg_values))
+    amount = float(seg_values[idx])
+    streak = int(fresh.get("wheel_streak", 0) or 0) + 1
+    next_multiplier = 2 if streak and streak % 7 == 0 else 1
+    adjusted_amount = round(amount * next_multiplier, 2)
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    await db.users.update_one(
+        {"user_id": user["user_id"]},
+        {
+            "$inc": {"balance": adjusted_amount},
+            "$set": {
+                "last_wheel_spin_at": now_iso,
+                "wheel_streak": streak,
+            },
+        },
     )
-    if not claimed:
-        raise HTTPException(
-            status_code=400,
-            detail="No wheel spins available. Deposit over $500, or reach $1000 in total deposits, to earn a Wheel of Wealth spin.",
-        )
-    wts = WHEEL_OF_WEALTH_WEIGHTS
-    total = sum(wts)
-    r = secrets.randbelow(total)
-    acc = 0
-    idx = len(wts) - 1
-    for j, w in enumerate(wts):
-        acc += w
-        if r < acc:
-            idx = j
-            break
-    seg = WHEEL_OF_WEALTH[idx]
-    amount = 0.0
-    if seg["type"] == "cash":
-        amount = float(seg["value"])
-        await db.users.update_one(
-            {"user_id": user["user_id"]}, {"$inc": {"balance": amount}}
-        )
-        await record_transaction(
-            user["user_id"], "wheel_win", amount, {"segment": seg["label"]}
-        )
-    elif seg["type"] == "again":
-        # Land on SPIN AGAIN → refund the spin we just consumed.
-        await db.users.update_one(
-            {"user_id": user["user_id"]}, {"$inc": {"wheel_spins": 1}}
-        )
+    await record_transaction(
+        user["user_id"], "wheel_win", adjusted_amount, {"segment_index": idx, "streak": streak}
+    )
+
     updated = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
     return {
         "segment_index": idx,
-        "label": seg["label"],
-        "type": seg["type"],
-        "amount": amount,
-        "spins_available": int(updated.get("wheel_spins", 0)),
+        "label": f"${int(amount):,}",
+        "type": "cash",
+        "amount": adjusted_amount,
+        "multiplier": next_multiplier,
+        "streak": streak,
         "balance": round(updated["balance"], 2),
+        "available": False,
+        "seconds_left": 86400,
+        "spins_available": 0,
     }
 
 

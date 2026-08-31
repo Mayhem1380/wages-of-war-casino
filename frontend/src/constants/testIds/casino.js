@@ -4,6 +4,7 @@ export const NAV = {
   vip: "nav-vip",
   leaderboard: "nav-leaderboard",
   wallet: "nav-wallet",
+  kyc: "nav-kyc",
   balance: "nav-balance",
   bonusBtn: "nav-daily-bonus",
   muteBtn: "nav-mute-btn",
