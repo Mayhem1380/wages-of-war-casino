@@ -8,6 +8,7 @@ import { KenoLiveBoard } from "@/components/KenoLiveBoard";
 import { KenoMosaicTiles } from "@/components/KenoMosaicTiles";
 import { LiveWinnersTicker } from "@/components/LiveWinnersTicker";
 import { WinCelebration } from "@/components/WinCelebration";
+import { WinLossFlash } from "@/components/WinLossFlash";
 import { KENO } from "@/constants/testIds";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -48,6 +49,7 @@ export default function KenoGame() {
   const [result, setResult] = useState(null);
   const [busy, setBusy] = useState(false);
   const [celebrate, setCelebrate] = useState(null);
+  const [flash, setFlash] = useState(null);
   const [autoPlay, setAutoPlay] = useState(true);
   const [mode, setMode] = useState("warhead");
   const [sideBets, setSideBets] = useState({});
@@ -150,9 +152,11 @@ export default function KenoGame() {
         if (data.win > 0) {
           sfx.bigWin();
           setCelebrate({ intensity: (data.multiplier || 2) >= 10 ? "big" : "small" });
+          setFlash({ type: "win", label: `+${fmt(data.win)}` });
           toast.success(`WIN +${fmt(data.win)}`);
         } else {
           sfx.lose();
+          setFlash({ type: "lose" });
           toast(
             mode === "side"
               ? "No side bets landed this draw."
@@ -195,6 +199,12 @@ export default function KenoGame() {
         intensity={celebrate?.intensity}
         onDone={() => setCelebrate(null)}
         testId="keno-celebration"
+      />
+      <WinLossFlash
+        show={!!flash}
+        type={flash?.type}
+        label={flash?.label}
+        onDone={() => setFlash(null)}
       />
       <div className="max-w-5xl mx-auto px-4 sm:px-8 py-8">
         <button
@@ -319,11 +329,11 @@ export default function KenoGame() {
                   "border-border bg-black/40 text-foreground/70 hover:border-nvg/60";
                 if (picked && !result)
                   cls = "border-nvg bg-nvg/20 text-nvg glow-nvg";
-                if (isHit) cls = "border-gold bg-gold/25 text-gold glow-gold";
+                if (isHit) cls = "border-gold bg-gold/25 text-gold keno-ball-neon-gold";
                 else if (picked && result)
                   cls = "border-nvg/60 bg-nvg/10 text-nvg";
                 else if (isDrawn)
-                  cls = "border-alert/50 bg-alert/10 text-alert/80";
+                  cls = "border-nvg/70 text-white keno-ball-neon";
                 return (
                   <button
                     key={n}

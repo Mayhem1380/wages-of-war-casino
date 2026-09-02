@@ -147,7 +147,7 @@ export default function DailyWheel() {
             WHEEL OF WEALTH
           </h1>
           <p className="text-muted-foreground mt-2 max-w-xl mx-auto">
-            Win real cash back — <span className="text-gold">$5 up to $50</span>,
+            Win real cash back — <span className="text-gold">$5 up to $500</span>,
             no wagering, no terms.
           </p>
         </div>

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { sfx } from "@/lib/sounds";
 import { BigWinOverlay } from "@/components/BigWinOverlay";
+import { WinLossFlash } from "@/components/WinLossFlash";
 import { GamblePanel } from "@/components/GamblePanel";
 import { LiveWinnersTicker } from "@/components/LiveWinnersTicker";
 import {
@@ -39,6 +40,7 @@ export default function SlotGame() {
   const [lastWin, setLastWin] = useState(0);
   const [free, setFree] = useState(null); // {active, spinsLeft, multiplier, total, done, sessionId}
   const [bigWin, setBigWin] = useState(null); // {win, multiplier}
+  const [flash, setFlash] = useState(null); // {type, label}
   const [shake, setShake] = useState(false);
   const spinRef = useRef();
   const machineRef = useRef(null);
@@ -191,6 +193,9 @@ export default function SlotGame() {
       setBigWin({ win: data.total_win, multiplier: 1 });
     if (data.total_win > 0)
       toast.success(`WIN +${fmt(data.total_win)} credits`);
+    if (data.total_win > 0)
+      setFlash({ type: "win", label: `+${fmt(data.total_win)}` });
+    else if (!data.free_session) setFlash({ type: "lose" });
     if (data.free_session) {
       sfx.scatter();
       toast.success(
@@ -279,6 +284,12 @@ export default function SlotGame() {
           onDone={() => setBigWin(null)}
         />
       )}
+      <WinLossFlash
+        show={!!flash}
+        type={flash?.type}
+        label={flash?.label}
+        onDone={() => setFlash(null)}
+      />
       <button
         onClick={() => navigate("/lobby")}
         className="flex items-center gap-2 text-muted-foreground hover:text-nvg font-mono text-sm mb-6"
