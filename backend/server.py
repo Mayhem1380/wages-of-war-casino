@@ -2036,29 +2036,41 @@ WHEEL_OF_WEALTH = [
     {"label": "BETTER LUCK", "value": 0, "type": "luck"},
     {"label": "BETTER LUCK", "value": 0, "type": "luck"},
     {"label": "SPIN AGAIN", "value": 0, "type": "again"},
+    {"label": "$500 MAJOR", "value": 500, "type": "major"},
 ]
-WHEEL_OF_WEALTH_WEIGHTS = [26, 20, 14, 9, 6, 4, 3, 2, 1, 1, 30, 30, 8]
+WHEEL_OF_WEALTH_WEIGHTS = [26, 20, 14, 9, 6, 4, 3, 2, 1, 1, 30, 30, 8, 1]
 WHEEL_BIG_DEPOSIT_USD = 500  # a single deposit OVER this earns 1 spin
 WHEEL_MILESTONE_USD = 1000  # every $1000 of lifetime deposits earns 1 spin
 
 
 async def _grant_wheel_spins_on_deposit(user_id: str, deposit_usd: float):
-    """Award Wheel of Wealth spins: +1 for any single deposit over $500, and
+    """Award Wheel of Wealth spins: +1 for any single deposit of at least $500, and
     +1 for each $1000 lifetime-deposit milestone newly crossed. Idempotent per
-    deposit because it is called exactly once from each credit path."""
+    deposit because it is called exactly once from each credit path.
+
+    Also tracks the largest single deposit (drives the max-cashout tier) and
+    accrues the 1x playthrough wagering requirement on every deposit."""
     u = await db.users.find_one({"user_id": user_id})
     if not u:
         return
     prev_total = float(u.get("total_deposited_usd", 0.0))
     new_total = prev_total + float(deposit_usd)
-    granted = 1 if float(deposit_usd) > WHEEL_BIG_DEPOSIT_USD else 0
+    granted = 1 if float(deposit_usd) >= WHEEL_BIG_DEPOSIT_USD else 0
     granted += int(new_total // WHEEL_MILESTONE_USD) - int(
         prev_total // WHEEL_MILESTONE_USD
+    )
+    largest_deposit = max(float(u.get("largest_deposit_usd", 0.0)), float(deposit_usd))
+    wagering_required = float(u.get("wagering_required_usd", 0.0)) + (
+        float(deposit_usd) * cashier.WAGERING_REQUIREMENT_MULTIPLIER
     )
     await db.users.update_one(
         {"user_id": user_id},
         {
-            "$set": {"total_deposited_usd": round(new_total, 2)},
+            "$set": {
+                "total_deposited_usd": round(new_total, 2),
+                "largest_deposit_usd": round(largest_deposit, 2),
+                "wagering_required_usd": round(wagering_required, 2),
+            },
             "$inc": {"wheel_spins": max(0, granted)},
         },
     )
@@ -2094,23 +2106,13 @@ async def wheel_status(user: dict = Depends(require_user)):
     mega_unlocked = streak >= 6
     mega_value = 250000 if mega_unlocked else 0
 
-    legacy_segments = [500, 1000, 2000, 5000, 10000, 15000, 25000, 35000, 50000]
-    legacy_segment_meta = [
-        {"label": "$500", "value": 500, "type": "cash"},
-        {"label": "$1,000", "value": 1000, "type": "cash"},
-        {"label": "$2,000", "value": 2000, "type": "cash"},
-        {"label": "$5,000", "value": 5000, "type": "cash"},
-        {"label": "$10,000", "value": 10000, "type": "cash"},
-        {"label": "$15,000", "value": 15000, "type": "cash"},
-        {"label": "$25,000", "value": 25000, "type": "cash"},
-        {"label": "$35,000", "value": 35000, "type": "cash"},
-        {"label": "$50,000", "value": 50000, "type": "cash"},
-    ]
+    segment_meta = WHEEL_OF_WEALTH
+    segment_values = [segment["value"] for segment in segment_meta]
     response = {
         "available": (spins > 0) or (not cooldown_active),
         "spins_available": spins,
-        "segments": legacy_segments,
-        "segment_meta": legacy_segment_meta,
+        "segments": segment_values,
+        "segment_meta": segment_meta,
         "total_deposited_usd": round(total_dep, 2),
         "big_deposit_usd": WHEEL_BIG_DEPOSIT_USD,
         "milestone_usd": WHEEL_MILESTONE_USD,
@@ -2120,7 +2122,7 @@ async def wheel_status(user: dict = Depends(require_user)):
         "seconds_left": seconds_left,
         "streak": streak,
         "next_multiplier": next_multiplier,
-        "segments_values": legacy_segments,
+        "segments_values": segment_values,
         "mega_unlocked": mega_unlocked,
         "mega_value": mega_value,
         "next_streak": streak + 1,
@@ -2141,7 +2143,7 @@ async def wheel_spin(user: dict = Depends(require_user)):
         if not claimed:
             raise HTTPException(
                 status_code=400,
-                detail="No wheel spins available. Deposit over $500, or reach $1000 in total deposits, to earn a Wheel of Wealth spin.",
+                detail="No wheel spins available. Deposit at least $500, or reach $1000 in total deposits, to earn a Wheel of Wealth spin.",
             )
         wts = WHEEL_OF_WEALTH_WEIGHTS
         total = sum(wts)
@@ -2155,7 +2157,7 @@ async def wheel_spin(user: dict = Depends(require_user)):
                 break
         seg = WHEEL_OF_WEALTH[idx]
         amount = 0.0
-        if seg["type"] == "cash":
+        if seg["type"] in {"cash", "major"}:
             amount = float(seg["value"])
             await db.users.update_one(
                 {"user_id": user["user_id"]}, {"$inc": {"balance": amount}}
@@ -3072,6 +3074,11 @@ async def cashier_currencies():
         "max_deposit_usd": round(cashier.MAX_DEPOSIT_USD_CENTS / 100.0, 2),
         "min_withdraw_usd": round(cashier.MIN_WITHDRAW_USD_CENTS / 100.0, 2),
         "max_withdraw_usd": round(cashier.MAX_WITHDRAW_USD_CENTS / 100.0, 2),
+        "wagering_requirement_multiplier": cashier.WAGERING_REQUIREMENT_MULTIPLIER,
+        "cashout_tiers": [
+            {"min_deposit": lo, "max_deposit": (hi if hi != float("inf") else None), "max_cashout": cap}
+            for lo, hi, cap in cashier.CASHOUT_TIERS
+        ],
     }
 
 
@@ -3079,6 +3086,9 @@ async def cashier_currencies():
 async def cashier_summary(user: dict = Depends(require_user)):
     fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
     cents = int(fresh.get("real_balance_cents", 0))
+    wagering_required = float(fresh.get("wagering_required_usd", 0.0))
+    wagering_done = float(fresh.get("total_wagered", 0.0))
+    largest_deposit = float(fresh.get("largest_deposit_usd", 0.0))
     return {
         "real_balance_cents": cents,
         "real_balance_usd": round(cents / 100.0, 2),
@@ -3087,6 +3097,11 @@ async def cashier_summary(user: dict = Depends(require_user)):
         "crypto_live": not cashier._is_placeholder_np(),
         "vault_live": not cashier.is_placeholder_vault(),
         "sandbox": cashier._is_placeholder_np() or cashier.is_placeholder_vault(),
+        "wagering_required_usd": round(wagering_required, 2),
+        "wagering_done_usd": round(wagering_done, 2),
+        "wagering_met": wagering_done >= wagering_required,
+        "largest_deposit_usd": round(largest_deposit, 2),
+        "max_cashout_usd": cashier.max_cashout_for_deposit(largest_deposit),
     }
 
 
@@ -3297,6 +3312,38 @@ async def cashier_withdraw(payload: WithdrawInput, user: dict = Depends(require_
         raise HTTPException(
             status_code=403,
             detail="Identity verification required before withdrawing. Please complete KYC in the Cashier.",
+        )
+    banking = fresh.get("kyc_banking_details") or {}
+    account_holder = (banking.get("account_holder") or "").strip().lower()
+    registered_name = (fresh.get("name") or "").strip().lower()
+    if code in cashier.FIAT_CODES:
+        if not account_holder:
+            raise HTTPException(
+                status_code=403,
+                detail="Add your bank account details in the Cashier before withdrawing.",
+            )
+        if account_holder != registered_name:
+            raise HTTPException(
+                status_code=403,
+                detail="Bank account holder name must match your registered account name.",
+            )
+    wagering_required = float(fresh.get("wagering_required_usd", 0.0))
+    wagering_done = float(fresh.get("total_wagered", 0.0))
+    if wagering_required > 0 and wagering_done < wagering_required:
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                f"Wagering requirement not met: {wagering_done:.2f} of "
+                f"{wagering_required:.2f} (1x playthrough on deposits) wagered."
+            ),
+        )
+    cashout_cap = cashier.max_cashout_for_deposit(
+        float(fresh.get("largest_deposit_usd", 0.0))
+    )
+    if payload.amount > cashout_cap:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Maximum win cashout for your deposit tier is ${cashout_cap:,.2f}",
         )
     if int(fresh.get("real_balance_cents", 0)) < usd_cents:
         raise HTTPException(status_code=400, detail="Insufficient cash balance")

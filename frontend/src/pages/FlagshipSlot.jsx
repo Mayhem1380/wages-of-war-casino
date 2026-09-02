@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { sfx } from "@/lib/sounds";
 import { BigWinOverlay } from "@/components/BigWinOverlay";
+import { LiveWinnersTicker } from "@/components/LiveWinnersTicker";
 import {
   Lightning,
   Minus,
@@ -563,6 +564,8 @@ export default function FlagshipSlot() {
             </div>
           ))}
         </div>
+
+        <LiveWinnersTicker game={machine.name} />
 
         <div className="grid lg:grid-cols-[1fr_260px] gap-4">
           {/* REELS */}

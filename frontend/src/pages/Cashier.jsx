@@ -346,6 +346,39 @@ export default function Cashier() {
         </div>
       </div>
 
+      {/* Casino Rules & Limits */}
+      <div className="hud p-5 mb-8 text-sm">
+        <p className="font-mono text-xs tracking-widest text-gold mb-3">
+          CASINO RULES & LIMITS
+        </p>
+        <ul className="space-y-1 text-foreground/80 font-mono text-xs">
+          <li>Minimum Deposit: ${meta?.min_deposit_usd ?? 5}</li>
+          <li>
+            Wagering Requirement: {meta?.wagering_requirement_multiplier ?? 1}x
+            playthrough on all deposits before withdrawing any winnings.
+          </li>
+          <li>Minimum Withdrawal: ${meta?.min_withdraw_usd ?? 50}</li>
+          <li>Maximum Cashout Tiers (based on deposit amount):</li>
+          <ul className="pl-4 space-y-0.5 list-disc list-inside">
+            {(meta?.cashout_tiers || []).map((t, i) => (
+              <li key={i}>
+                ${t.min_deposit}
+                {t.max_deposit != null ? `–$${t.max_deposit}` : "+"} deposit:
+                max win cashout of ${t.max_cashout.toLocaleString("en-US")}.
+              </li>
+            ))}
+          </ul>
+        </ul>
+        {summary && (
+          <p className="mt-3 text-[11px] text-muted-foreground">
+            Your progress: ${summary.wagering_done_usd?.toLocaleString("en-US")} of $
+            {summary.wagering_required_usd?.toLocaleString("en-US")} wagered
+            {summary.wagering_met ? " (requirement met)" : ""} · your max
+            cashout cap: ${summary.max_cashout_usd?.toLocaleString("en-US")}
+          </p>
+        )}
+      </div>
+
       {/* KYC / Identity Verification */}
       <div
         data-testid={CASHIER.kycCard}

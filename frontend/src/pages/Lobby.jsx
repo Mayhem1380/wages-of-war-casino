@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
-import { MACHINE_ART, FLAGSHIP_ART, resolveMachineArt, fmt } from "@/data/gameMeta";
+import { FLAGSHIP_ART, FLAGSHIP_IDS, MACHINE_ART, resolveMachineArt, fmt } from "@/data/gameMeta";
 import { LOBBY } from "@/constants/testIds";
 import { SymbolTile } from "@/components/SymbolTile";
 import { AnimatedShowcase } from "@/components/AnimatedShowcase";
@@ -21,6 +21,27 @@ import {
   Crown,
   Flame,
 } from "@phosphor-icons/react";
+
+const FALLBACK_DETAILS = {
+  warpath_legends: ["Warpath Legends", "Command the frontier and chase the grand jackpot.", "western"],
+  golden_dynasty: ["Golden Dynasty", "Enter the imperial vault for Hold & Win prizes.", "dynasty"],
+  money_train_convoy: ["Money Train Convoy", "Board the armored convoy and collect cash-on-reels.", "heist"],
+};
+const LOBBY_FALLBACK_SLOTS = FLAGSHIP_IDS.map((id, index) => {
+  const [name, tagline, theme] = FALLBACK_DETAILS[id] || [
+    id.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase()),
+    "Premium reels, live jackpot prizes, and feature-rich bonus play.",
+    "military",
+  ];
+  return {
+  id,
+  name,
+  tagline,
+  theme,
+  popularity: FLAGSHIP_IDS.length - index,
+  is_flagship: true,
+  };
+});
 
 // Map each slot theme to a player-facing category tab.
 const THEME_CATEGORY = {
@@ -87,7 +108,7 @@ function CornerCard({
 export default function Lobby() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [slots, setSlots] = useState([]);
+  const [slots, setSlots] = useState(LOBBY_FALLBACK_SLOTS);
   const [query, setQuery] = useState("");
   const [cat, setCat] = useState("All");
   const [champions, setChampions] = useState([]);
@@ -103,7 +124,7 @@ export default function Lobby() {
             return (b.is_flagship ? 1 : 0) - (a.is_flagship ? 1 : 0);
           return (b.popularity || 0) - (a.popularity || 0);
         });
-        setSlots(sorted);
+        setSlots(sorted.length ? sorted : LOBBY_FALLBACK_SLOTS);
       })
       .catch(() => {});
     api

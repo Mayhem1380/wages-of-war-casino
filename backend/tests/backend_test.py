@@ -949,8 +949,8 @@ class TestCashier:
         codes = {c["code"] for c in d["currencies"]}
         for expected in ("USD", "AUD", "BTC", "ETH", "USDT"):
             assert expected in codes, f"missing currency {expected}"
-        assert d.get("min_deposit_aud") == 10.0
-        assert d.get("min_withdraw_aud") == 20.0
+        assert d.get("min_deposit_aud") == 5.0
+        assert d.get("min_withdraw_aud") == 50.0
 
     def test_summary_requires_auth(self):
         r = requests.get(f"{API}/cashier/summary")
@@ -985,7 +985,7 @@ class TestCashier:
     def test_stripe_deposit_below_minimum_rejected(self, auth_headers):
         r = requests.post(
             f"{API}/cashier/deposit/stripe",
-            json={"currency": "AUD", "amount": 5.0, "origin_url": BASE_URL},
+            json={"currency": "AUD", "amount": 2.0, "origin_url": BASE_URL},
             headers=auth_headers,
         )
         assert r.status_code == 400
@@ -1070,6 +1070,15 @@ class TestCashierWithdrawalAndAdmin:
                 # Bypass the KYC gate for approval/rejection flow tests
                 update["kyc_approved"] = True
                 update["kyc_status"] = "approved"
+                # Bank account holder name must match the registered account name
+                doc = await client[db_name].users.find_one({"user_id": user_id})
+                update["kyc_banking_details"] = {
+                    "account_holder": (doc or {}).get("name", "WD"),
+                    "bank_name": "Test Bank",
+                    "bank_country": "AU",
+                    "account_number": "12345678",
+                    "bsb_code": "062-000",
+                }
             await client[db_name].users.update_one(
                 {"user_id": user_id}, {"$set": update}
             )
@@ -1091,11 +1100,11 @@ class TestCashierWithdrawalAndAdmin:
         # Seed $100 USD
         self._seed_real_balance(uid, 10000)
 
-        # Submit valid AUD withdrawal ($30 AUD ~ $19.80 USD > min $13.20 USD)
+        # Submit valid AUD withdrawal (60 AUD ~ $39.60 USD > new min $50 AUD)
         r = requests.post(
             f"{API}/cashier/withdraw",
             headers=h,
-            json={"currency": "AUD", "amount": 30.0, "destination": "AU12345678901234"},
+            json={"currency": "AUD", "amount": 60.0, "destination": "AU12345678901234"},
         )
         assert r.status_code == 200, r.text
         d = r.json()
@@ -1143,7 +1152,7 @@ class TestCashierWithdrawalAndAdmin:
         r = requests.post(
             f"{API}/cashier/withdraw",
             headers=h,
-            json={"currency": "AUD", "amount": 30.0, "destination": "AU12345678901234"},
+            json={"currency": "AUD", "amount": 60.0, "destination": "AU12345678901234"},
         )
         assert r.status_code == 200, r.text
         wd_id = r.json()["id"]
@@ -1267,14 +1276,14 @@ class TestKyc:
         """CRITICAL COMPLIANCE GATE: a user with sufficient real_balance_cents
         but kyc_approved=False must receive 403 on POST /cashier/withdraw."""
         u = self._fresh_user()
-        # Seed $100 USD real balance (more than $13.20 min withdraw)
+        # Seed $100 USD real balance (more than the new $50 AUD min withdraw)
         self._seed_real_balance(u["user_id"], 10000)
         r = requests.post(
             f"{API}/cashier/withdraw",
             headers=u["headers"],
             json={
                 "currency": "AUD",
-                "amount": 30.0,
+                "amount": 60.0,
                 "destination": "AU12345678901234",
             },
         )

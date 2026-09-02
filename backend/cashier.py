@@ -107,10 +107,30 @@ FIAT_CODES = [c for c, m in CURRENCIES.items() if m["type"] == "FIAT"]
 CRYPTO_CODES = [c for c, m in CURRENCIES.items() if m["type"] == "CRYPTO"]
 
 # Limits are defined in AUD per spec, converted to USD cents internally.
-MIN_DEPOSIT_AUD = 10.0
+MIN_DEPOSIT_AUD = 5.0
 MAX_DEPOSIT_AUD = 5000.0
-MIN_WITHDRAW_AUD = 20.0
+MIN_WITHDRAW_AUD = 50.0
 MAX_WITHDRAW_AUD = 25000.0
+
+# Wagering requirement: 1x playthrough on all deposits before withdrawing winnings.
+WAGERING_REQUIREMENT_MULTIPLIER = 1.0
+
+# Maximum win cashout, tiered by the player's largest single deposit (AUD).
+# Under $50 deposited -> capped at $1,500. $50+ deposited -> up to $10,000.
+CASHOUT_TIERS = [
+    (0.0, 49.99, 1500.0),
+    (50.0, float("inf"), 10000.0),
+]
+
+
+def max_cashout_for_deposit(deposit_aud: float) -> float:
+    """Max win cashout allowed for a given deposit amount, per casino rules."""
+    if deposit_aud < CASHOUT_TIERS[0][0]:
+        return CASHOUT_TIERS[0][2]
+    for lo, hi, cap in CASHOUT_TIERS:
+        if lo <= deposit_aud <= hi:
+            return cap
+    return CASHOUT_TIERS[-1][2]
 
 
 def _aud_to_usd_cents(aud: float) -> int:

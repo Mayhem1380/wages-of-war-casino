@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { sfx } from "@/lib/sounds";
 import { WinCelebration } from "@/components/WinCelebration";
+import { LiveWinnersTicker } from "@/components/LiveWinnersTicker";
 import { Coins, ArrowLeft, Lightning } from "@phosphor-icons/react";
 
 export default function CoinFlipGame() {
@@ -111,6 +112,8 @@ export default function CoinFlipGame() {
             DOG-TAG FLIP
           </h1>
         </div>
+
+        <LiveWinnersTicker game="Dog-Tag Flip" />
 
         <div
           className="hud hud-gold p-8 flex flex-col items-center gap-6"

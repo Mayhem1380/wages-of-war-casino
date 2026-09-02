@@ -207,6 +207,15 @@ export function Layout({ children }) {
       />
       {/* War-zone combat scene (muzzle flashes) — shown on entry for everyone */}
       <CombatBackground />
+      <a
+        href="https://gaming-fleet-hq.preview.emergentagent.com"
+        target="_blank"
+        rel="noopener noreferrer"
+        data-testid="nexus-top-banner"
+        className="relative z-50 block w-full bg-gradient-to-r from-gold/20 via-black/90 to-gold/20 border-b border-gold/40 py-1.5 text-center font-mono text-[11px] tracking-[0.3em] text-gold hover:text-nvg transition-colors"
+      >
+        ⚡ NEXUS · EXPLORE THE FULL GAMING FLEET HQ →
+      </a>
       <header className="sticky top-0 z-50 border-b-2 border-gold/25 bg-black/85 backdrop-blur-md">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-8 h-16 flex items-center justify-between gap-4">
           <Link to="/" data-testid={NAV.logo}>
@@ -436,12 +445,12 @@ export function Layout({ children }) {
           .footer-emblem-heal { animation: wowBiteHeal 5s ease-in-out infinite; will-change: clip-path, opacity; }
           @keyframes wowBiteHeal {
             0%   { clip-path: inset(0 0 0 0); opacity:.55; }
-            44%  { clip-path: inset(0 0 0 0); opacity:.66; }
-            54%  { clip-path: inset(0 0 0 0); opacity:.66; }
-            62%  { clip-path: inset(0 47% 0 0); opacity:.5; }
-            70%  { clip-path: inset(0 100% 0 0); opacity:.12; }
-            73%  { clip-path: inset(0 100% 0 0); opacity:0; }
-            86%  { clip-path: inset(0 38% 0 0); opacity:.4; }
+            40%  { clip-path: inset(0 0 0 0); opacity:.66; }
+            52%  { clip-path: inset(0 0 0 0); opacity:.7; }
+            57%  { clip-path: inset(0 46% 0 0); opacity:.55; }
+            62%  { clip-path: inset(0 100% 0 0); opacity:.12; }
+            74%  { clip-path: inset(0 100% 0 0); opacity:0; }
+            88%  { clip-path: inset(0 34% 0 0); opacity:.42; }
             100% { clip-path: inset(0 0 0 0); opacity:.55; }
           }
           @media (prefers-reduced-motion: reduce) {
