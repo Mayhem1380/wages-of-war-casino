@@ -338,3 +338,9 @@ REMAINING / NEXT:
 - NEON BALLS: brightened WARKINO/Keno balls to digital neon (green glow + saturate/brightness) in LiveDrawBoard.jsx (lobby), KenoLiveBoard.jsx (spotlight + drawn board), and KenoGame.jsx result board. `.keno-ball-neon` / `.keno-ball-neon-gold` classes in index.css. Verified neon on /keno.
 - ASSET SYNC + BUILD: package.json homepage="/"; production `yarn build` compiles clean; build/index.html + all /slots //brand refs are root-relative. deployment_agent scan = PASS (no blockers).
 - ACTION FOR USER: click Publish/Deploy in Emergent to push this to night-vision-gold (the Publish click is a platform action the agent cannot perform).
+
+### 03 Sep 2026 — User-supplied tile artwork + footer swap
+- Placed 3 user-uploaded 1024×1024 tiles (optimized to ~185-215KB JPEG in /public/slots): golden_dynasty (emperor+phoenix), money_train_convoy (armored night train), warpath_legends (cavalry charge). Repointed gameMeta.js refs to the .jpg. Verified all load at 1024×1024.
+- GRAPHICS AUDIT (in response to user "graphics still not there"): confirmed preview build is COMPLETE — 319 distinct /slots assets referenced, 0 missing, 0 broken; Coin Flip (Dog-Tag Flip) assets all present & rendering. Root cause of user seeing blanks = live site not yet redeployed (recurring deploy-pipeline issue), NOT missing code/assets.
+- FOOTER: replaced the animated CSS shark + bite/heal blue-logo effect with the user's underwater casino image. Saved to /brand/underwater_palace.jpg (223KB), set BRAND.footerUnderwater to it, removed <SharkBite/> overlay + emblem-heal block + cyan bubbles from Layout.jsx, raised bg opacity to 0.9. Verified footer renders the new art. SharkBite.jsx now unused (left in repo, harmless).
+- PENDING: user is uploading the remaining tile PNGs (map by filename → game id) in follow-up messages.

@@ -1403,5 +1403,5 @@ export const BRAND = {
   nexusSizzle: "/brand/nexus_fleet_sizzle.jpg",
   jungleAmbush: "/brand/jungle_ambush.jpg",
   giveaway: "/brand/giveaway.webp",
-  footerUnderwater: "/brand/footer_underwater.jpg",
+  footerUnderwater: "/brand/underwater_palace.jpg",
 };

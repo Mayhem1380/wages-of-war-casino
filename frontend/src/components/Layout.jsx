@@ -4,7 +4,6 @@ import { useAuth } from "@/context/AuthContext";
 import { useSound } from "@/context/SoundContext";
 import { BrandLogo } from "@/components/BrandLogo";
 import CombatBackground from "@/components/CombatBackground";
-import SharkBite from "@/components/SharkBite";
 import { AuthDialog } from "@/components/AuthDialog";
 import { RankUpBanner } from "@/components/RankUpBanner";
 import ChatWidget from "@/components/ChatWidget";
@@ -418,7 +417,7 @@ export function Layout({ children }) {
 
       <footer className="relative z-10 border-t-2 border-gold/20 bg-black/70 overflow-hidden">
         <div
-          className="absolute inset-0 pointer-events-none opacity-[0.6]"
+          className="absolute inset-0 pointer-events-none opacity-90"
           style={{
             backgroundImage: `url(${BRAND.footerUnderwater})`,
             backgroundSize: "cover",
@@ -426,69 +425,14 @@ export function Layout({ children }) {
           }}
           aria-hidden="true"
         />
-        <SharkBite />
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
             background:
-              "linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0.8))",
+              "linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.72))",
           }}
           aria-hidden="true"
         />
-
-        {/* Blue glowing casino emblem faded between the diver & shark + rising bubbles */}
-        <style>{`
-          @keyframes wowBubble { 0%{ transform:translateY(0) scale(1); opacity:0; } 12%{ opacity:.55; } 100%{ transform:translateY(-210px) scale(1.5); opacity:0; } }
-          /* SHARK STRIKE: the ROUND blue logo is chomped away (bitten) as the shark
-             lunges, then regrows/heals — looped on the shark's 5s cycle. Stays a
-             perfect circle at every frame (container is rounded-full + overflow-hidden). */
-          .footer-emblem-heal { animation: wowBiteHeal 5s ease-in-out infinite; will-change: clip-path, opacity; }
-          @keyframes wowBiteHeal {
-            0%   { clip-path: inset(0 0 0 0); opacity:.55; }
-            40%  { clip-path: inset(0 0 0 0); opacity:.66; }
-            52%  { clip-path: inset(0 0 0 0); opacity:.7; }
-            57%  { clip-path: inset(0 46% 0 0); opacity:.55; }
-            62%  { clip-path: inset(0 100% 0 0); opacity:.12; }
-            74%  { clip-path: inset(0 100% 0 0); opacity:0; }
-            88%  { clip-path: inset(0 34% 0 0); opacity:.42; }
-            100% { clip-path: inset(0 0 0 0); opacity:.55; }
-          }
-          @media (prefers-reduced-motion: reduce) {
-            .footer-emblem-heal { animation: none !important; opacity:.55 !important; clip-path: none !important; }
-          }
-        `}</style>
-        {/* Round blue emblem — forced circular so it NEVER renders square; shark chomps it then it heals. */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute left-1/2 top-1/2 z-[1] w-56 sm:w-80 aspect-square rounded-full overflow-hidden"
-          style={{
-            transform: "translate(-50%,-50%)",
-            boxShadow:
-              "0 0 22px rgba(56,189,248,0.85), 0 0 48px rgba(56,189,248,0.5), 0 0 70px rgba(255,60,60,0.45)",
-          }}
-        >
-          <img
-            src="/brand/footer_logo_blue.png"
-            alt=""
-            className="footer-emblem-heal w-full h-full object-cover"
-          />
-        </div>
-        {[...Array(7)].map((_, i) => (
-          <span
-            key={i}
-            aria-hidden="true"
-            className="pointer-events-none absolute rounded-full bg-cyan-300/40 z-[1]"
-            style={{
-              left: `${13 + i * 11}%`,
-              bottom: "6%",
-              width: `${6 + (i % 3) * 4}px`,
-              height: `${6 + (i % 3) * 4}px`,
-              filter: "blur(0.5px)",
-              boxShadow: "0 0 8px rgba(56,189,248,0.7)",
-              animation: `wowBubble ${5 + i * 0.8}s ease-in ${i * 0.7}s infinite`,
-            }}
-          />
-        ))}
 
         <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-8 py-16">
           <div className="grid md:grid-cols-4 gap-10">
