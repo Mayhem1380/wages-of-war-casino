@@ -28,10 +28,11 @@ jobs:
           npm run build
 
       - name: Package build
+        id: package
         run: |
           TARFILE="wagesofwar_build_$(date +%Y%m%d%H%M%S).tar.gz"
           tar -czf "$TARFILE" -C frontend build
-          echo "TARFILE=$TARFILE" >> $GITHUB_ENV
+          echo "tarfile=$TARFILE" >> "$GITHUB_OUTPUT"
 
       - name: Upload tarball via SCP
         uses: appleboy/scp-action@v0.1.4
@@ -40,7 +41,7 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_KEY }}
           port: ${{ secrets.DEPLOY_PORT }}
-          source: "$TARFILE"
+          source: "${{ steps.package.outputs.tarfile }}"
           target: "/tmp"
 
       - name: Extract on remote and run post-deploy command
@@ -53,7 +54,7 @@ jobs:
           script: |
             set -e
             DEST=${{ secrets.DEPLOY_PATH }}
-            TARFILE="/tmp/$TARFILE"
+            TARFILE="/tmp/${{ steps.package.outputs.tarfile }}"
             mkdir -p "$DEST"
             tar -xzf "$TARFILE" -C "$DEST" --strip-components=1
             rm -f "$TARFILE"
