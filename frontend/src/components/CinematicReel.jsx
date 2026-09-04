@@ -12,6 +12,14 @@ import {
 // with a slow Ken-Burns move + fade, timed to build a ~28s marketing sequence.
 const SCENES = [
   {
+    img: "/brand/coin-nightops.png",
+    kicker: "// NIGHT OPS EDITION",
+    title: "WAGES OF WAR",
+    sub: "A cinematic casino operation beneath the surface",
+    anim: "kb-zoom-in",
+    gold: true,
+  },
+  {
     img: "/brand/cine_carrier.jpg",
     kicker: "// NIGHT OPS COMMAND",
     title: "WAGES OF WAR",

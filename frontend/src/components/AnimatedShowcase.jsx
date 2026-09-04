@@ -83,6 +83,13 @@ const SLIDES = {
   ],
   promo: [
     {
+      img: "/brand/coin-nightops.png",
+      kicker: "// NIGHT OPS EDITION",
+      title: "THE FLEET IS LIVE",
+      sub: "Cinematic slots · elite rewards · deploy now",
+      accent: "#F6E27A",
+    },
+    {
       img: BRAND.hero,
       kicker: "// BRIEFING REEL",
       title: "15 ELITE SLOTS",
