@@ -60,5 +60,5 @@ This is everything that MUST appear on production (https://wagesofwarcasin0.onli
 
 ## Production env keys to confirm
 - FRONTEND_URL = https://wagesofwarcasin0.online  (NOT the preview URL)
-- CORS_ORIGINS = *   | ADMIN_EMAIL / ADMIN_PASSWORD set
+- CORS_ORIGINS = https://wagesofwarcasin0.online   | ADMIN_EMAIL / ADMIN_PASSWORD set
 - Stripe keys (test now; swap to live for real payments)

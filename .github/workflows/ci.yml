@@ -53,4 +53,4 @@ jobs:
       - name: Run frontend format & lint checks
         run: |
           npx --prefix frontend prettier --check "frontend/src/**/*.{js,jsx,ts,tsx}"
-          npx --prefix frontend eslint@8 -c frontend/.eslintrc.cjs "frontend/src/**/*.{js,jsx,ts,tsx}" --ext .js,.jsx,.ts,.tsx --max-warnings=0 || true
+          npx --prefix frontend eslint@8 -c frontend/eslint.config.cjs "frontend/src/**/*.{js,jsx,ts,tsx}" --ext .js,.jsx,.ts,.tsx --max-warnings=0
