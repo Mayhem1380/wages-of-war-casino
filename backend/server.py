@@ -1382,6 +1382,8 @@ async def slot_detail(machine_id: str):
 
 @api.post("/games/slots/spin")
 async def slots_spin(payload: SpinInput, user: dict = Depends(require_user)):
+    if payload.machine_id not in PUBLIC_SLOT_IDS:
+        raise HTTPException(status_code=404, detail="Machine not found")
     m = SLOT_MACHINES.get(payload.machine_id)
     if not m:
         raise HTTPException(status_code=404, detail="Machine not found")
@@ -1470,6 +1472,8 @@ BUY_FEATURE_COST_MULT = 100  # buy the free-spins bonus for 100x the total bet
 @api.post("/games/slots/buy-bonus")
 async def slots_buy_bonus(payload: SpinInput, user: dict = Depends(require_user)):
     """Buy Feature — pay 100x the bet to instantly trigger the free-spins bonus."""
+    if payload.machine_id not in PUBLIC_SLOT_IDS:
+        raise HTTPException(status_code=404, detail="Machine not found")
     m = SLOT_MACHINES.get(payload.machine_id)
     if not m:
         raise HTTPException(status_code=404, detail="Machine not found")
