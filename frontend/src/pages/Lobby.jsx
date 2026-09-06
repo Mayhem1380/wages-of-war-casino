@@ -145,9 +145,13 @@ export default function Lobby() {
       return okCat && okQ;
     });
   }, [slots, query, cat]);
-  const featuredSlots = [...slots]
-    .sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
-    .slice(0, 6);
+  const featuredSlots = useMemo(
+    () =>
+      [...slots]
+        .sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
+        .slice(0, 6),
+    [slots],
+  );
 
   const catCount = (c) =>
     c === "All" ? slots.length : slots.filter((s) => catOf(s) === c).length;

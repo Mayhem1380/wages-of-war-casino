@@ -25,6 +25,12 @@ export default function KycPage() {
     try {
       await api.post("/kyc/banking", banking);
       toast.success("Banking details saved for verification.");
+    } catch (e) {
+      toast.error(e.response?.data?.detail || "Banking details validation failed");
+      setBusy(false);
+      return;
+    }
+    try {
       const { data } = await api.post("/kyc/session", {
         origin_url: getAppOriginUrl(),
       });
