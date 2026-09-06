@@ -13,6 +13,14 @@ import { useCinematicScore } from "@/lib/cinematicScore";
 // with a slow Ken-Burns move + fade, timed to build a ~28s marketing sequence.
 const SCENES = [
   {
+    img: "/brand/coin-nightops.png",
+    kicker: "// NIGHT OPS EDITION",
+    title: "WAGES OF WAR",
+    sub: "A cinematic casino operation beneath the surface",
+    anim: "kb-zoom-in",
+    gold: true,
+  },
+  {
     img: "/brand/cine_carrier.jpg",
     kicker: "// NIGHT OPS COMMAND",
     title: "WAGES OF WAR",
@@ -72,17 +80,29 @@ export function CinematicReel({ onEnlist }) {
   const navigate = useNavigate();
   const [i, setI] = useState(0);
   const [playing, setPlaying] = useState(true);
+  const [reducedMotion, setReducedMotion] = useState(false);
   const timer = useRef(null);
   const score = useCinematicScore();
 
   useEffect(() => {
-    if (!playing) return;
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => {
+      setReducedMotion(media.matches);
+      if (media.matches) setPlaying(false);
+    };
+    update();
+    media.addEventListener?.("change", update);
+    return () => media.removeEventListener?.("change", update);
+  }, []);
+
+  useEffect(() => {
+    if (!playing || reducedMotion) return;
     timer.current = setTimeout(() => {
       setI((p) => (p + 1 < SCENES.length ? p + 1 : p));
       if (i + 1 >= SCENES.length) setPlaying(false);
     }, DUR);
     return () => clearTimeout(timer.current);
-  }, [i, playing]);
+  }, [i, playing, reducedMotion]);
 
   const replay = () => {
     setI(0);
@@ -110,7 +130,11 @@ export function CinematicReel({ onEnlist }) {
         <div
           key={idx}
           className="reel-scene absolute inset-0"
-          style={{ opacity: idx === i ? 1 : 0, transition: "opacity .8s ease", zIndex: idx === i ? 2 : 1 }}
+          style={{
+            opacity: idx === i ? 1 : 0,
+            transition: reducedMotion ? "none" : "opacity .8s ease",
+            zIndex: idx === i ? 2 : 1,
+          }}
         >
           <img
             src={s.img}
@@ -119,7 +143,10 @@ export function CinematicReel({ onEnlist }) {
             decoding="async"
             className="absolute inset-0 w-full h-full object-cover"
             style={{
-              animation: idx === i ? `${s.anim} ${DUR + 900}ms ease both` : "none",
+              animation:
+                !reducedMotion && idx === i
+                  ? `${s.anim} ${DUR + 900}ms ease both`
+                  : "none",
               filter: "brightness(0.62) saturate(1.05)",
             }}
           />

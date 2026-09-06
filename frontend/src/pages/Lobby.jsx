@@ -9,6 +9,7 @@ import { AnimatedShowcase } from "@/components/AnimatedShowcase";
 import { LobbyHype } from "@/components/LobbyHype";
 import { LiveDrawBoard } from "@/components/LiveDrawBoard";
 import { FeatureIcon } from "@/components/FeatureIcon";
+import { WinnersSection } from "@/components/WinnersSection";
 import {
   Target,
   CaretRight,
@@ -167,12 +168,16 @@ export default function Lobby() {
       return okCat && okQ;
     });
   }, [slots, query, cat]);
+  const featuredSlots = useMemo(
+    () =>
+      [...slots]
+        .sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
+        .slice(0, 6),
+    [slots],
+  );
 
   const catCount = (c) =>
     c === "All" ? slots.length : slots.filter((s) => catOf(s) === c).length;
-
-  const liveJackpot = (n) =>
-    `$${(n * 180000 + 420000).toLocaleString("en-US")}`;
 
   const symbolPreview = {
     gates_of_glory: ["crown", "gem_red", "orb"],
@@ -216,6 +221,7 @@ export default function Lobby() {
 
       {/* WARKINO always-on live draw board */}
       <LiveDrawBoard />
+      <WinnersSection compact />
 
       <div className="mb-10 lobby-elite-panel">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
@@ -288,6 +294,61 @@ export default function Lobby() {
       <div className="mb-10">
         <AnimatedShowcase testId="lobby-preview-video" variant="game-preview" />
       </div>
+
+      {/* VERIFIED HOUSE RANKING — based on the backend catalogue popularity score */}
+      {featuredSlots.length > 0 && (
+        <section className="mb-10" aria-labelledby="most-deployed-heading">
+          <div className="flex items-center gap-3 mb-4">
+            <div>
+              <p className="font-mono text-[10px] tracking-[0.35em] text-gold/70">
+                // MOST DEPLOYED IN THE FLEET
+              </p>
+              <h2
+                id="most-deployed-heading"
+                className="font-display text-3xl sm:text-4xl tracking-wide gold-gradient"
+              >
+                COMMANDER&apos;S PICKS
+              </h2>
+            </div>
+            <div className="flex-1 h-px bg-gold/20" />
+            <span className="hidden sm:block font-mono text-[10px] tracking-widest text-muted-foreground">
+              RANKED BY PLATFORM POPULARITY
+            </span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            {featuredSlots.map((slot, rank) => {
+              const featuredArt = FLAGSHIP_ART[slot.id] || resolveMachineArt(slot.id);
+              return (
+                <button
+                  key={slot.id}
+                  onClick={() => navigate(`/slots/${slot.id}`)}
+                  className="group relative aspect-[4/5] overflow-hidden border border-gold/30 bg-black/50 text-left hover:border-gold hover:-translate-y-1 transition-all duration-300"
+                  aria-label={`Play ${slot.name}`}
+                >
+                  <img
+                    src={featuredArt.thumb}
+                    alt=""
+                    loading="lazy"
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+                  <span className="absolute top-2 left-2 px-1.5 py-0.5 bg-black/70 border border-gold/50 text-gold font-mono text-[9px] tracking-widest">
+                    #{rank + 1}
+                  </span>
+                  <div className="absolute inset-x-0 bottom-0 p-3">
+                    <p className="font-display text-lg sm:text-xl tracking-wide text-white leading-none">
+                      {slot.name}
+                    </p>
+                    <p className="font-mono text-[9px] tracking-widest text-gold/80 mt-1">
+                      {slot.is_flagship ? "AAA FLAGSHIP" : "FLEET FAVORITE"} · DEPLOY →
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* LIVE OPS — Wheel + Tournament */}
       <LobbyHype />
@@ -437,6 +498,7 @@ export default function Lobby() {
           />
           <input
             data-testid={LOBBY.search}
+            aria-label="Search games by name or theme"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search missions by name or theme…"
@@ -473,6 +535,24 @@ export default function Lobby() {
         <div className="flex-1 h-px bg-gold/20" />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 auto-rows-fr">
+        {filtered.length === 0 && (
+          <div className="col-span-full hud p-10 text-center">
+            <p className="font-display text-2xl text-gold">NO MISSIONS FOUND</p>
+            <p className="text-sm text-muted-foreground mt-2">
+              Try a different search term or reset the category filter.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setQuery("");
+                setCat("All");
+              }}
+              className="mt-5 border border-nvg/50 px-4 py-2 font-stencil uppercase tracking-widest text-sm text-nvg hover:bg-nvg/10"
+            >
+              Reset filters
+            </button>
+          </div>
+        )}
         {filtered.map((s, i) => {
           const art = MACHINE_ART[s.id] || {
             accent: "#4EE44E",
@@ -483,11 +563,6 @@ export default function Lobby() {
           const flag = s.is_flagship ? FLAGSHIP_ART[s.id] : null;
           const feature = i === 0;
           const hot = i < 3 || (s.popularity || 0) > 80;
-          const rtp = Number(
-            (94.8 + (i % 5) * 0.35 + ((s.popularity || 45) / 1000)).toFixed(2),
-          );
-          const jackpot = liveJackpot(i + 1);
-
           if (flag) {
             return (
               <CornerCard
@@ -528,10 +603,10 @@ export default function Lobby() {
                   </div>
                   <div className="absolute top-3 right-3 flex flex-col items-end gap-1">
                     <span className="font-mono text-[9px] px-2 py-0.5 bg-black/70 border border-gold/50 text-gold tracking-widest">
-                      LIVE {jackpot}
+                      {(s.volatility || "MEDIUM").toUpperCase()} VOLATILITY
                     </span>
                     <span className="font-mono text-[9px] px-2 py-0.5 bg-black/70 border border-alert/50 text-alert tracking-widest">
-                      RTP {rtp}%
+                      {s.paylines} PAYLINES
                     </span>
                   </div>
                   <div className="absolute inset-x-0 bottom-0 p-5">
@@ -604,10 +679,10 @@ export default function Lobby() {
                 </div>
                 <div className="absolute top-3 right-3 flex flex-col items-end gap-1">
                   <span className="font-mono text-[9px] px-2 py-0.5 bg-black/70 border border-gold/40 text-gold tracking-widest">
-                    LIVE {jackpot}
+                    {(s.volatility || "MEDIUM").toUpperCase()} VOLATILITY
                   </span>
                   <span className="font-mono text-[9px] px-2 py-0.5 bg-black/70 border border-alert/40 text-alert tracking-widest">
-                    RTP {rtp}%
+                    {s.paylines} PAYLINES
                   </span>
                 </div>
                 <div className="absolute inset-x-0 bottom-0 p-5">

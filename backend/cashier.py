@@ -298,7 +298,7 @@ async def np_create_payment(
             )
         if r.status_code >= 500:
             raise CryptoProviderError(
-                "Crypto provider is temporarily unavailable. No deposit address was created."
+                "Crypto provider is temporarily unavailable. No payment address was created."
             )
         raise CryptoProviderError(str(msg))
     p = r.json()

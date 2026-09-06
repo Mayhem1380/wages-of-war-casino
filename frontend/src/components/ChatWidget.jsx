@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import { ChatCircleText } from "@phosphor-icons/react";
 import { useAuth } from "@/context/AuthContext";
 import { sfx } from "@/lib/sounds";
+import { getBackendOriginUrl } from "@/lib/runtime";
 
-const API = process.env.REACT_APP_BACKEND_URL;
+const API = getBackendOriginUrl();
 
 export default function ChatWidget() {
   const { user } = useAuth();

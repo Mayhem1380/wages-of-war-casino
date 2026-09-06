@@ -110,11 +110,11 @@
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         -working: true
         -agent: "main"
-        -comment: "Updated the explicit origin allowlist logic and removed wildcard-origin behavior for credentialed CORS requests."
+        -comment: "Static CORS assertions passed and backend/server.py parses successfully. The pytest regression could not run because pytest is not installed in the environment."
 ## frontend:
   - task: "Verify app build remains healthy"
     implemented: true
@@ -126,19 +126,18 @@
     status_history:
         -working: "NA"
         -agent: "main"
-        -comment: "Frontend build should be verified after the backend CORS fix to confirm no regressions."
+        -comment: "Frontend build was attempted but could not run because frontend/node_modules is absent and craco is unavailable."
 ## metadata:
   created_by: "main_agent"
   version: "1.0"
-  test_sequence: 1
+  test_sequence: 2
   run_ui: false
 ## test_plan:
   current_focus:
-    - "Verify explicit CORS origins are returned without wildcard values"
-    - "Run the narrow backend regression and frontend production build"
+    - "Install test/build dependencies in a provisioned environment"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 ## agent_communication:
     -agent: "main"
-    -message: "I fixed the credentialed CORS policy by removing wildcard origins and will verify the regression and frontend build with the smallest relevant checks."
+    -message: "Static CORS and syntax checks passed. Pytest and the frontend build remain blocked by missing environment dependencies; Docker Compose is also blocked by the absent backend/.env file."

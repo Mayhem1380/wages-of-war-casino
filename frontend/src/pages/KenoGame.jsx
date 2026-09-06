@@ -50,7 +50,7 @@ export default function KenoGame() {
   const [busy, setBusy] = useState(false);
   const [celebrate, setCelebrate] = useState(null);
   const [flash, setFlash] = useState(null);
-  const [autoPlay, setAutoPlay] = useState(true);
+  const [autoPlay, setAutoPlay] = useState(false);
   const [mode, setMode] = useState("warhead");
   const [sideBets, setSideBets] = useState({});
 

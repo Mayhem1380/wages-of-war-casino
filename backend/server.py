@@ -23,6 +23,8 @@ import json
 from datetime import datetime, timezone, timedelta
 import asyncio
 import shutil
+import re
+from urllib.parse import urlparse
 
 import stripe
 
@@ -44,6 +46,8 @@ from games import (
     play_holdwin,
 )
 import cashier
+import operations
+import media_release
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -293,6 +297,23 @@ def _trusted_return_origin(candidate: str) -> str:
     if parsed.scheme not in {"http", "https"} or not trusted_host or parsed.path not in {"", "/"}:
         raise HTTPException(status_code=400, detail="Return URL origin is not allowed")
     return origin
+
+
+def _safe_frontend_origin(candidate: Optional[str]) -> str:
+    """Accept only configured or first-party preview origins for redirects."""
+    origin = (candidate or FRONTEND_URL).strip().rstrip("/")
+    parsed = urlparse(origin)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        return FRONTEND_URL.rstrip("/")
+    if origin in CORS_ORIGINS or re.match(CORS_ALLOW_ORIGIN_REGEX, origin):
+        return origin
+    return FRONTEND_URL.rstrip("/")
+
+
+def _mask_financial_value(value: Optional[str]) -> Optional[str]:
+    cleaned = "".join(ch for ch in (value or "") if ch.isalnum())
+    return f"••••{cleaned[-4:]}" if cleaned else None
+
 
 app = FastAPI(title="Wages of War Casino API")
 api = APIRouter(prefix="/api")
@@ -595,6 +616,15 @@ async def adjust_balance(
     return await db.users.find_one({"user_id": user_id}, {"_id": 0})
 
 
+def get_public_slot_machine(machine_id: str):
+    if machine_id not in PUBLIC_SLOT_IDS:
+        raise HTTPException(status_code=404, detail="Machine not found")
+    machine = SLOT_MACHINES.get(machine_id)
+    if not machine:
+        raise HTTPException(status_code=404, detail="Machine not found")
+    return machine
+
+
 async def record_transaction(
     user_id: str, ttype: str, amount: float, meta: dict = None
 ):
@@ -672,7 +702,7 @@ def safe_support_reply(text: str) -> str:
     """
     cleaned = (text or "").strip()
     if not cleaned:
-        return "Hi — I'm the 24/7 assistant. Try 'deposit', 'withdraw', or 'verify'. For urgent support contact admin@wow.local"
+        return "Hi — I'm the 24/7 assistant. Try 'deposit', 'withdraw', or 'verify'. For urgent support, open a support ticket so the HQ team can review it."
 
     lower = cleaned.lower()
 
@@ -713,7 +743,7 @@ def safe_support_reply(text: str) -> str:
     if "support" in lower or "help" in lower:
         return "I can assist with deposits, withdrawals, verification, and basic account questions. For sensitive cases, an admin review can be requested."
 
-    return "Hi — I'm the 24/7 assistant. Try 'deposit', 'withdraw', or 'verify'. For urgent support contact admin@wow.local"
+    return "Hi — I'm the 24/7 assistant. Try 'deposit', 'withdraw', or 'verify'. For urgent support, open a support ticket so the HQ team can review it."
 
 
 @api.post("/support/message")
@@ -848,23 +878,28 @@ async def kyc_banking(payload: KycBankingDetailsInput, user: dict = Depends(requ
         KycBankingDetailsInput.validate_details(payload)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
-    cleaned = {
+    masked = {
         "account_holder": payload.account_holder.strip(),
         "bank_name": payload.bank_name.strip(),
         "bank_country": payload.bank_country.strip(),
-        "account_number": payload.account_number.strip(),
-        "bsb_code": (payload.bsb_code or "").strip(),
-        "routing_number": (payload.routing_number or "").strip(),
-        "iban": (payload.iban or "").strip(),
-        "swift_code": (payload.swift_code or "").strip(),
-        "address_line1": (payload.address_line1 or "").strip(),
-        "verified_at": datetime.now(timezone.utc).isoformat(),
+        "account_number_last4": _mask_financial_value(payload.account_number),
+        "bsb_last4": _mask_financial_value(payload.bsb_code),
+        "routing_last4": _mask_financial_value(payload.routing_number),
+        "iban_last4": _mask_financial_value(payload.iban),
+        "swift_last4": _mask_financial_value(payload.swift_code),
+        "submitted_at": datetime.now(timezone.utc).isoformat(),
     }
     await db.users.update_one(
         {"user_id": user["user_id"]},
-        {"$set": {"kyc_banking_details": cleaned, "kyc_banking_verified": True, "kyc_banking_status": "verified"}},
+        {
+            "$set": {
+                "kyc_banking_details": masked,
+                "kyc_banking_verified": False,
+                "kyc_banking_status": "submitted",
+            }
+        },
     )
-    return {"ok": True, "banking_verified": True}
+    return {"ok": True, "banking_verified": False, "banking_status": "submitted"}
 
 
 @api.get("/kyc/banking")
@@ -1023,7 +1058,7 @@ async def _process_withdrawals_loop():
     while True:
         try:
             pending = await db.cashier_transactions.find(
-                {"direction": "withdrawal", "status": "pending"}
+                {"direction": "withdrawal", "status": "approved"}
             ).to_list(50)
 
             # SOLVENCY GUARD: never release more than the vault can cover.
@@ -1034,15 +1069,23 @@ async def _process_withdrawals_loop():
             available_cents = int(summary.get("available_cents", 0))
 
             for t in pending:
+                claimed = await db.cashier_transactions.find_one_and_update(
+                    {"id": t["id"], "direction": "withdrawal", "status": "approved"},
+                    {"$set": {"status": "processing", "updated_at": datetime.now(timezone.utc).isoformat()}},
+                    projection={"_id": 0},
+                )
+                if not claimed:
+                    continue
+                t = claimed
                 now_iso = datetime.now(timezone.utc).isoformat()
-                amt_cents = int(round(float(t.get("amount_usd", 0) or 0) * 100))
+                amt_cents = int(t.get("amount_usd_cents", 0) or 0)
 
                 # Hold the payout if the vault lacks the funds to cover it.
                 if available_cents - amt_cents < reserve_cents:
                     await db.cashier_transactions.update_one(
-                        {"id": t["id"]},
+                        {"id": t["id"], "status": "processing"},
                         {"$set": {
-                            "status": "pending",
+                            "status": "approved",
                             "vault_hold": True,
                             "hold_reason": "insufficient_vault_balance",
                             "updated_at": now_iso,
@@ -1081,11 +1124,21 @@ async def _process_withdrawals_loop():
                     else:
                         # keep pending; vault may be temporarily unavailable
                         await db.cashier_transactions.update_one(
-                            {"id": t["id"]},
-                            {"$set": {"status": "pending", "updated_at": now_iso}},
+                            {"id": t["id"], "status": "processing"},
+                            {"$set": {"status": "approved", "updated_at": now_iso}},
                         )
                 except Exception:
-                    pass
+                    try:
+                        await db.cashier_transactions.update_one(
+                            {"id": t["id"], "status": "processing"},
+                            {"$set": {
+                                "status": "approved",
+                                "vault_detail": "Withdrawal worker retry scheduled",
+                                "updated_at": now_iso,
+                            }},
+                        )
+                    except Exception:
+                        logger.exception("Unable to release withdrawal worker claim id=%s", t["id"])
         except Exception:
             pass
         await asyncio.sleep(30)
@@ -1432,9 +1485,7 @@ async def slot_detail(machine_id: str):
 
 @api.post("/games/slots/spin")
 async def slots_spin(payload: SpinInput, user: dict = Depends(require_user)):
-    m = SLOT_MACHINES.get(payload.machine_id)
-    if not m:
-        raise HTTPException(status_code=404, detail="Machine not found")
+    m = get_public_slot_machine(payload.machine_id)
     if payload.bet < 20:
         raise HTTPException(status_code=400, detail="Minimum bet is 20 credits")
     if payload.bet > 100000:
@@ -1520,9 +1571,7 @@ BUY_FEATURE_COST_MULT = 100  # buy the free-spins bonus for 100x the total bet
 @api.post("/games/slots/buy-bonus")
 async def slots_buy_bonus(payload: SpinInput, user: dict = Depends(require_user)):
     """Buy Feature — pay 100x the bet to instantly trigger the free-spins bonus."""
-    m = SLOT_MACHINES.get(payload.machine_id)
-    if not m:
-        raise HTTPException(status_code=404, detail="Machine not found")
+    m = get_public_slot_machine(payload.machine_id)
     if payload.bet < 20:
         raise HTTPException(status_code=400, detail="Minimum bet is 20 credits")
     spins = int(m.get("free_spins", 0) or 0)
@@ -2504,6 +2553,39 @@ class BalanceAdjustInput(BaseModel):
     mode: str = "delta"  # "delta" or "set"
 
 
+class OperationsJobInput(BaseModel):
+    job_type: str = Field(min_length=2, max_length=64)
+    payload: Dict = Field(default_factory=dict)
+    idempotency_key: Optional[str] = Field(default=None, max_length=128)
+
+
+class OperationsLeaseInput(BaseModel):
+    lease_seconds: int = Field(default=300, ge=30, le=3600)
+
+
+class OperationsFinishInput(BaseModel):
+    lease_token: str = Field(min_length=1, max_length=128)
+    result: Dict = Field(default_factory=dict)
+    error: Optional[str] = Field(default=None, max_length=2000)
+
+
+class MediaReleaseInput(BaseModel):
+    filename: str = Field(min_length=1, max_length=200)
+    content_type: str
+    size_bytes: int
+    sha256: str = Field(min_length=64, max_length=64)
+    version: str = Field(min_length=1, max_length=32)
+
+
+class MediaPublishInput(BaseModel):
+    owner_confirmed: bool = False
+    checklist: Dict = Field(default_factory=dict)
+
+
+class MediaRollbackInput(BaseModel):
+    reason: str = Field(min_length=3, max_length=1000)
+
+
 DEFAULT_UPGRADES = [
     {
         "id": f"pkg-{i + 1}",
@@ -2652,6 +2734,261 @@ async def admin_enquiries(admin: dict = Depends(require_admin)):
         .sort("created_at", -1)
         .to_list(200)
     )
+
+
+# ---------------------------------------------------------------------------
+# HQ operations foundation.  These endpoints coordinate auditable work only:
+# they do not execute payments, adjust balances, or call external providers.
+# ---------------------------------------------------------------------------
+@api.post("/admin/operations/jobs", status_code=201)
+async def operations_create_job(
+    payload: OperationsJobInput, admin: dict = Depends(require_admin)
+):
+    try:
+        job, created = await operations.create_job(
+            db,
+            job_type=payload.job_type,
+            payload=payload.payload,
+            actor=admin,
+            idempotency_key=payload.idempotency_key,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+    return {"job": job, "created": created}
+
+
+@api.get("/admin/operations/jobs")
+async def operations_list_jobs(
+    status: Optional[str] = None,
+    limit: int = 100,
+    admin: dict = Depends(require_admin),
+):
+    if status and status not in {"queued", "leased", "completed", "failed"}:
+        raise HTTPException(status_code=400, detail="Invalid job status")
+    limit = max(1, min(limit, 200))
+    query = {"status": status} if status else {}
+    rows = await db.operations_jobs.find(query, {"_id": 0}).sort(
+        "created_at", -1
+    ).to_list(limit)
+    return [operations._public(row, include_lease=False) for row in rows]
+
+
+@api.post("/admin/operations/jobs/{job_id}/claim")
+async def operations_claim_job(
+    job_id: str,
+    payload: OperationsLeaseInput = OperationsLeaseInput(),
+    admin: dict = Depends(require_admin),
+):
+    job = await operations.claim_job(
+        db, job_id=job_id, actor=admin, lease_seconds=payload.lease_seconds
+    )
+    if not job:
+        raise HTTPException(status_code=409, detail="Job is unavailable")
+    return job
+
+
+@api.post("/admin/operations/jobs/{job_id}/complete")
+async def operations_complete_job(
+    job_id: str,
+    payload: OperationsFinishInput,
+    admin: dict = Depends(require_admin),
+):
+    job = await operations.finish_job(
+        db,
+        job_id=job_id,
+        lease_token=payload.lease_token,
+        actor=admin,
+        success=True,
+        result=payload.result,
+    )
+    if not job:
+        raise HTTPException(status_code=409, detail="Invalid or expired job lease")
+    return job
+
+
+@api.post("/admin/operations/jobs/{job_id}/fail")
+async def operations_fail_job(
+    job_id: str,
+    payload: OperationsFinishInput,
+    admin: dict = Depends(require_admin),
+):
+    if not payload.error:
+        raise HTTPException(status_code=422, detail="error is required")
+    job = await operations.finish_job(
+        db,
+        job_id=job_id,
+        lease_token=payload.lease_token,
+        actor=admin,
+        success=False,
+        result=payload.result,
+        error=payload.error,
+    )
+    if not job:
+        raise HTTPException(status_code=409, detail="Invalid or expired job lease")
+    return job
+
+
+@api.get("/admin/operations/audit")
+async def operations_audit(
+    limit: int = 100, admin: dict = Depends(require_admin)
+):
+    limit = max(1, min(limit, 200))
+    rows = await db.operations_audit.find({}, {"_id": 0}).sort(
+        "created_at", -1
+    ).to_list(limit)
+    return [operations._public(row) for row in rows]
+
+
+# ---------------------------------------------------------------------------
+# Controlled George media release workflow.  This records metadata only; it
+# never accepts binary data or writes to the filesystem.
+# ---------------------------------------------------------------------------
+@api.get("/admin/media/george")
+async def george_media_status(admin: dict = Depends(require_admin)):
+    active = await db.media_active.find_one({"media_key": media_release.MEDIA_KEY}, {"_id": 0})
+    releases = await db.media_releases.find(
+        {"media_key": media_release.MEDIA_KEY}, {"_id": 0}
+    ).sort("created_at", -1).to_list(100)
+    return {
+        "media_key": media_release.MEDIA_KEY,
+        "active": media_release.public(active),
+        "releases": [media_release.public(row) for row in releases],
+    }
+
+
+@api.post("/admin/media/george/releases", status_code=201)
+async def george_register_release(
+    payload: MediaReleaseInput, admin: dict = Depends(require_admin)
+):
+    try:
+        metadata = media_release.validate_metadata(payload.model_dump())
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+    duplicate = await db.media_releases.find_one(
+        {"media_key": media_release.MEDIA_KEY, "version": metadata["version"]},
+        {"_id": 0},
+    )
+    if duplicate:
+        raise HTTPException(status_code=409, detail="That George version is already registered")
+    now = media_release.now_utc()
+    doc = {
+        **metadata,
+        "release_id": uuid.uuid4().hex,
+        "status": "registered",
+        "owner_confirmed": False,
+        "checklist": {key: False for key in media_release.CHECKLIST_KEYS},
+        "created_by": admin.get("user_id"),
+        "created_at": now,
+        "updated_at": now,
+    }
+    await db.media_releases.insert_one(doc)
+    await operations.audit(
+        db, action="george_media_registered", actor=admin,
+        details={"release_id": doc["release_id"], "version": doc["version"],
+                 "sha256": doc["sha256"]},
+    )
+    return media_release.public(doc)
+
+
+@api.post("/admin/media/george/releases/{release_id}/publish")
+async def george_publish_release(
+    release_id: str,
+    payload: MediaPublishInput,
+    admin: dict = Depends(require_admin),
+):
+    if payload.owner_confirmed is not True:
+        raise HTTPException(status_code=422, detail="Explicit owner confirmation is required")
+    try:
+        checklist = media_release.validate_checklist(payload.checklist)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+    release = await db.media_releases.find_one(
+        {"release_id": release_id, "media_key": media_release.MEDIA_KEY}, {"_id": 0}
+    )
+    if not release:
+        raise HTTPException(status_code=404, detail="George release not found")
+    if release.get("status") != "registered":
+        raise HTTPException(status_code=409, detail="Release is not publishable in its current state")
+    current = await db.media_active.find_one(
+        {"media_key": media_release.MEDIA_KEY}, {"_id": 0}
+    )
+    now = media_release.now_utc()
+    updated = await db.media_releases.find_one_and_update(
+        {"release_id": release_id, "status": "registered"},
+        {"$set": {
+            "status": "published",
+            "owner_confirmed": True,
+            "owner_confirmed_by": admin.get("user_id"),
+            "checklist": checklist,
+            "published_by": admin.get("user_id"),
+            "published_at": now,
+            "updated_at": now,
+            "previous_active": current,
+        }},
+        projection={"_id": 0},
+        return_document=True,
+    )
+    if not updated:
+        raise HTTPException(status_code=409, detail="Release was changed by another operator")
+    active = {key: updated[key] for key in (
+        "media_key", "release_id", "filename", "content_type", "size_bytes",
+        "sha256", "version"
+    )}
+    active["activated_at"] = now
+    await db.media_active.replace_one(
+        {"media_key": media_release.MEDIA_KEY}, active, upsert=True
+    )
+    await operations.audit(
+        db, action="george_media_published", actor=admin, details={
+            "release_id": release_id, "version": updated["version"],
+            "checklist": checklist,
+        },
+    )
+    return media_release.public(updated)
+
+
+@api.post("/admin/media/george/releases/{release_id}/rollback")
+async def george_rollback_release(
+    release_id: str,
+    payload: MediaRollbackInput,
+    admin: dict = Depends(require_admin),
+):
+    release = await db.media_releases.find_one(
+        {"release_id": release_id, "media_key": media_release.MEDIA_KEY}, {"_id": 0}
+    )
+    if not release:
+        raise HTTPException(status_code=404, detail="George release not found")
+    active = await db.media_active.find_one(
+        {"media_key": media_release.MEDIA_KEY}, {"_id": 0}
+    )
+    if not active or active.get("release_id") != release_id:
+        raise HTTPException(status_code=409, detail="That release is not currently active")
+    previous = release.get("previous_active")
+    if previous:
+        await db.media_active.replace_one(
+            {"media_key": media_release.MEDIA_KEY}, previous, upsert=True
+        )
+    else:
+        await db.media_active.delete_one({"media_key": media_release.MEDIA_KEY})
+    now = media_release.now_utc()
+    updated = await db.media_releases.find_one_and_update(
+        {"release_id": release_id, "status": "published"},
+        {"$set": {
+            "status": "rolled_back", "rollback_reason": payload.reason,
+            "rolled_back_by": admin.get("user_id"), "rolled_back_at": now,
+            "updated_at": now,
+        }},
+        projection={"_id": 0}, return_document=True,
+    )
+    if not updated:
+        raise HTTPException(status_code=409, detail="Release was changed by another operator")
+    await operations.audit(
+        db, action="george_media_rolled_back", actor=admin, details={
+            "release_id": release_id, "reason": payload.reason,
+            "restored_release_id": previous.get("release_id") if previous else None,
+        },
+    )
+    return media_release.public(updated)
 
 
 @api.post("/fleet/enquiry")
@@ -2806,6 +3143,7 @@ async def checkout(payload: CheckoutInput, user: dict = Depends(require_user)):
             detail="This credit package is already in progress for your account.",
         )
 
+    origin = _safe_frontend_origin(payload.origin_url)
     try:
         price = _ensure_price(pkg)
         total_credits = pkg["credits"] + pkg.get("bonus", 0)
@@ -3166,6 +3504,7 @@ async def cashier_deposit_stripe(
             detail=f"Maximum deposit is {cashier.MAX_DEPOSIT_AUD} AUD per transaction",
         )
     minor = cashier.to_minor_unit(payload.amount, code)
+    origin = _safe_frontend_origin(payload.origin_url)
     try:
         session = stripe.checkout.Session.create(
             line_items=[
@@ -3316,6 +3655,12 @@ async def _credit_crypto_deposit(payment_id: str):
             {"user_id": t["user_id"]},
             {"$inc": {"real_balance_cents": int(t["amount_usd_cents"])}},
         )
+        await record_house_cashflow(
+            t["amount_usd_cents"] / 100.0,
+            "deposit",
+            "crypto_deposit_completed",
+            {"user_id": t["user_id"], "payment_id": payment_id},
+        )
         await record_transaction(
             t["user_id"],
             "deposit_crypto",
@@ -3420,32 +3765,36 @@ async def cashier_withdraw(payload: WithdrawInput, user: dict = Depends(require_
     if held.matched_count != 1:
         raise HTTPException(status_code=400, detail="Insufficient cash balance")
     ref = str(uuid.uuid4())
-    vault = await cashier.vault_submit_withdrawal(
-        code, payload.amount, payload.destination, ref
-    )
     now_iso = datetime.now(timezone.utc).isoformat()
-    await db.cashier_transactions.insert_one(
-        {
-            "id": ref,
-            "user_id": user["user_id"],
-            "user_email": user.get("email"),
-            "user_name": user.get("name"),
-            "direction": "withdrawal",
-            "method": "crypto" if code in cashier.CRYPTO_CODES else "card",
-            "currency": code,
-            "amount": payload.amount,
-            "amount_usd_cents": usd_cents,
-            "status": "pending",
-            "provider": "vault",
-            "provider_ref": vault.get("vault_id") or ref,
-            "destination": payload.destination,
-            "vault_ok": vault["ok"],
-            "vault_detail": vault["detail"],
-            "sandbox": cashier.is_placeholder_vault(),
-            "created_at": now_iso,
-            "updated_at": now_iso,
-        }
-    )
+    try:
+        await db.cashier_transactions.insert_one(
+            {
+                "id": ref,
+                "user_id": user["user_id"],
+                "user_email": user.get("email"),
+                "user_name": user.get("name"),
+                "direction": "withdrawal",
+                "method": "crypto" if code in cashier.CRYPTO_CODES else "card",
+                "currency": code,
+                "amount": payload.amount,
+                "amount_usd_cents": usd_cents,
+                "status": "pending",
+                "provider": "vault",
+                "provider_ref": ref,
+                "destination": payload.destination,
+                "vault_ok": False,
+                "vault_detail": "Queued for the withdrawal worker",
+                "sandbox": cashier.is_placeholder_vault(),
+                "created_at": now_iso,
+                "updated_at": now_iso,
+            }
+        )
+    except Exception:
+        await db.users.update_one(
+            {"user_id": user["user_id"]},
+            {"$inc": {"real_balance_cents": usd_cents}},
+        )
+        raise
     await db.house_bankroll.update_one(
         {"_id": "house"},
         {
@@ -3460,12 +3809,15 @@ async def cashier_withdraw(payload: WithdrawInput, user: dict = Depends(require_
         -usd_cents / 100.0,
         {"currency": code, "destination": payload.destination, "status": "pending"},
     )
+    balance_after = await db.users.find_one(
+        {"user_id": user["user_id"]}, {"_id": 0, "real_balance_cents": 1}
+    )
     return {
         "id": ref,
         "status": "pending",
-        "vault_connected": vault["ok"],
+        "vault_connected": False,
         "balance_usd": round(
-            (int(fresh.get("real_balance_cents", 0)) - usd_cents) / 100.0, 2
+            int((balance_after or {}).get("real_balance_cents", 0)) / 100.0, 2
         ),
     }
 
@@ -3583,9 +3935,19 @@ async def admin_cashier_withdrawal_action(
     t = await db.cashier_transactions.find_one(
         {"id": txn_id, "direction": "withdrawal"}
     )
-    if not t or t["status"] != "pending":
+    if not t or t["status"] not in ("pending", "processing"):
         raise HTTPException(
-            status_code=400, detail="No pending withdrawal with that id"
+            status_code=400, detail="No actionable withdrawal with that id"
+        )
+    if action == "approve" and t["status"] != "pending":
+        raise HTTPException(
+            status_code=409,
+            detail="Withdrawal is already being processed and cannot be approved twice",
+        )
+    if action == "reject" and t["status"] == "processing":
+        raise HTTPException(
+            status_code=409,
+            detail="Withdrawal is already with the vault and cannot be rejected here",
         )
     now_iso = datetime.now(timezone.utc).isoformat()
     if action == "approve":
@@ -3601,31 +3963,27 @@ async def admin_cashier_withdrawal_action(
         await db.cashier_transactions.update_one(
             {"id": txn_id}, {"$set": {"status": "completed", "updated_at": now_iso}}
         )
-        await db.house_bankroll.update_one(
-            {"_id": "house"},
-            {"$inc": {"pending_payout_cents": -int(t["amount_usd_cents"])}, "$set": {"updated_at": now_iso}},
-            upsert=True,
-        )
-        await record_house_cashflow(
-            t["amount_usd_cents"] / 100.0,
-            "player_payout",
-            "cashier_withdrawal_approved",
-            {"user_id": t["user_id"], "txn_id": txn_id, "by": admin["email"]},
-        )
-        await record_transaction(
-            t["user_id"],
-            "withdrawal_approved",
-            -t["amount_usd_cents"] / 100.0,
-            {"currency": t["currency"], "by": admin["email"]},
-        )
-        return {"id": txn_id, "status": "completed"}
+        if result.modified_count != 1:
+            raise HTTPException(status_code=409, detail="Withdrawal was changed by another operator")
+        return {"id": txn_id, "status": "approved"}
     # reject -> refund held funds
+    result = await db.cashier_transactions.update_one(
+        {"id": txn_id, "status": "pending"},
+        {"$set": {"status": "rejected", "updated_at": now_iso}},
+    )
+    if result.modified_count != 1:
+        raise HTTPException(status_code=409, detail="Withdrawal was changed by another operator")
     await db.users.update_one(
         {"user_id": t["user_id"]},
         {"$inc": {"real_balance_cents": int(t["amount_usd_cents"])}},
     )
-    await db.cashier_transactions.update_one(
-        {"id": txn_id}, {"$set": {"status": "rejected", "updated_at": now_iso}}
+    await db.house_bankroll.update_one(
+        {"_id": "house"},
+        {
+            "$inc": {"pending_payout_cents": -int(t["amount_usd_cents"])},
+            "$set": {"updated_at": now_iso},
+        },
+        upsert=True,
     )
     await db.house_bankroll.update_one(
         {"_id": "house"},
@@ -3708,6 +4066,30 @@ async def startup():
     await _safe_create_index(db.payment_transactions, "session_id")
     await _safe_create_index(db.house_ledger, "created_at")
     await _safe_create_index(db.house_bankroll, "_id")
+    # Keep startup compatible with restricted/fake database handles used by
+    # health checks; Motor exposes these collections lazily in production.
+    operations_jobs = getattr(db, "operations_jobs", None)
+    operations_audit = getattr(db, "operations_audit", None)
+    if operations_jobs is not None:
+        await _safe_create_index(operations_jobs, "job_id", unique=True)
+        await _safe_create_index(operations_jobs, "status")
+        await _safe_create_index(operations_jobs, "lease_until")
+        await _safe_create_index(
+            operations_jobs, "idempotency_key", unique=True, sparse=True
+        )
+    if operations_audit is not None:
+        await _safe_create_index(operations_audit, "created_at")
+        await _safe_create_index(operations_audit, "job_id")
+    media_releases = getattr(db, "media_releases", None)
+    media_active = getattr(db, "media_active", None)
+    if media_releases is not None:
+        await _safe_create_index(media_releases, "release_id", unique=True)
+        await _safe_create_index(
+            media_releases, [("media_key", 1), ("version", 1)], unique=True
+        )
+        await _safe_create_index(media_releases, "created_at")
+    if media_active is not None:
+        await _safe_create_index(media_active, "media_key", unique=True)
     await db.house_bankroll.update_one(
         {"_id": "house"},
         {

@@ -29,7 +29,7 @@ export default function ResponsibleGaming() {
     {
       Icon: Warning,
       title: "18+ Only",
-      body: "Access is strictly restricted to adults aged 18 and over. Underage play is prohibited under our MGA licence.",
+      body: "Adults only. Age verification and jurisdiction checks must be completed where real-money features are enabled.",
     },
   ];
 
@@ -48,12 +48,12 @@ export default function ResponsibleGaming() {
       <div className="hud hud-gold p-6 mb-8">
         <p className="text-muted-foreground leading-relaxed">
           <span className="text-foreground font-semibold">
-            Wages of War Operations Ltd.
+            Wages of War Casino
           </span>{" "}
-          is committed to safe, responsible entertainment under Malta Gaming
-          Authority licence <span className="text-gold">MGA/B2C/912/2025</span>.
-          All gameplay on Wages of War Casino uses virtual play-money credits
-          with no monetary value and no real-money payouts.
+          is committed to safe, responsible entertainment. This page describes
+          our play-money mode; any real-money cashier features remain subject to
+          configured provider, licensing, age-verification, and jurisdiction
+          requirements before production use.
         </p>
       </div>
 
