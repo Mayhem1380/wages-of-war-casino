@@ -42,9 +42,7 @@ export default function Cashier() {
   const [kyc, setKyc] = useState(null);
   const [kycBusy, setKycBusy] = useState(false);
 
-  // Crypto (NOWPayments) is live in production. Preview only carries demo keys,
-  // so real crypto addresses appear on the deployed site, not here.
-  const CRYPTO_ENABLED = true;
+  const CRYPTO_ENABLED = !!summary?.crypto_live;
 
   // fiat
   const [fiatAmt, setFiatAmt] = useState("50");
@@ -242,7 +240,7 @@ export default function Cashier() {
   const kycApproved = !!kyc?.kyc_approved;
   const kycState = kyc?.status || "not_started";
   const kycMessage = kycApproved
-    ? "Verified — real-money withdrawals unlocked."
+    ? "Identity verified — payout destination review still applies."
     : kycState === "processing"
       ? "Processing your documents — this can take a moment."
       : kycState === "age_failed"
@@ -293,10 +291,10 @@ export default function Cashier() {
             className="text-nvg shrink-0 mt-0.5"
           />
           <p className="text-sm text-foreground/80">
-            <span className="text-nvg font-semibold">DEPOSITS LIVE.</span>{" "}
-            Card (Stripe) and crypto (NOWPayments) deposits are connected and
-            process real payments. Withdrawals are released via in-app admin
-            approval after identity (KYC) verification.
+            <span className="text-nvg font-semibold">PROVIDER STATUS.</span>{" "}
+            Card and crypto rails are available only when their configured
+            provider credentials are live. Withdrawals remain subject to KYC,
+            payout review, reserve checks, and approval workflow.
           </p>
         </div>
       )}

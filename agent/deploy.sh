@@ -24,22 +24,20 @@ KEY=${DEPLOY_KEY:-}
 [ -n "$USER" ] || usage
 [ -n "$DEST" ] || usage
 
-if [ ! -d "$BUILD_DIR" ]; then
-  echo "Missing frontend build; generating production bundle..."
-  if [ ! -f "$FRONTEND_DIR/package.json" ]; then
-    echo "frontend/package.json not found in $FRONTEND_DIR" >&2
-    exit 2
-  fi
-  if ! command -v npm >/dev/null 2>&1; then
-    echo "npm is required to build the frontend bundle." >&2
-    exit 2
-  fi
-  (
-    cd "$FRONTEND_DIR"
-    npm ci --legacy-peer-deps
-    npm run build
-  )
+echo "Generating a fresh frontend production bundle..."
+if [ ! -f "$FRONTEND_DIR/package.json" ]; then
+  echo "frontend/package.json not found in $FRONTEND_DIR" >&2
+  exit 2
 fi
+if ! command -v npm >/dev/null 2>&1; then
+  echo "npm is required to build the frontend bundle." >&2
+  exit 2
+fi
+(
+  cd "$FRONTEND_DIR"
+  npm ci --legacy-peer-deps
+  npm run build -- --no-sourcemap
+)
 
 if [ ! -d "$BUILD_DIR" ]; then
   echo "frontend/build still not found after npm build" >&2
