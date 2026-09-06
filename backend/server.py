@@ -24,7 +24,6 @@ from datetime import datetime, timezone, timedelta
 import asyncio
 import shutil
 import re
-from urllib.parse import urlparse
 
 import stripe
 
@@ -3960,8 +3959,8 @@ async def admin_cashier_withdrawal_action(
             and available <= 0
         ):
             raise HTTPException(status_code=503, detail="Payout coverage is currently below the protected reserve")
-        await db.cashier_transactions.update_one(
-            {"id": txn_id}, {"$set": {"status": "completed", "updated_at": now_iso}}
+        result = await db.cashier_transactions.update_one(
+            {"id": txn_id, "status": "pending"}, {"$set": {"status": "completed", "updated_at": now_iso}}
         )
         if result.modified_count != 1:
             raise HTTPException(status_code=409, detail="Withdrawal was changed by another operator")

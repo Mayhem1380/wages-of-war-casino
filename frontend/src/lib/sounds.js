@@ -60,6 +60,8 @@ export const soundManager = {
     if (c && c.state === "suspended") c.resume();
     return c;
   },
+  combatAmbienceStart: (...a) => sfx.combatAmbienceStart(...a),
+  combatAmbienceStop: (...a) => sfx.combatAmbienceStop(...a),
 };
 
 function tone({

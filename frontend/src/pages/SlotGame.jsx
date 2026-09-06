@@ -231,7 +231,7 @@ export default function SlotGame() {
         if (data.retrigger) {
           sfx.scatter();
           toast.success("★ RETRIGGER +5 SPINS");
-        } else triggerNearMiss(data);
+        }
         refreshUser();
         if (data.active) setTimeout(() => runFree(sessionId), 950);
       });

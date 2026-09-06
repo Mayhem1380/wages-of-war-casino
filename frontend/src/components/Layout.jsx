@@ -435,21 +435,10 @@ export function Layout({ children }) {
           className="absolute inset-0 pointer-events-none"
           style={{
             background:
-              "linear-gradient(180deg, rgba(1,8,12,0.84), rgba(0,0,0,0.94) 70%)",
+              "linear-gradient(180deg, rgba(1,8,12,0.35), rgba(0,0,0,0.85) 80%)",
           }}
           aria-hidden="true"
         />
-        <div className="underwater-approach" aria-hidden="true">
-          <div className="submarine silhouette">
-            <div className="submarine-conning-tower" />
-            <div className="submarine-periscope" />
-            <div className="submarine-fin submarine-fin-top" />
-            <div className="submarine-fin submarine-fin-bottom" />
-            <div className="submarine-nose-logo">WOW</div>
-            <div className="underwater-command-mark">W</div>
-            <div className="submarine-tube"><span className="submarine-torpedo" /></div>
-          </div>
-        </div>
 
         <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-8 py-16">
           <div className="grid md:grid-cols-4 gap-10">
