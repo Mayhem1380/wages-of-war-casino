@@ -145,6 +145,7 @@ export default function Lobby() {
       return okCat && okQ;
     });
   }, [slots, query, cat]);
+  const featuredSlots = slots.slice(0, 6);
 
   const catCount = (c) =>
     c === "All" ? slots.length : slots.filter((s) => catOf(s) === c).length;
@@ -233,6 +234,61 @@ export default function Lobby() {
       <div className="mb-10">
         <AnimatedShowcase testId="lobby-preview-video" variant="game-preview" />
       </div>
+
+      {/* VERIFIED HOUSE RANKING — based on the backend catalogue popularity score */}
+      {featuredSlots.length > 0 && (
+        <section className="mb-10" aria-labelledby="most-deployed-heading">
+          <div className="flex items-center gap-3 mb-4">
+            <div>
+              <p className="font-mono text-[10px] tracking-[0.35em] text-gold/70">
+                // MOST DEPLOYED IN THE FLEET
+              </p>
+              <h2
+                id="most-deployed-heading"
+                className="font-display text-3xl sm:text-4xl tracking-wide gold-gradient"
+              >
+                COMMANDER&apos;S PICKS
+              </h2>
+            </div>
+            <div className="flex-1 h-px bg-gold/20" />
+            <span className="hidden sm:block font-mono text-[10px] tracking-widest text-muted-foreground">
+              RANKED BY PLATFORM POPULARITY
+            </span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            {featuredSlots.map((slot, rank) => {
+              const featuredArt = FLAGSHIP_ART[slot.id] || resolveMachineArt(slot.id);
+              return (
+                <button
+                  key={slot.id}
+                  onClick={() => navigate(`/slots/${slot.id}`)}
+                  className="group relative aspect-[4/5] overflow-hidden border border-gold/30 bg-black/50 text-left hover:border-gold hover:-translate-y-1 transition-all duration-300"
+                  aria-label={`Play ${slot.name}`}
+                >
+                  <img
+                    src={featuredArt.thumb}
+                    alt=""
+                    loading="lazy"
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+                  <span className="absolute top-2 left-2 px-1.5 py-0.5 bg-black/70 border border-gold/50 text-gold font-mono text-[9px] tracking-widest">
+                    #{rank + 1}
+                  </span>
+                  <div className="absolute inset-x-0 bottom-0 p-3">
+                    <p className="font-display text-lg sm:text-xl tracking-wide text-white leading-none">
+                      {slot.name}
+                    </p>
+                    <p className="font-mono text-[9px] tracking-widest text-gold/80 mt-1">
+                      {slot.is_flagship ? "AAA FLAGSHIP" : "FLEET FAVORITE"} · DEPLOY →
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* LIVE OPS — Wheel + Tournament */}
       <LobbyHype />
