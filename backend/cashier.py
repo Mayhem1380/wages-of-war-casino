@@ -277,14 +277,9 @@ async def np_create_payment(
                 "Crypto provider is busy. Please try again in a moment."
             )
         if r.status_code >= 500:
-            return {
-                "payment_id": f"demo_{uuid.uuid4().hex[:16]}",
-                "pay_address": _MOCK_ADDR.get(code, f"SANDBOX-{code}-ADDRESS"),
-                "pay_amount": pay_amount,
-                "pay_currency": code,
-                "status": "waiting",
-                "sandbox": False,
-            }
+            raise CryptoProviderError(
+                "Crypto provider is temporarily unavailable. No payment address was created."
+            )
         raise CryptoProviderError(str(msg))
     p = r.json()
     return {

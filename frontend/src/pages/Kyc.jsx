@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import api from "@/lib/api";
+import { getAppOriginUrl } from "@/lib/runtime";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -16,35 +17,27 @@ const initialBanking = {
 };
 
 export default function KycPage() {
-  const [front, setFront] = useState(null);
-  const [back, setBack] = useState(null);
   const [banking, setBanking] = useState(initialBanking);
   const [busy, setBusy] = useState(false);
 
   const submit = async () => {
-    if (!front) return toast.error("Attach ID front");
     setBusy(true);
-    const fd = new FormData();
-    fd.append("front", front);
-    if (back) fd.append("back", back);
-    try {
-      const res = await fetch("/api/kyc/submit", {
-        method: "POST",
-        body: fd,
-        credentials: "include",
-      });
-      const d = await res.json();
-      if (d.ok) {
-        toast.success("KYC submitted — pending review");
-      } else toast.error("Submission failed");
-    } catch (e) {
-      toast.error("Submission failed");
-    }
     try {
       await api.post("/kyc/banking", banking);
-      toast.success("Banking details saved and matched to KYC profile.");
+      toast.success("Banking details saved for verification.");
+      const { data } = await api.post("/kyc/session", {
+        origin_url: getAppOriginUrl(),
+      });
+      if (data.already_approved) {
+        toast.success("Identity already verified.");
+      } else {
+        window.location.href = data.url;
+        return;
+      }
     } catch (e) {
-      toast.error(e.response?.data?.detail || "Banking details validation failed");
+      toast.error(e.response?.data?.detail || "Could not start identity verification");
+      setBusy(false);
+      return;
     }
     setBusy(false);
   };
@@ -66,23 +59,9 @@ export default function KycPage() {
 
       <div className="mt-6 space-y-6">
         <div className="grid md:grid-cols-2 gap-4">
-          <div>
-            <label className="font-mono text-xs">ID Front</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setFront(e.target.files[0])}
-              className="mt-2 block w-full text-sm"
-            />
-          </div>
-          <div>
-            <label className="font-mono text-xs">ID Back (optional)</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setBack(e.target.files[0])}
-              className="mt-2 block w-full text-sm"
-            />
+          <div className="md:col-span-2 rounded border border-nvg/30 bg-nvg/5 p-4 text-sm text-muted-foreground">
+            Identity documents are collected securely by Stripe Identity. This
+            page never uploads or stores raw ID images in the casino database.
           </div>
         </div>
 
