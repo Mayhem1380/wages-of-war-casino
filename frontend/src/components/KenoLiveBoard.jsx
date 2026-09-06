@@ -139,6 +139,21 @@ export function KenoLiveBoard({ picks = [] }) {
         </div>
       </div>
 
+      {phase === "waiting" && (
+        <div className="relative mb-4 overflow-hidden border border-gold/25 bg-black/40">
+          <img
+            src="/brand/warkino_hero.jpg"
+            alt="Warkino live draw waiting screen"
+            className="h-24 w-full object-cover object-center opacity-80 sm:h-32"
+          />
+          <div className="absolute inset-0 flex items-center justify-center bg-black/35">
+            <span className="font-mono text-[10px] tracking-[0.28em] text-gold sm:text-xs">
+              WARKINO BROADCAST · NEXT DRAW IN {mins}:{secs}
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* drawn number board */}
       <div className="grid grid-cols-10 gap-1.5">
         {Array.from({ length: DRAW_SIZE }).map((_, idx) => {

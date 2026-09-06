@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { sfx } from "@/lib/sounds";
 import { WinCelebration } from "@/components/WinCelebration";
-import { Coins, ArrowLeft, Lightning } from "@phosphor-icons/react";
+import { Coins, ArrowLeft, Lightning, TrendUp } from "@phosphor-icons/react";
 
 export default function CoinFlipGame() {
   const navigate = useNavigate();
@@ -20,6 +20,7 @@ export default function CoinFlipGame() {
   const [result, setResult] = useState(null);
   const [flip, setFlip] = useState(false);
   const [celebrate, setCelebrate] = useState(false);
+  const [history, setHistory] = useState([]);
   const LBL = { heads: "GRENADE", tails: "KNIFE" };
 
   const play = async () => {
@@ -41,6 +42,10 @@ export default function CoinFlipGame() {
       setTimeout(() => {
         setFlip(false);
         setResult(data);
+        setHistory((previous) => [
+          { outcome: data.outcome, won: data.win > 0 },
+          ...previous,
+        ].slice(0, 8));
         refreshUser();
         if (data.win > 0) {
           sfx.win();
@@ -107,7 +112,7 @@ export default function CoinFlipGame() {
           <p className="font-mono text-xs tracking-[0.4em] text-gold/70">
             // 1.96× INSTANT PAYOUT
           </p>
-          <h1 className="font-display text-5xl tracking-wide gold-gradient">
+          <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl tracking-wide gold-gradient">
             DOG-TAG FLIP
           </h1>
         </div>
@@ -117,7 +122,7 @@ export default function CoinFlipGame() {
           style={{ perspective: "900px" }}
         >
           <motion.div
-            className="w-44 h-44 flex items-center justify-center"
+            className="w-32 h-32 sm:w-44 sm:h-44 lg:w-48 lg:h-48 flex items-center justify-center"
             animate={
               flip
                 ? { rotateY: [0, 2160], scale: [1, 1.12, 1] }
@@ -169,7 +174,7 @@ export default function CoinFlipGame() {
             data-testid={COINFLIP.flip}
             onClick={play}
             disabled={busy}
-            className="w-full h-14 bg-gold hover:bg-gold/90 text-black font-display text-xl tracking-widest glow-gold gap-2"
+            className="w-full h-12 sm:h-14 bg-gold hover:bg-gold/90 text-black font-display text-lg sm:text-xl tracking-widest glow-gold gap-2"
           >
             <Lightning size={22} weight="fill" />{" "}
             {busy ? "FLIPPING..." : "FLIP THE TAG"}
@@ -178,6 +183,24 @@ export default function CoinFlipGame() {
             Balance:{" "}
             <span className="text-gold">{fmt(user?.balance || 0)}</span>
           </p>
+          <div className="w-full border-t border-border/70 pt-3">
+            <p className="mb-2 flex items-center justify-center gap-2 font-mono text-[10px] tracking-[0.2em] text-nvg/80">
+              <TrendUp size={13} weight="bold" /> MISSION STREAK
+            </p>
+            <div className="flex justify-center gap-1.5" aria-label="Recent coin flip results">
+              {history.length ? history.map((entry, index) => (
+                <span
+                  key={`${entry.outcome}-${index}`}
+                  title={`${LBL[entry.outcome]} ${entry.won ? "win" : "loss"}`}
+                  className={`h-2.5 w-2.5 rounded-full border ${entry.won ? "border-nvg bg-nvg" : "border-alert bg-alert/40"}`}
+                />
+              )) : (
+                <span className="font-mono text-[9px] tracking-widest text-muted-foreground">
+                  FLIP TO START YOUR RUN
+                </span>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
