@@ -149,9 +149,6 @@ export default function Lobby() {
   const catCount = (c) =>
     c === "All" ? slots.length : slots.filter((s) => catOf(s) === c).length;
 
-  const liveJackpot = (n) =>
-    `$${(n * 180000 + 420000).toLocaleString("en-US")}`;
-
   const symbolPreview = {
     gates_of_glory: ["crown", "gem_red", "orb"],
     book_of_ops: ["idol", "book", "scarab"],
@@ -427,11 +424,6 @@ export default function Lobby() {
           const flag = s.is_flagship ? FLAGSHIP_ART[s.id] : null;
           const feature = i === 0;
           const hot = i < 3 || (s.popularity || 0) > 80;
-          const rtp = Number(
-            (94.8 + (i % 5) * 0.35 + ((s.popularity || 45) / 1000)).toFixed(2),
-          );
-          const jackpot = liveJackpot(i + 1);
-
           if (flag) {
             return (
               <CornerCard
@@ -472,10 +464,10 @@ export default function Lobby() {
                   </div>
                   <div className="absolute top-3 right-3 flex flex-col items-end gap-1">
                     <span className="font-mono text-[9px] px-2 py-0.5 bg-black/70 border border-gold/50 text-gold tracking-widest">
-                      LIVE {jackpot}
+                      {s.volatility?.toUpperCase()} VOLATILITY
                     </span>
                     <span className="font-mono text-[9px] px-2 py-0.5 bg-black/70 border border-alert/50 text-alert tracking-widest">
-                      RTP {rtp}%
+                      {s.paylines} PAYLINES
                     </span>
                   </div>
                   <div className="absolute inset-x-0 bottom-0 p-5">
@@ -548,10 +540,10 @@ export default function Lobby() {
                 </div>
                 <div className="absolute top-3 right-3 flex flex-col items-end gap-1">
                   <span className="font-mono text-[9px] px-2 py-0.5 bg-black/70 border border-gold/40 text-gold tracking-widest">
-                    LIVE {jackpot}
+                    {s.volatility?.toUpperCase()} VOLATILITY
                   </span>
                   <span className="font-mono text-[9px] px-2 py-0.5 bg-black/70 border border-alert/40 text-alert tracking-widest">
-                    RTP {rtp}%
+                    {s.paylines} PAYLINES
                   </span>
                 </div>
                 <div className="absolute inset-x-0 bottom-0 p-5">

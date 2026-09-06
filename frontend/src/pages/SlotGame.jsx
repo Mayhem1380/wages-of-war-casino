@@ -38,7 +38,6 @@ export default function SlotGame() {
   const [lastWin, setLastWin] = useState(0);
   const [free, setFree] = useState(null); // {active, spinsLeft, multiplier, total, done, sessionId}
   const [bigWin, setBigWin] = useState(null); // {win, multiplier}
-  const [shake, setShake] = useState(false);
   const spinRef = useRef();
   const machineRef = useRef(null);
 
@@ -170,20 +169,11 @@ export default function SlotGame() {
   };
 
 
-  const triggerNearMiss = (data) => {
-    if (data.scatter_count === 2) {
-      sfx.nearMiss();
-      setShake(true);
-      setTimeout(() => setShake(false), 600);
-    }
-  };
-
   const finalizePaid = (data) => {
     highlight(data);
     setLastWin(data.total_win);
     setSpinning(false);
     refreshUser();
-    triggerNearMiss(data);
     if (data.total_win >= bet * 15) sfx.bigWin();
     else if (data.total_win > 0) sfx.win();
     if (data.total_win >= bet * 50)
@@ -313,7 +303,7 @@ export default function SlotGame() {
       <div className="grid lg:grid-cols-[1fr_280px] gap-6">
         {/* REELS */}
         <div
-          className={`hud p-4 sm:p-6 relative overflow-hidden reel-scan ${shake ? "animate-shake" : ""}`}
+          className="hud p-4 sm:p-6 relative overflow-hidden reel-scan"
           style={{
             background: "#060906",
             boxShadow:
