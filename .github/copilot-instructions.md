@@ -42,3 +42,10 @@ This repository is a casino app with a Python/FastAPI backend and a React fronte
 - There are protected deployment requirements and compliance-sensitive sections.
 - The right fix is often in deployment state or config, not in CSS or image files.
 - The agent must remain surgical, explicit, and evidence-driven.
+
+## Builder / Minuteman rule set
+- Default to the verified repo build path: `cd /app/frontend && npm run build -- --no-sourcemap`.
+- If installs are needed, prefer `npm ci --legacy-peer-deps` when `package-lock.json` exists; otherwise use `npm install --legacy-peer-deps`.
+- Do not claim a deploy or publish is complete without a fresh build and explicit deploy target values.
+- Keep all build, deploy, and preview actions grounded in repo truth and real host state.
+- Before blaming the frontend for missing media or broken pages, confirm the host is serving the correct app and not a stale or wrong preview build.

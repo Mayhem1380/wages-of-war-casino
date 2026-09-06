@@ -103,7 +103,7 @@ export default function Wallet() {
     >
       <div
         data-testid="wallet-realmoney-notice"
-        className="hud hud-gold p-5 mb-8 flex items-start gap-4"
+        className="wallet-elite-panel p-5 mb-8 flex items-start gap-4"
       >
         <ShieldCheck
           size={28}
@@ -130,7 +130,7 @@ export default function Wallet() {
         </div>
       </div>
 
-      <div className="hud hud-gold p-6 flex flex-wrap items-center justify-between gap-4 mb-10">
+      <div className="hud hud-gold p-6 flex flex-wrap items-center justify-between gap-4 mb-10 wallet-balance-shell">
         <div>
           <p className="font-mono text-xs tracking-widest text-nvg/70">
             OPERATIVE BALANCE

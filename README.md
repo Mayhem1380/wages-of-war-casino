@@ -4,6 +4,13 @@
 
 This repo now enforces safer backend startup config. Complete these steps in your Publish panel before final go-live testing:
 
+### Builder / Minuteman reliability checklist
+- Use the verified frontend build command before claiming completion: `cd /app/frontend && npm run build -- --no-sourcemap`
+- If dependencies need installation, prefer `npm ci --legacy-peer-deps` when `frontend/package-lock.json` exists; otherwise fall back to `npm install --legacy-peer-deps`
+- Only deploy when `DEPLOY_HOST`, `DEPLOY_USER`, and `DEPLOY_PATH` are set in the live environment
+- Treat `/login` redirects as a deploy-state check, not proof the app visuals are missing
+- Keep build output and deployment state aligned with the actual live host before calling the release complete
+
 1. Set production secrets and redeploy:
 	- `STRIPE_SECRET_KEY` (live key, starts with `sk_live_`)
 	- `STRIPE_WEBHOOK_SECRET` (starts with `whsec_`)

@@ -4,6 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { SymbolTile } from "@/components/SymbolTile";
+import { PixiReelFX } from "@/components/PixiReelFX";
 import { FLAGSHIP_ART, fmt } from "@/data/gameMeta";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -595,10 +596,10 @@ export default function FlagshipSlot() {
         </div>
       )}
 
-      <div className="max-w-5xl mx-auto px-3 sm:px-6 pt-6 pb-28 lg:pb-6">
+      <div className="max-w-5xl mx-auto px-3 sm:px-6 pt-3 sm:pt-6 pb-28 lg:pb-6">
         <button
           onClick={() => navigate("/lobby")}
-          className="flex items-center gap-2 text-white/60 hover:text-white font-mono text-sm mb-4"
+          className="flex items-center gap-2 text-white/60 hover:text-white font-mono text-sm mb-2 sm:mb-4"
         >
           <ArrowLeft size={16} /> RETURN TO LOBBY
         </button>
@@ -606,7 +607,7 @@ export default function FlagshipSlot() {
         {/* JACKPOT LADDER */}
         <div
           data-testid="flagship-jackpots"
-          className="grid grid-cols-6 gap-1.5 sm:gap-2 mb-4"
+          className="grid grid-cols-6 gap-1.5 sm:gap-2 mb-2 sm:mb-4"
         >
           {JP_ORDER.map((jp) => (
             <div
@@ -627,7 +628,9 @@ export default function FlagshipSlot() {
           ))}
         </div>
 
-        <LiveWinnersTicker game={machine.name} />
+        <div className="hidden sm:block">
+          <LiveWinnersTicker game={machine.name} />
+        </div>
 
         <div className="grid lg:grid-cols-[1fr_260px] gap-4">
           {/* REELS */}
@@ -642,8 +645,13 @@ export default function FlagshipSlot() {
             >
               <div
                 data-testid="flagship-grid"
-                className="grid grid-cols-5 gap-1.5 sm:gap-2"
+                className="relative grid grid-cols-5 gap-1.5 sm:gap-2"
               >
+                <PixiReelFX
+                  accent={art.accent}
+                  spinning={busy}
+                  winCount={winCells.size}
+                />
                 {grid.map((col, reel) => (
                   <div key={reel} className="flex flex-col gap-1.5 sm:gap-2">
                     {col.map((sym, row) => (

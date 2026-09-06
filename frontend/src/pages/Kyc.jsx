@@ -16,37 +16,36 @@ const initialBanking = {
 };
 
 export default function KycPage() {
-  const [front, setFront] = useState(null);
-  const [back, setBack] = useState(null);
   const [banking, setBanking] = useState(initialBanking);
   const [busy, setBusy] = useState(false);
+  const [bankingBusy, setBankingBusy] = useState(false);
 
-  const submit = async () => {
-    if (!front) return toast.error("Attach ID front");
+  const startVerification = async () => {
     setBusy(true);
-    const fd = new FormData();
-    fd.append("front", front);
-    if (back) fd.append("back", back);
     try {
-      const res = await fetch("/api/kyc/submit", {
-        method: "POST",
-        body: fd,
-        credentials: "include",
+      const { data } = await api.post("/kyc/session", {
+        origin_url: window.location.origin,
       });
-      const d = await res.json();
-      if (d.ok) {
-        toast.success("KYC submitted — pending review");
-      } else toast.error("Submission failed");
+      if (data.already_approved) {
+        toast.success("Identity already verified.");
+      } else {
+        window.location.href = data.url;
+      }
     } catch (e) {
-      toast.error("Submission failed");
+      toast.error(e.response?.data?.detail || "Could not start verification");
     }
+    setBusy(false);
+  };
+
+  const saveBanking = async () => {
+    setBankingBusy(true);
     try {
       await api.post("/kyc/banking", banking);
       toast.success("Banking details saved and matched to KYC profile.");
     } catch (e) {
       toast.error(e.response?.data?.detail || "Banking details validation failed");
     }
-    setBusy(false);
+    setBankingBusy(false);
   };
 
   const handleBankingChange = (e) => {
@@ -65,25 +64,12 @@ export default function KycPage() {
       </p>
 
       <div className="mt-6 space-y-6">
-        <div className="grid md:grid-cols-2 gap-4">
-          <div>
-            <label className="font-mono text-xs">ID Front</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setFront(e.target.files[0])}
-              className="mt-2 block w-full text-sm"
-            />
-          </div>
-          <div>
-            <label className="font-mono text-xs">ID Back (optional)</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setBack(e.target.files[0])}
-              className="mt-2 block w-full text-sm"
-            />
-          </div>
+        <div className="rounded border border-nvg/30 bg-nvg/5 p-4">
+          <p className="font-stencil text-xs tracking-[0.3em] text-nvg uppercase">Identity verification</p>
+          <p className="text-sm text-muted-foreground mt-2">Verification is handled securely by the connected identity provider. No identity documents are uploaded through this page.</p>
+          <Button onClick={startVerification} disabled={busy} className="mt-4 bg-nvg text-black">
+            {busy ? "Opening secure verification..." : "Start secure identity verification"}
+          </Button>
         </div>
 
         <div className="rounded border border-gold/30 bg-gold/5 p-4 space-y-4">
@@ -103,11 +89,11 @@ export default function KycPage() {
 
         <div>
           <Button
-            onClick={submit}
-            disabled={busy}
+            onClick={saveBanking}
+            disabled={bankingBusy}
             className="bg-gold text-black"
           >
-            {busy ? "Submitting..." : "Submit Verification & Banking Details"}
+            {bankingBusy ? "Saving..." : "Save banking details"}
           </Button>
         </div>
       </div>

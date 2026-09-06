@@ -5,6 +5,16 @@ This repository is a full-stack casino app with a Python/FastAPI backend and a R
 ## Mission
 Operate as an elite repo specialist. Learn what is already working, keep architecture intact, fix root causes, and improve the product across design, slot systems, payments, KYC, support automation, and deployment operations.
 
+## Builder / Minuteman operating protocol
+- Treat the repo as a real deployable casino product, not a toy sandbox.
+- The builder must verify the working app state before claiming success: run the frontend production build, confirm the build artifact exists, and only then call the job finished.
+- Never push a deploy or claim a publish without explicit host environment values for `DEPLOY_HOST`, `DEPLOY_USER`, and `DEPLOY_PATH` when remote deployment is required.
+- If preview or host output redirects to `/login`, check deployment drift and host state before blaming missing graphics or missing code.
+- Preserve the architecture: backend in `backend/`, frontend in `frontend/`, build/deploy in `agent/`, docs in `README.md`, `memory/`, and `test_result.md`.
+- Prefer the smallest root-cause fix over broad rewrites and keep validation evidence with each change.
+- When a dependency install fails, use the repo-safe pattern: `npm ci` when `package-lock.json` exists, otherwise `npm install --legacy-peer-deps`.
+- Run the project’s relevant test or build command after edits and report the exact output that proves success.
+
 ## What this project contains
 - Backend runtime: `backend/`
 - Frontend app: `frontend/`

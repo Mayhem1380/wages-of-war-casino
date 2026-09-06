@@ -18,6 +18,7 @@ import bcrypt
 import jwt
 import secrets
 import urllib.request
+from urllib.parse import urlparse
 import json
 from datetime import datetime, timezone, timedelta
 import asyncio
@@ -250,8 +251,48 @@ def _resolved_cors_origins() -> List[str]:
 
 CORS_ORIGINS = _resolved_cors_origins()
 CORS_ALLOW_ORIGINS = CORS_ORIGINS
-# Any subdomain of preview.emergentagent.com is a trusted first-party preview host.
-CORS_ALLOW_ORIGIN_REGEX = r"^(https?://(localhost|127\.0\.0\.1)(:\d+)?|https://[a-zA-Z0-9-]+\.preview\.emergentagent\.com)$"
+# Trusted first-party hosts: local dev, Emergent preview/production subdomains,
+# and the production casino domain (with or without the "www" prefix).
+CORS_ALLOW_ORIGIN_REGEX = (
+    r"^(?:https?://(?:localhost|127\.0\.0\.1)(?::\d+)?"
+    r"|https://(?:[A-Za-z0-9-]+\.)*(?:preview\.emergentagent\.com|emergent\.host)"
+    r"|https://(?:www\.)?wagesofwarcasin0\.online)$"
+)
+
+
+def _is_trusted_cors_origin(origin: Optional[str]) -> bool:
+    if not origin:
+        return False
+    try:
+        parsed = urlparse(origin)
+    except Exception:
+        return False
+    host = (parsed.hostname or "").lower()
+    if parsed.scheme not in {"http", "https"}:
+        return False
+    if not host:
+        return False
+    return (
+        host in {"localhost", "127.0.0.1"}
+        or host.endswith(".preview.emergentagent.com")
+        or host.endswith(".emergent.host")
+        or host in {"wagesofwarcasin0.online", "www.wagesofwarcasin0.online"}
+    )
+
+
+def _trusted_return_origin(candidate: str) -> str:
+    origin = (candidate or FRONTEND_URL).strip().rstrip("/")
+    parsed = urlparse(origin)
+    host = (parsed.hostname or "").lower()
+    trusted_host = (
+        host in {"localhost", "127.0.0.1"}
+        or host.endswith(".preview.emergentagent.com")
+        or host.endswith(".emergent.host")
+        or host in {"wagesofwarcasin0.online", "www.wagesofwarcasin0.online"}
+    )
+    if parsed.scheme not in {"http", "https"} or not trusted_host or parsed.path not in {"", "/"}:
+        raise HTTPException(status_code=400, detail="Return URL origin is not allowed")
+    return origin
 
 app = FastAPI(title="Wages of War Casino API")
 api = APIRouter(prefix="/api")
@@ -298,6 +339,7 @@ async def record_house_cashflow(
                 "bankroll_cents": delta_cents,
                 "cash_in_cents": max(delta_cents, 0),
                 "cash_out_cents": max(-delta_cents, 0),
+                "deposits_cents": cents if kind == "deposit" else 0,
             },
             "$set": {"updated_at": now_iso},
         },
@@ -318,9 +360,10 @@ async def get_house_bankroll_summary():
             "updated_at": datetime.now(timezone.utc).isoformat(),
         }
     cash_in = int(summary.get("cash_in_cents", 0))
+    deposits_cents = int(summary.get("deposits_cents", 0))
     bankroll = int(summary.get("bankroll_cents", 0))
-    # 30% profit reserve — lock a solvency buffer equal to 30% of total deposits.
-    reserve_cents = int(round(max(cash_in, 0) * PROFIT_RESERVE_PCT))
+    # Lock a solvency buffer equal to 30% of recorded deposits.
+    reserve_cents = int(round(max(deposits_cents, 0) * PROFIT_RESERVE_PCT))
     available = max(bankroll - reserve_cents, 0)
     coverage = 0.0
     if cash_in:
@@ -331,6 +374,8 @@ async def get_house_bankroll_summary():
         "bankroll_usd": round(int(summary.get("bankroll_cents", 0)) / 100.0, 2),
         "cash_in_cents": int(summary.get("cash_in_cents", 0)),
         "cash_out_cents": int(summary.get("cash_out_cents", 0)),
+        "deposits_cents": deposits_cents,
+        "deposits_usd": round(deposits_cents / 100.0, 2),
         "pending_payout_cents": int(summary.get("pending_payout_cents", 0)),
         "reserve_pct": PROFIT_RESERVE_PCT,
         "reserve_cents": reserve_cents,
@@ -541,7 +586,12 @@ async def adjust_balance(
     }
     if biggest is not None:
         update["$max"] = {"biggest_win": biggest}
-    await db.users.update_one({"user_id": user_id}, update)
+    balance_floor = max(-delta_balance, 0)
+    result = await db.users.update_one(
+        {"user_id": user_id, "balance": {"$gte": balance_floor}}, update
+    )
+    if result.matched_count != 1:
+        raise HTTPException(status_code=400, detail="Insufficient credits")
     return await db.users.find_one({"user_id": user_id}, {"_id": 0})
 
 
@@ -833,7 +883,7 @@ async def kyc_session(payload: KycSessionInput, user: dict = Depends(require_use
     fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
     if fresh.get("kyc_approved"):
         return {"already_approved": True}
-    origin = (payload.origin_url or FRONTEND_URL).rstrip("/")
+    origin = _trusted_return_origin(payload.origin_url)
     kwargs = {
         "type": "document",
         "options": {"document": {"require_matching_selfie": True}},
@@ -2021,25 +2071,20 @@ async def bonus_claim(user: dict = Depends(require_user)):
 # Daily Streak Wheel (additional daily reward, separate from Supply Drop)
 # ---------------------------------------------------------------------------
 # ── Wheel of Wealth ──────────────────────────────────────────────────────
-# Cash segments in dollars + two "Better Luck" + one "Spin Again" (13 total).
+# Canonical public wheel contract: nine cash segments from $500 up to $50,000.
 WHEEL_OF_WEALTH = [
-    {"label": "$5", "value": 5, "type": "cash"},
-    {"label": "$10", "value": 10, "type": "cash"},
-    {"label": "$15", "value": 15, "type": "cash"},
-    {"label": "$20", "value": 20, "type": "cash"},
-    {"label": "$25", "value": 25, "type": "cash"},
-    {"label": "$30", "value": 30, "type": "cash"},
-    {"label": "$35", "value": 35, "type": "cash"},
-    {"label": "$40", "value": 40, "type": "cash"},
-    {"label": "$45", "value": 45, "type": "cash"},
-    {"label": "$50", "value": 50, "type": "cash"},
-    {"label": "BETTER LUCK", "value": 0, "type": "luck"},
-    {"label": "BETTER LUCK", "value": 0, "type": "luck"},
-    {"label": "SPIN AGAIN", "value": 0, "type": "again"},
-    {"label": "$500 MAJOR", "value": 500, "type": "major"},
+    {"label": "$500", "value": 500, "type": "cash"},
+    {"label": "$1,000", "value": 1000, "type": "cash"},
+    {"label": "$2,000", "value": 2000, "type": "cash"},
+    {"label": "$5,000", "value": 5000, "type": "cash"},
+    {"label": "$10,000", "value": 10000, "type": "cash"},
+    {"label": "$15,000", "value": 15000, "type": "cash"},
+    {"label": "$25,000", "value": 25000, "type": "cash"},
+    {"label": "$35,000", "value": 35000, "type": "cash"},
+    {"label": "$50,000", "value": 50000, "type": "cash"},
 ]
-WHEEL_OF_WEALTH_WEIGHTS = [26, 20, 14, 9, 6, 4, 3, 2, 1, 1, 30, 30, 8, 1]
-WHEEL_BIG_DEPOSIT_USD = 500  # a single deposit OVER this earns 1 spin
+WHEEL_OF_WEALTH_WEIGHTS = [10, 8, 6, 5, 4, 3, 2, 1, 1]
+WHEEL_BIG_DEPOSIT_USD = 500  # a single deposit of this amount or more earns 1 spin
 WHEEL_MILESTONE_USD = 1000  # every $1000 of lifetime deposits earns 1 spin
 
 
@@ -2056,9 +2101,6 @@ async def _grant_wheel_spins_on_deposit(user_id: str, deposit_usd: float):
     prev_total = float(u.get("total_deposited_usd", 0.0))
     new_total = prev_total + float(deposit_usd)
     granted = 1 if float(deposit_usd) >= WHEEL_BIG_DEPOSIT_USD else 0
-    granted += int(new_total // WHEEL_MILESTONE_USD) - int(
-        prev_total // WHEEL_MILESTONE_USD
-    )
     largest_deposit = max(float(u.get("largest_deposit_usd", 0.0)), float(deposit_usd))
     wagering_required = float(u.get("wagering_required_usd", 0.0)) + (
         float(deposit_usd) * cashier.WAGERING_REQUIREMENT_MULTIPLIER
@@ -2115,10 +2157,6 @@ async def wheel_status(user: dict = Depends(require_user)):
         "segment_meta": segment_meta,
         "total_deposited_usd": round(total_dep, 2),
         "big_deposit_usd": WHEEL_BIG_DEPOSIT_USD,
-        "milestone_usd": WHEEL_MILESTONE_USD,
-        "next_milestone_usd": round(
-            (int(total_dep // WHEEL_MILESTONE_USD) + 1) * WHEEL_MILESTONE_USD, 2
-        ),
         "seconds_left": seconds_left,
         "streak": streak,
         "next_multiplier": next_multiplier,
@@ -2618,6 +2656,8 @@ async def admin_enquiries(admin: dict = Depends(require_admin)):
 
 @api.post("/fleet/enquiry")
 async def fleet_enquiry(payload: FleetEnquiryInput):
+    if not payload.name.strip() or not payload.message.strip():
+        raise HTTPException(status_code=422, detail="Name and message are required")
     doc = {
         "id": str(uuid.uuid4()),
         "name": payload.name.strip(),
@@ -2749,6 +2789,7 @@ async def checkout(payload: CheckoutInput, user: dict = Depends(require_user)):
     )
     if not pkg:
         raise HTTPException(status_code=400, detail="Unknown package")
+    origin = _trusted_return_origin(payload.origin_url)
 
     existing = await db.payment_transactions.find_one(
         {
@@ -2771,8 +2812,8 @@ async def checkout(payload: CheckoutInput, user: dict = Depends(require_user)):
         kwargs = dict(
             line_items=[{"price": price.id, "quantity": 1}],
             mode="payment",
-            success_url=f"{payload.origin_url}/payment/success?session_id={{CHECKOUT_SESSION_ID}}",
-            cancel_url=f"{payload.origin_url}/wallet",
+            success_url=f"{origin}/payment/success?session_id={{CHECKOUT_SESSION_ID}}",
+            cancel_url=f"{origin}/wallet",
             metadata={
                 "user_id": user["user_id"],
                 "lookup_key": pkg["lookup_key"],
@@ -2951,10 +2992,11 @@ async def _credit_if_paid(record):
 
 
 @api.get("/payments/status/{session_id}")
-async def payment_status(session_id: str):
-    record = await db.payment_transactions.find_one(
-        {"session_id": session_id}, {"_id": 0}
-    )
+async def payment_status(session_id: str, request: Request, user: Optional[dict] = Depends(resolve_user)):
+    query = {"session_id": session_id}
+    if user:
+        query["user_id"] = user["user_id"]
+    record = await db.payment_transactions.find_one(query, {"_id": 0})
     if not record:
         raise HTTPException(status_code=404, detail="Transaction not found")
     if record.get("payment_status") != "paid":
@@ -3112,6 +3154,7 @@ async def cashier_deposit_stripe(
     code = payload.currency.upper()
     if code not in cashier.FIAT_CODES:
         raise HTTPException(status_code=400, detail="Unsupported fiat currency")
+    origin = _trusted_return_origin(payload.origin_url)
     usd_cents = cashier.to_usd_cents(payload.amount, code)
     if usd_cents < cashier.MIN_DEPOSIT_USD_CENTS:
         raise HTTPException(
@@ -3136,8 +3179,8 @@ async def cashier_deposit_stripe(
                 }
             ],
             mode="payment",
-            success_url=f"{payload.origin_url}/cashier?deposit=success&session_id={{CHECKOUT_SESSION_ID}}",
-            cancel_url=f"{payload.origin_url}/cashier?deposit=cancel",
+            success_url=f"{origin}/cashier?deposit=success&session_id={{CHECKOUT_SESSION_ID}}",
+            cancel_url=f"{origin}/cashier?deposit=cancel",
             metadata={
                 "kind": "cashier_deposit",
                 "user_id": user["user_id"],
@@ -3198,6 +3241,11 @@ async def cashier_deposit_crypto(
     if usd_cents < cashier.MIN_DEPOSIT_USD_CENTS:
         raise HTTPException(
             status_code=400, detail=f"Minimum deposit is {cashier.MIN_DEPOSIT_AUD} AUD"
+        )
+    if usd_cents > cashier.MAX_DEPOSIT_USD_CENTS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Maximum deposit is {cashier.MAX_DEPOSIT_AUD} AUD per transaction",
         )
     order_id = f"wow:{user['user_id']}:{uuid.uuid4().hex[:10]}"
     ipn_url = f"{os.environ.get('FRONTEND_URL','').replace('http://','https://')}/api/webhooks/nowpayments"
@@ -3274,6 +3322,12 @@ async def _credit_crypto_deposit(payment_id: str):
             t["amount_usd_cents"] / 100.0,
             {"method": "crypto", "currency": t["currency"], "payment_id": payment_id},
         )
+        await record_house_cashflow(
+            t["amount_usd_cents"] / 100.0,
+            "deposit",
+            "cashier_crypto_deposit",
+            {"user_id": t["user_id"], "payment_id": payment_id},
+        )
         await _maybe_pay_referral(t["user_id"])
         await _grant_wheel_spins_on_deposit(
             t["user_id"], t["amount_usd_cents"] / 100.0
@@ -3345,12 +3399,26 @@ async def cashier_withdraw(payload: WithdrawInput, user: dict = Depends(require_
             status_code=400,
             detail=f"Maximum win cashout for your deposit tier is ${cashout_cap:,.2f}",
         )
-    if int(fresh.get("real_balance_cents", 0)) < usd_cents:
-        raise HTTPException(status_code=400, detail="Insufficient cash balance")
-    # hold funds immediately
-    await db.users.update_one(
-        {"user_id": user["user_id"]}, {"$inc": {"real_balance_cents": -usd_cents}}
+    bankroll = await get_house_bankroll_summary()
+    committed = int(bankroll.get("pending_payout_cents", 0))
+    available = int(bankroll.get("available_cents", 0))
+    current_bankroll = int(bankroll.get("bankroll_cents", 0))
+    if (
+        bankroll.get("cash_in_cents", 0) > 0
+        and current_bankroll < 0
+        and available <= 0
+        and committed + usd_cents > 0
+    ):
+        raise HTTPException(
+            status_code=503,
+            detail="Withdrawals are temporarily paused while payout coverage is replenished.",
+        )
+    held = await db.users.update_one(
+        {"user_id": user["user_id"], "real_balance_cents": {"$gte": usd_cents}},
+        {"$inc": {"real_balance_cents": -usd_cents}},
     )
+    if held.matched_count != 1:
+        raise HTTPException(status_code=400, detail="Insufficient cash balance")
     ref = str(uuid.uuid4())
     vault = await cashier.vault_submit_withdrawal(
         code, payload.amount, payload.destination, ref
@@ -3521,6 +3589,15 @@ async def admin_cashier_withdrawal_action(
         )
     now_iso = datetime.now(timezone.utc).isoformat()
     if action == "approve":
+        bankroll = await get_house_bankroll_summary()
+        available = int(bankroll.get("available_cents", 0))
+        current_bankroll = int(bankroll.get("bankroll_cents", 0))
+        if (
+            bankroll.get("cash_in_cents", 0) > 0
+            and current_bankroll < 0
+            and available <= 0
+        ):
+            raise HTTPException(status_code=503, detail="Payout coverage is currently below the protected reserve")
         await db.cashier_transactions.update_one(
             {"id": txn_id}, {"$set": {"status": "completed", "updated_at": now_iso}}
         )
@@ -3550,6 +3627,11 @@ async def admin_cashier_withdrawal_action(
     await db.cashier_transactions.update_one(
         {"id": txn_id}, {"$set": {"status": "rejected", "updated_at": now_iso}}
     )
+    await db.house_bankroll.update_one(
+        {"_id": "house"},
+        {"$inc": {"pending_payout_cents": -int(t["amount_usd_cents"])}, "$set": {"updated_at": now_iso}},
+        upsert=True,
+    )
     await record_transaction(
         t["user_id"],
         "withdrawal_rejected",
@@ -3572,14 +3654,23 @@ async def health_check():
     return {"status": "healthy"}
 
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=CORS_ALLOW_ORIGINS,
-    allow_origin_regex=CORS_ALLOW_ORIGIN_REGEX,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+@app.middleware("http")
+async def trusted_cors_middleware(request: Request, call_next):
+    origin = request.headers.get("origin")
+    if origin and _is_trusted_cors_origin(origin):
+        response = await call_next(request)
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.headers["Vary"] = "Origin"
+        if request.method == "OPTIONS":
+            response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+            response.headers["Access-Control-Allow-Headers"] = request.headers.get(
+                "access-control-request-headers", "authorization, content-type"
+            )
+        return response
+    if request.method == "OPTIONS":
+        return Response(status_code=204)
+    return await call_next(request)
 
 
 async def _safe_create_index(collection, field_name, **kwargs):

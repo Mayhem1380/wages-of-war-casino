@@ -204,6 +204,13 @@ export function Layout({ children }) {
         className="fixed inset-0 z-0 pointer-events-none bg-cover bg-center opacity-[0.18]"
         style={{ backgroundImage: "url(/brand/warmap_bg.jpg)" }}
       />
+      <div aria-hidden="true" className="tactical-targets">
+        <span className="target-point target-one" />
+        <span className="target-point target-two" />
+        <span className="target-point target-three" />
+        <span className="target-point target-four" />
+        <span className="target-point target-five" />
+      </div>
       {/* War-zone combat scene (muzzle flashes) — shown on entry for everyone */}
       <CombatBackground />
       <a
@@ -211,11 +218,11 @@ export function Layout({ children }) {
         target="_blank"
         rel="noopener noreferrer"
         data-testid="nexus-top-banner"
-        className="relative z-50 block w-full bg-gradient-to-r from-gold/20 via-black/90 to-gold/20 border-b border-gold/40 py-1.5 text-center font-mono text-[11px] tracking-[0.3em] text-gold hover:text-nvg transition-colors"
+        className="relative z-50 block w-full bg-gradient-to-r from-[#11130d] via-[#0c1b10] to-[#11130d] border-b border-gold/40 py-1.5 text-center font-mono text-[11px] tracking-[0.32em] text-gold hover:text-nvg transition-colors"
       >
         ⚡ NEXUS · EXPLORE THE FULL GAMING FLEET HQ →
       </a>
-      <header className="sticky top-0 z-50 border-b-2 border-gold/25 bg-black/85 backdrop-blur-md">
+      <header className="sticky top-0 z-50 border-b border-gold/20 bg-[#070a07]/90 backdrop-blur-xl shadow-[0_12px_50px_rgba(0,0,0,0.32)]">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-8 h-16 flex items-center justify-between gap-4">
           <Link to="/" data-testid={NAV.logo}>
             <BrandLogo size={38} subtitle={false} />
@@ -240,19 +247,19 @@ export function Layout({ children }) {
                 <Link
                   to="/wallet"
                   data-testid={NAV.balance}
-                  className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 hud hud-gold text-gold font-mono text-xs sm:text-sm glow-gold"
+                  className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 border border-gold/40 bg-gradient-to-r from-[#120f07] to-[#090b09] text-gold font-mono text-xs sm:text-sm shadow-[0_0_20px_rgba(212,175,55,0.08)]"
                 >
                   <Coins size={16} weight="fill" />
                   <span data-testid="balance-value">{fmt(user.balance)}</span>
                 </Link>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild data-testid={NAV.userMenu}>
-                    <button className="flex items-center gap-2 outline-none">
+                    <button className="flex items-center gap-2 outline-none rounded-full border border-gold/20 bg-black/30 p-1.5 hover:border-gold/40 transition-colors">
                       {user.picture ? (
                         <img
                           src={user.picture}
                           alt="me"
-                          className="w-9 h-9 rounded-full ring-1 ring-nvg/50 object-cover"
+                          className="w-9 h-9 rounded-full ring-1 ring-gold/30 object-cover"
                         />
                       ) : (
                         <UserCircle
@@ -381,7 +388,6 @@ export function Layout({ children }) {
                 </Button>
                 <Button
                   data-testid={NAV.enlistBtn}
-                  onClick={() => openAuth("register")}
                   className="bg-gold hover:bg-gold/90 text-black font-display text-sm sm:text-base tracking-widest px-4 sm:px-5 glow-gold"
                 >
                   ENLIST
@@ -429,10 +435,21 @@ export function Layout({ children }) {
           className="absolute inset-0 pointer-events-none"
           style={{
             background:
-              "linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.72))",
+              "linear-gradient(180deg, rgba(1,8,12,0.84), rgba(0,0,0,0.94) 70%)",
           }}
           aria-hidden="true"
         />
+        <div className="underwater-approach" aria-hidden="true">
+          <div className="submarine silhouette">
+            <div className="submarine-conning-tower" />
+            <div className="submarine-periscope" />
+            <div className="submarine-fin submarine-fin-top" />
+            <div className="submarine-fin submarine-fin-bottom" />
+            <div className="submarine-nose-logo">WOW</div>
+            <div className="underwater-command-mark">W</div>
+            <div className="submarine-tube"><span className="submarine-torpedo" /></div>
+          </div>
+        </div>
 
         <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-8 py-16">
           <div className="grid md:grid-cols-4 gap-10">

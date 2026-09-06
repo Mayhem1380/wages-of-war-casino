@@ -168,7 +168,7 @@ export default function FleetSales() {
 
       <div
         data-testid="fleet-jungle-hero"
-        className="hud hud-gold relative overflow-hidden mb-10"
+        className="hq-panel relative overflow-hidden mb-10"
       >
         <img
           src={BRAND.jungleAmbush}
@@ -184,16 +184,16 @@ export default function FleetSales() {
         />
         <div className="relative p-8 md:p-12 min-h-[420px] sm:min-h-[520px] flex flex-col justify-center max-w-2xl">
           <p className="font-mono text-xs tracking-[0.4em] text-nvg/80 animate-flicker">
-            // JUNGLE OPS · FLEET DEPLOYMENT
+            // NEXUS STUDIO MASTER · GLOBAL FLEET GAMING
           </p>
           <h1 className="font-display text-5xl sm:text-6xl tracking-wide gold-gradient mt-2 leading-none flex items-center gap-3">
             <Airplane size={44} weight="fill" className="text-gold shrink-0" />{" "}
-            GLOBAL GAMING FLEET SALES
+            GLOBAL FLEET GAMING
           </h1>
           <p className="text-muted-foreground mt-4 max-w-xl leading-relaxed">
-            We build and sell elite, ready-to-deploy online casino platforms.
-            Wages of War Casino is our flagship — now the same military-grade
-            gaming fleet is available for operators worldwide.
+            Nexus Studio Master builds elite, ready-to-deploy gaming platforms
+            for operators worldwide. Wages of War Casino is our flagship;
+            your fleet starts here.
           </p>
           <a
             href="#enquiry"
@@ -204,9 +204,42 @@ export default function FleetSales() {
         </div>
       </div>
 
+      <section className="hq-panel grid lg:grid-cols-[1.15fr_0.85fr] gap-0 mb-12 overflow-hidden">
+        <div className="relative aspect-video lg:aspect-auto min-h-[280px] bg-black">
+          <video
+            data-testid="nexus-fleet-reel-video"
+            src="/brand/nexus_fleet_reel.mp4"
+            poster={BRAND.nexusSizzle}
+            autoPlay
+            muted
+            loop
+            playsInline
+            controls
+            preload="metadata"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        </div>
+        <div className="relative p-7 sm:p-9 flex flex-col justify-center">
+          <p className="hq-section-label">// THE MASTER FLEET REEL</p>
+          <h2 className="font-display text-4xl sm:text-5xl tracking-wide gold-gradient leading-none mt-3">
+            GLOBAL GAMING, BUILT TO MOVE
+          </h2>
+          <p className="text-sm text-foreground/75 leading-relaxed mt-4">
+            A complete product language for high-performance operators: bold
+            brand worlds, responsive gaming floors, secure account flows, and
+            the audio-visual polish that makes every launch feel significant.
+          </p>
+          <div className="hq-stat-grid mt-6">
+            <div className="hq-stat-card"><div className="hq-stat-value">146</div><div className="hq-stat-label">Game worlds</div></div>
+            <div className="hq-stat-card"><div className="hq-stat-value">24/7</div><div className="hq-stat-label">Ops support</div></div>
+            <div className="hq-stat-card"><div className="hq-stat-value">1</div><div className="hq-stat-label">Master system</div></div>
+          </div>
+        </div>
+      </section>
+
       <div className="text-center mb-12">
         <p className="font-mono text-xs tracking-[0.4em] text-nvg/70">
-          // NEXUS STUDIO MASTER
+          // NEXUS STUDIO MASTER GLOBAL FLEET GAMING
         </p>
         <h2 className="font-display text-4xl sm:text-5xl tracking-wide gold-gradient flex items-center justify-center gap-3">
           <Airplane size={38} weight="fill" className="text-gold" /> ELITE
@@ -236,7 +269,7 @@ export default function FleetSales() {
         ))}
       </div>
 
-      <div className="hud hud-gold grid md:grid-cols-2 items-center gap-8 p-8 mb-10">
+      <div className="hq-panel grid md:grid-cols-2 items-center gap-8 p-8 mb-10">
         <div>
           <p className="font-mono text-xs tracking-[0.4em] text-gold animate-flicker">
             // FLAGSHIP DEPLOYMENT
@@ -282,7 +315,7 @@ export default function FleetSales() {
       {/* NEXUS FLEET CINEMATIC REEL + PRICING */}
       <div
         data-testid="fleet-pricing-reel"
-        className="hud hud-gold relative overflow-hidden mb-10"
+        className="hq-panel relative overflow-hidden mb-10"
       >
         <img
           src={BRAND.nexusSizzle}
@@ -299,10 +332,10 @@ export default function FleetSales() {
         />
         <div className="relative p-8 md:p-10 min-h-[460px] flex flex-col justify-center max-w-xl">
           <p className="font-mono text-xs tracking-[0.4em] text-gold animate-flicker">
-            // NEXUS STUDIO MASTER
+            // NEXUS STUDIO MASTER GLOBAL FLEET GAMING
           </p>
           <h2 className="font-display text-4xl sm:text-5xl tracking-wide gold-gradient mt-2 leading-none">
-            GLOBAL GAMING FLEET SALES
+            GLOBAL FLEET GAMING SALES
           </h2>
           <p className="text-sm text-muted-foreground mt-3 max-w-md leading-relaxed">
             Deploy your own military-grade casino from the Nexus Studio Master

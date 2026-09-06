@@ -3,7 +3,23 @@ import api from "@/lib/api";
 import { fmt, BRAND } from "@/data/gameMeta";
 import { useAuth } from "@/context/AuthContext";
 import { VIPT } from "@/constants/testIds";
-import { Medal, Gift, Percent, CheckCircle } from "@phosphor-icons/react";
+import {
+  Medal,
+  Gift,
+  Percent,
+  CheckCircle,
+  Shield,
+  ShieldCheck,
+  ShieldStar,
+  Star,
+  Trophy,
+  Crown,
+  Diamond,
+  Fire,
+} from "@phosphor-icons/react";
+
+// One distinct insignia icon per rank, escalating in visual weight from Recruit to General.
+const RANK_ICONS = [Shield, ShieldCheck, Medal, ShieldStar, Star, Trophy, Diamond, Crown];
 
 export default function Vip() {
   const { user } = useAuth();
@@ -24,7 +40,7 @@ export default function Vip() {
       className="max-w-[1100px] mx-auto px-4 sm:px-8 py-12"
     >
       <div
-        className="relative overflow-hidden hud hud-gold p-10 mb-10 text-center"
+        className="relative overflow-hidden vip-elite-panel p-10 mb-10 text-center"
         style={{
           backgroundImage: `linear-gradient(rgba(5,6,5,0.82), rgba(5,6,5,0.92)), url(${BRAND.coin})`,
           backgroundSize: "220px",
@@ -48,23 +64,40 @@ export default function Vip() {
         {tiers.map((t) => {
           const isCurrent = t.rank === currentRank;
           const unlocked = currentRank >= t.rank;
+          const RankIcon = RANK_ICONS[t.rank] || Medal;
           return (
             <div
               key={t.rank}
               data-testid={VIPT.tier(t.rank)}
-              className={`hud p-6 relative ${isCurrent ? "border-gold glow-gold" : ""}`}
+              className={`hud p-6 relative overflow-hidden ${isCurrent ? "border-gold glow-gold" : ""}`}
             >
+              <RankIcon
+                weight="fill"
+                aria-hidden="true"
+                className="pointer-events-none absolute -right-4 -bottom-6 opacity-[0.07]"
+                style={{ width: 120, height: 120, color: unlocked ? "#D4AF37" : "#8a948a" }}
+              />
               {isCurrent && (
                 <span className="absolute top-3 right-3 font-mono text-[10px] text-black bg-gold px-2 py-0.5">
                   YOUR RANK
                 </span>
               )}
-              <div className="flex items-center gap-3">
-                <Medal
-                  size={34}
-                  weight="fill"
-                  style={{ color: unlocked ? "#D4AF37" : "#4d574d" }}
-                />
+              <div className="relative z-[1] flex items-center gap-3">
+                <div
+                  className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2"
+                  style={{
+                    borderColor: unlocked ? "#D4AF37" : "#3a423a",
+                    background: unlocked
+                      ? "radial-gradient(circle at 35% 30%, rgba(212,175,55,0.28), rgba(10,13,10,0.9))"
+                      : "rgba(10,13,10,0.9)",
+                  }}
+                >
+                  <RankIcon
+                    size={28}
+                    weight="fill"
+                    style={{ color: unlocked ? "#D4AF37" : "#4d574d" }}
+                  />
+                </div>
                 <div>
                   <h3 className="font-display text-3xl tracking-wide text-foreground leading-none">
                     {t.name}
@@ -74,7 +107,7 @@ export default function Vip() {
                   </p>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3 mt-5">
+              <div className="relative z-[1] grid grid-cols-2 gap-3 mt-5">
                 <div className="flex items-center gap-2 font-mono text-sm">
                   <Gift size={16} className="text-nvg" />{" "}
                   <span className="text-foreground">{fmt(t.bonus)}</span>{" "}
@@ -89,7 +122,7 @@ export default function Vip() {
                 </div>
               </div>
               {unlocked && (
-                <div className="flex items-center gap-1 mt-4 font-mono text-[11px] text-nvg">
+                <div className="relative z-[1] flex items-center gap-1 mt-4 font-mono text-[11px] text-nvg">
                   <CheckCircle size={14} weight="fill" /> ACHIEVED
                 </div>
               )}

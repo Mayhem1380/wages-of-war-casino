@@ -1,0 +1,2 @@
+/app/wagesofwar_build_20260903200407.tar.gz
+deploy@example.com:/tmp/site/

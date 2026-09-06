@@ -40,6 +40,18 @@ exit 0
     )
     fake_scp.chmod(0o755)
 
+    fake_ssh = fake_bin / "ssh"
+    fake_ssh.write_text(
+        textwrap.dedent(
+            """#!/usr/bin/env bash
+set -e
+printf '%s\n' "$@" > "$PWD/ssh-args.txt"
+exit 0
+"""
+        )
+    )
+    fake_ssh.chmod(0o755)
+
     env = os.environ.copy()
     env["PATH"] = f"{fake_bin}:{env['PATH']}"
     env["DEPLOY_HOST"] = "example.com"
@@ -58,6 +70,10 @@ exit 0
 
     assert result.returncode == 0, result.stdout + result.stderr
     tarballs = list(repo_root.glob("wagesofwar_build_*.tar.gz"))
-    assert len(tarballs) == 1, "tarball was not created"
+    assert not tarballs, "temporary tarball was not cleaned up"
     assert (repo_root / "frontend" / "build" / "index.html").exists()
     assert (repo_root / "scp-args.txt").exists()
+    assert (repo_root / "ssh-args.txt").exists()
+    ssh_command = (repo_root / "ssh-args.txt").read_text()
+    assert "sha256sum -c" in ssh_command
+    assert "ln -sfn" in ssh_command

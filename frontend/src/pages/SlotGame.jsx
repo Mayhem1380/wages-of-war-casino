@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { SymbolTile } from "@/components/SymbolTile";
+import { PixiReelFX } from "@/components/PixiReelFX";
 import { MACHINE_ART, resolveMachineArt, fmt } from "@/data/gameMeta";
 import { SLOT } from "@/constants/testIds";
 import { Button } from "@/components/ui/button";
@@ -270,7 +271,7 @@ export default function SlotGame() {
   return (
     <div
       data-testid={SLOT.root}
-      className="max-w-6xl mx-auto px-4 sm:px-8 pt-8 pb-28 lg:pb-8"
+      className="max-w-6xl mx-auto px-4 sm:px-8 pt-2 sm:pt-4 pb-28 lg:pb-8"
       style={{
         background: art.bg
           ? `linear-gradient(rgba(6, 10, 8, 0.78), rgba(6, 10, 8, 0.94)), url(${art.bg}) center/cover no-repeat fixed`
@@ -292,39 +293,63 @@ export default function SlotGame() {
       />
       <button
         onClick={() => navigate("/lobby")}
-        className="flex items-center gap-2 text-muted-foreground hover:text-nvg font-mono text-sm mb-6"
+        className="flex items-center gap-2 text-muted-foreground hover:text-nvg font-mono text-sm mb-2 sm:mb-6"
       >
         <ArrowLeft size={16} /> RETURN TO LOBBY
       </button>
+      {id === "golden_dragon" && (
+        <button
+          onClick={() => navigate(`/carnival-3d/${id}`)}
+          className="flex items-center gap-2 text-gold hover:text-gold/80 font-mono text-sm mb-2 sm:mb-6"
+        >
+          <Sparkle size={16} /> PLAY IN 3D
+        </button>
+      )}
 
-      <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
-        <div>
-          <p
-            className="font-mono text-xs tracking-[0.4em]"
-            style={{ color: art.accent }}
-          >
-            // {machine.volatility.toUpperCase()} VOLATILITY •{" "}
-            {machine.paylines} LINES
-          </p>
-          <h1 className="font-display text-5xl tracking-wide gold-gradient">
-            {machine.name}
-          </h1>
-          <p className="text-muted-foreground">{machine.tagline}</p>
-        </div>
-        <div className="flex items-center gap-2 px-4 py-2 hud hud-gold">
-          <Coins size={18} weight="fill" className="text-gold" />
-          <span
-            data-testid={SLOT.balance}
-            className="font-mono text-lg text-gold"
-          >
-            {fmt(user?.balance || 0)}
-          </span>
+      <div className="slot-elite-panel mb-5 sm:mb-6">
+        <div className="slot-elite-grid">
+          <div>
+            <div className="slot-elite-tag">// DIRECT FIRE SESSION</div>
+            <h1 className="font-display text-3xl sm:text-5xl tracking-wide gold-gradient mt-3">
+              {machine.name}
+            </h1>
+            <p className="text-muted-foreground text-sm sm:text-base mt-2 max-w-xl">
+              {machine.tagline}
+            </p>
+          </div>
+
+          <div className="slot-metric-strip">
+            <div className="slot-metric-item">
+              <span className="slot-metric-label">VOL</span>
+              <span className="slot-metric-value">{machine.volatility}</span>
+            </div>
+            <div className="slot-metric-item">
+              <span className="slot-metric-label">LINES</span>
+              <span className="slot-metric-value">{machine.paylines}</span>
+            </div>
+            <div className="slot-metric-item">
+              <span className="slot-metric-label">BAL</span>
+              <span className="slot-metric-value" data-testid={SLOT.balance}>
+                {fmt(user?.balance || 0)}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
-      <LiveWinnersTicker game={machine.name} />
+      <div className="flex flex-wrap items-center justify-end gap-2 px-4 py-2 hud hud-gold mb-4 sm:mb-6">
+        <Coins size={18} weight="fill" className="text-gold" />
+        <span className="font-mono text-[10px] tracking-[0.3em] text-gold/80 uppercase">
+          Casino wallet
+        </span>
+        <span className="font-mono text-base text-gold">{fmt(user?.balance || 0)}</span>
+      </div>
 
-      <div className="grid lg:grid-cols-[1fr_280px] gap-6">
+      <div className="hidden sm:block">
+        <LiveWinnersTicker game={machine.name} />
+      </div>
+
+      <div className="grid lg:grid-cols-[1fr_280px] gap-3 sm:gap-6">
         {/* REELS */}
         <div
           className={`hud p-4 sm:p-6 relative overflow-hidden reel-scan ${shake ? "animate-shake" : ""}`}
@@ -395,9 +420,14 @@ export default function SlotGame() {
 
           <div
             data-testid={SLOT.grid}
-            className={`grid grid-cols-5 gap-2 sm:gap-3 ${free ? "mt-16" : ""}`}
+            className={`relative grid grid-cols-5 gap-2 sm:gap-3 ${free ? "mt-16" : ""}`}
             style={{ background: "linear-gradient(180deg, #0a120a, #060906)" }}
           >
+            <PixiReelFX
+              accent={art.panel || "#F6C64A"}
+              spinning={spinning || inFree}
+              winCount={winCells.size}
+            />
             {grid.map((col, reel) => (
               <div key={reel} className="flex flex-col gap-2 sm:gap-3">
                 {col.map((sym, row) => {

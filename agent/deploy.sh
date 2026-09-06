@@ -24,40 +24,49 @@ KEY=${DEPLOY_KEY:-}
 [ -n "$USER" ] || usage
 [ -n "$DEST" ] || usage
 
-if [ ! -d "$BUILD_DIR" ]; then
-  echo "Missing frontend build; generating production bundle..."
-  if [ ! -f "$FRONTEND_DIR/package.json" ]; then
-    echo "frontend/package.json not found in $FRONTEND_DIR" >&2
-    exit 2
-  fi
-  if ! command -v npm >/dev/null 2>&1; then
-    echo "npm is required to build the frontend bundle." >&2
-    exit 2
-  fi
-  (
-    cd "$FRONTEND_DIR"
-    npm ci --legacy-peer-deps
-    npm run build
-  )
+echo "Generating fresh frontend production bundle..."
+if [ ! -f "$FRONTEND_DIR/package.json" ]; then
+  echo "frontend/package.json not found in $FRONTEND_DIR" >&2
+  exit 2
 fi
+if ! command -v npm >/dev/null 2>&1; then
+  echo "npm is required to build the frontend bundle." >&2
+  exit 2
+fi
+(
+  cd "$FRONTEND_DIR"
+  if [ -f package-lock.json ]; then
+    npm ci --legacy-peer-deps
+  else
+    npm install --legacy-peer-deps
+  fi
+  npm run build -- --no-sourcemap
+)
 
-if [ ! -d "$BUILD_DIR" ]; then
-  echo "frontend/build still not found after npm build" >&2
+if [ ! -d "$BUILD_DIR" ] || [ ! -f "$BUILD_DIR/index.html" ]; then
+  echo "frontend/build/index.html still not found after npm build" >&2
   exit 2
 fi
 
 echo "Packaging frontend build..."
 TARFILE="$REPO_ROOT/wagesofwar_build_$(date +%Y%m%d%H%M%S).tar.gz"
+cleanup() {
+  rm -f "$TARFILE"
+}
+trap cleanup EXIT
 tar -czf "$TARFILE" -C "$FRONTEND_DIR" build
+CHECKSUM="$(sha256sum "$TARFILE" | awk '{print $1}')"
+RELEASE_NAME="$(basename "$TARFILE" .tar.gz)"
+REMOTE_TAR="$DEST/$(basename "$TARFILE")"
+REMOTE_RELEASE="$DEST/.releases/$RELEASE_NAME"
 
 echo "Uploading $TARFILE to $USER@$HOST:$DEST"
 if [ -n "$KEY" ]; then
   scp -i "$KEY" "$TARFILE" "$USER@$HOST:$DEST/"
+  ssh -i "$KEY" "$USER@$HOST" "set -eu; mkdir -p '$REMOTE_RELEASE'; printf '%s  %s\\n' '$CHECKSUM' '$REMOTE_TAR' | sha256sum -c -; tar -xzf '$REMOTE_TAR' -C '$REMOTE_RELEASE'; ln -sfn '$REMOTE_RELEASE/build' '$DEST/current'; rm -f '$REMOTE_TAR'"
 else
   scp "$TARFILE" "$USER@$HOST:$DEST/"
+  ssh "$USER@$HOST" "set -eu; mkdir -p '$REMOTE_RELEASE'; printf '%s  %s\\n' '$CHECKSUM' '$REMOTE_TAR' | sha256sum -c -; tar -xzf '$REMOTE_TAR' -C '$REMOTE_RELEASE'; ln -sfn '$REMOTE_RELEASE/build' '$DEST/current'; rm -f '$REMOTE_TAR'"
 fi
 
-echo "Upload complete. Connect to host and extract:"
-echo "ssh $USER@$HOST 'cd $DEST && tar -xzf $TARFILE && rm $TARFILE'"
-
-echo "Done."
+echo "Deployment verified and activated at $DEST/current"

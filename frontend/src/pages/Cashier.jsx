@@ -285,6 +285,31 @@ export default function Cashier() {
         </div>
       </div>
 
+      <div className="cashier-elite-panel mb-8">
+        <div className="cashier-elite-grid">
+          <div>
+            <div className="cashier-elite-tag">// SECURE OPERATIONS</div>
+            <h2 className="font-display text-3xl sm:text-4xl tracking-wide text-foreground mt-3">
+              ROYAL VAULT ACCESS, CONTROLLED AND VERIFIED
+            </h2>
+          </div>
+          <div className="cashier-metric-strip">
+            <div className="cashier-metric-item">
+              <span className="cashier-metric-label">Live</span>
+              <span className="cashier-metric-value">{summary?.crypto_live || summary?.vault_live ? "YES" : "TEST"}</span>
+            </div>
+            <div className="cashier-metric-item">
+              <span className="cashier-metric-label">Min</span>
+              <span className="cashier-metric-value">${meta?.min_deposit_usd ?? 5}</span>
+            </div>
+            <div className="cashier-metric-item">
+              <span className="cashier-metric-label">Withdraw</span>
+              <span className="cashier-metric-value">${meta?.min_withdraw_usd ?? 50}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {summary && (summary.crypto_live || summary.vault_live) && (
         <div className="hud border-nvg/50 bg-nvg/5 p-4 mb-6 flex items-start gap-3">
           <ShieldCheck
@@ -316,7 +341,7 @@ export default function Cashier() {
       )}
 
       {/* Balance */}
-      <div className="hud hud-gold p-6 flex flex-wrap items-center justify-between gap-4 mb-8">
+      <div className="hud hud-gold p-6 flex flex-wrap items-center justify-between gap-4 mb-8 cashier-balance-shell">
         <div>
           <p className="font-mono text-xs tracking-widest text-nvg/70">
             CASH BALANCE (withdrawable)

@@ -47,12 +47,12 @@ class TestCatalogue:
         assert r.status_code == 200
         assert r.json()["status"] == "operational"
 
-    def test_slots_count_145(self):
+    def test_slots_count_146(self):
         r = requests.get(f"{API}/games/slots", timeout=30)
         assert r.status_code == 200
         data = r.json()
         machines = data["machines"] if isinstance(data, dict) else data
-        assert len(machines) == 145, f"expected 145 slots, got {len(machines)}"
+        assert len(machines) == 146, f"expected 146 slots, got {len(machines)}"
 
     @pytest.mark.parametrize("mid", ["jungle_guerrilla", "gold_convoy", "iron_infantry", "crimson_circuit"])
     def test_new_slot_present(self, mid):
