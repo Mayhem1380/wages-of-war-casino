@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { sfx } from "@/lib/sounds";
 import { BigWinOverlay } from "@/components/BigWinOverlay";
 import { GamblePanel } from "@/components/GamblePanel";
+import { IntermissionShowcase } from "@/components/IntermissionShowcase";
 import {
   Lightning,
   Minus,
@@ -424,6 +425,7 @@ export default function SlotGame() {
 
         {/* CONTROLS */}
         <div className="space-y-4">
+          <IntermissionShowcase />
           <div className="hud p-5">
             <p className="font-mono text-[10px] tracking-widest text-nvg/70 mb-2">
               STAKE / SPIN
