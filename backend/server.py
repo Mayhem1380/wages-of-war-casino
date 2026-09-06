@@ -1006,7 +1006,7 @@ async def _process_withdrawals_loop():
     while True:
         try:
             pending = await db.cashier_transactions.find(
-                {"direction": "withdrawal", "status": "pending"}
+                {"direction": "withdrawal", "status": "approved"}
             ).to_list(50)
 
             # SOLVENCY GUARD: never release more than the vault can cover.
@@ -1018,7 +1018,7 @@ async def _process_withdrawals_loop():
 
             for t in pending:
                 claimed = await db.cashier_transactions.find_one_and_update(
-                    {"id": t["id"], "direction": "withdrawal", "status": "pending"},
+                    {"id": t["id"], "direction": "withdrawal", "status": "approved"},
                     {"$set": {"status": "processing", "updated_at": datetime.now(timezone.utc).isoformat()}},
                     projection={"_id": 0},
                 )
@@ -1026,14 +1026,14 @@ async def _process_withdrawals_loop():
                     continue
                 t = claimed
                 now_iso = datetime.now(timezone.utc).isoformat()
-                amt_cents = int(round(float(t.get("amount_usd", 0) or 0) * 100))
+                amt_cents = int(t.get("amount_usd_cents", 0) or 0)
 
                 # Hold the payout if the vault lacks the funds to cover it.
                 if available_cents - amt_cents < reserve_cents:
                     await db.cashier_transactions.update_one(
                         {"id": t["id"], "status": "processing"},
                         {"$set": {
-                            "status": "pending",
+                            "status": "approved",
                             "vault_hold": True,
                             "hold_reason": "insufficient_vault_balance",
                             "updated_at": now_iso,
@@ -1073,17 +1073,20 @@ async def _process_withdrawals_loop():
                         # keep pending; vault may be temporarily unavailable
                         await db.cashier_transactions.update_one(
                             {"id": t["id"], "status": "processing"},
-                            {"$set": {"status": "pending", "updated_at": now_iso}},
+                            {"$set": {"status": "approved", "updated_at": now_iso}},
                         )
                 except Exception:
-                    await db.cashier_transactions.update_one(
-                        {"id": t["id"], "status": "processing"},
-                        {"$set": {
-                            "status": "pending",
-                            "vault_detail": "Withdrawal worker retry scheduled",
-                            "updated_at": now_iso,
-                        }},
-                    )
+                    try:
+                        await db.cashier_transactions.update_one(
+                            {"id": t["id"], "status": "processing"},
+                            {"$set": {
+                                "status": "approved",
+                                "vault_detail": "Withdrawal worker retry scheduled",
+                                "updated_at": now_iso,
+                            }},
+                        )
+                    except Exception:
+                        logger.exception("Unable to release withdrawal worker claim id=%s", t["id"])
         except Exception:
             pass
         await asyncio.sleep(30)
@@ -3364,28 +3367,35 @@ async def cashier_withdraw(payload: WithdrawInput, user: dict = Depends(require_
         raise HTTPException(status_code=400, detail="Insufficient cash balance")
     ref = str(uuid.uuid4())
     now_iso = datetime.now(timezone.utc).isoformat()
-    await db.cashier_transactions.insert_one(
-        {
-            "id": ref,
-            "user_id": user["user_id"],
-            "user_email": user.get("email"),
-            "user_name": user.get("name"),
-            "direction": "withdrawal",
-            "method": "crypto" if code in cashier.CRYPTO_CODES else "card",
-            "currency": code,
-            "amount": payload.amount,
-            "amount_usd_cents": usd_cents,
-            "status": "pending",
-            "provider": "vault",
-            "provider_ref": ref,
-            "destination": payload.destination,
-            "vault_ok": False,
-            "vault_detail": "Queued for the withdrawal worker",
-            "sandbox": cashier.is_placeholder_vault(),
-            "created_at": now_iso,
-            "updated_at": now_iso,
-        }
-    )
+    try:
+        await db.cashier_transactions.insert_one(
+            {
+                "id": ref,
+                "user_id": user["user_id"],
+                "user_email": user.get("email"),
+                "user_name": user.get("name"),
+                "direction": "withdrawal",
+                "method": "crypto" if code in cashier.CRYPTO_CODES else "card",
+                "currency": code,
+                "amount": payload.amount,
+                "amount_usd_cents": usd_cents,
+                "status": "pending",
+                "provider": "vault",
+                "provider_ref": ref,
+                "destination": payload.destination,
+                "vault_ok": False,
+                "vault_detail": "Queued for the withdrawal worker",
+                "sandbox": cashier.is_placeholder_vault(),
+                "created_at": now_iso,
+                "updated_at": now_iso,
+            }
+        )
+    except Exception:
+        await db.users.update_one(
+            {"user_id": user["user_id"]},
+            {"$inc": {"real_balance_cents": usd_cents}},
+        )
+        raise
     await db.house_bankroll.update_one(
         {"_id": "house"},
         {
@@ -3400,12 +3410,15 @@ async def cashier_withdraw(payload: WithdrawInput, user: dict = Depends(require_
         -usd_cents / 100.0,
         {"currency": code, "destination": payload.destination, "status": "pending"},
     )
+    balance_after = await db.users.find_one(
+        {"user_id": user["user_id"]}, {"_id": 0, "real_balance_cents": 1}
+    )
     return {
         "id": ref,
         "status": "pending",
         "vault_connected": False,
         "balance_usd": round(
-            (int(fresh.get("real_balance_cents", 0)) - usd_cents) / 100.0, 2
+            int((balance_after or {}).get("real_balance_cents", 0)) / 100.0, 2
         ),
     }
 
@@ -3527,6 +3540,11 @@ async def admin_cashier_withdrawal_action(
         raise HTTPException(
             status_code=400, detail="No actionable withdrawal with that id"
         )
+    if action == "approve" and t["status"] != "pending":
+        raise HTTPException(
+            status_code=409,
+            detail="Withdrawal is already being processed and cannot be approved twice",
+        )
     if action == "reject" and t["status"] == "processing":
         raise HTTPException(
             status_code=409,
@@ -3535,27 +3553,10 @@ async def admin_cashier_withdrawal_action(
     now_iso = datetime.now(timezone.utc).isoformat()
     if action == "approve":
         await db.cashier_transactions.update_one(
-            {"id": txn_id, "status": {"$in": ["pending", "processing"]}},
-            {"$set": {"status": "completed", "updated_at": now_iso}},
+            {"id": txn_id, "status": "pending"},
+            {"$set": {"status": "approved", "updated_at": now_iso}},
         )
-        await db.house_bankroll.update_one(
-            {"_id": "house"},
-            {"$inc": {"pending_payout_cents": -int(t["amount_usd_cents"])}, "$set": {"updated_at": now_iso}},
-            upsert=True,
-        )
-        await record_house_cashflow(
-            t["amount_usd_cents"] / 100.0,
-            "player_payout",
-            "cashier_withdrawal_approved",
-            {"user_id": t["user_id"], "txn_id": txn_id, "by": admin["email"]},
-        )
-        await record_transaction(
-            t["user_id"],
-            "withdrawal_approved",
-            -t["amount_usd_cents"] / 100.0,
-            {"currency": t["currency"], "by": admin["email"]},
-        )
-        return {"id": txn_id, "status": "completed"}
+        return {"id": txn_id, "status": "approved"}
     # reject -> refund held funds
     await db.users.update_one(
         {"user_id": t["user_id"]},
