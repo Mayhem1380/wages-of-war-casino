@@ -436,6 +436,7 @@ export default function Lobby() {
           />
           <input
             data-testid={LOBBY.search}
+            aria-label="Search games by name or theme"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search missions by name or theme…"
@@ -472,6 +473,24 @@ export default function Lobby() {
         <div className="flex-1 h-px bg-gold/20" />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 auto-rows-fr">
+        {filtered.length === 0 && (
+          <div className="col-span-full hud p-10 text-center">
+            <p className="font-display text-2xl text-gold">NO MISSIONS FOUND</p>
+            <p className="text-sm text-muted-foreground mt-2">
+              Try a different search term or reset the category filter.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setQuery("");
+                setCat("All");
+              }}
+              className="mt-5 border border-nvg/50 px-4 py-2 font-stencil uppercase tracking-widest text-sm text-nvg hover:bg-nvg/10"
+            >
+              Reset filters
+            </button>
+          </div>
+        )}
         {filtered.map((s, i) => {
           const art = MACHINE_ART[s.id] || {
             accent: "#4EE44E",
