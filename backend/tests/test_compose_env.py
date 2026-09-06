@@ -6,7 +6,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from games import PUBLIC_SLOT_IDS
+from games import PUBLIC_SLOT_IDS, SLOT_MACHINES
 
 
 def test_backend_service_loads_runtime_env_file():
@@ -58,7 +58,7 @@ def test_backend_uses_safe_default_mongo_settings_when_env_is_missing(monkeypatc
     server.mongo_url = os.environ.get("MONGO_URL", "mongodb://localhost:27017")
     server.db_name = os.environ.get("DB_NAME", "test_database")
 
-    assert server.mongo_url == "mongodb://localhost:27017"
+    assert server.mongo_url == "mongodb://mongo:27017"
     assert server.db_name == "test_database"
     assert server._ensure_db() is not None
 
@@ -79,6 +79,32 @@ def test_public_slot_catalog_has_aaa_grade_roster():
     }
     missing = required - set(PUBLIC_SLOT_IDS)
     assert not missing, f"missing popular slots: {sorted(missing)}"
+
+
+def test_every_public_slot_has_complete_playable_definition():
+    public_ids = set(PUBLIC_SLOT_IDS)
+    assert public_ids
+    assert public_ids <= set(SLOT_MACHINES)
+
+    required = {
+        "id",
+        "name",
+        "symbols",
+        "wild",
+        "scatter",
+        "paytable",
+        "scatter_pay",
+        "free_spins",
+        "paylines",
+        "rows",
+        "reels",
+    }
+    incomplete = {
+        machine_id: sorted(required - set(SLOT_MACHINES[machine_id]))
+        for machine_id in public_ids
+        if required - set(SLOT_MACHINES[machine_id])
+    }
+    assert not incomplete, f"incomplete public slot definitions: {incomplete}"
 
 
 def test_public_slot_catalog_has_recent_art_family_and_assets():
