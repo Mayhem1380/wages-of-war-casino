@@ -39,6 +39,7 @@ export default function SlotGame() {
   const [lastWin, setLastWin] = useState(0);
   const [free, setFree] = useState(null); // {active, spinsLeft, multiplier, total, done, sessionId}
   const [bigWin, setBigWin] = useState(null); // {win, multiplier}
+  const [briefing, setBriefing] = useState(true);
   const spinRef = useRef();
   const machineRef = useRef(null);
 
@@ -50,12 +51,14 @@ export default function SlotGame() {
 
   useEffect(() => {
     let alive = true;
+    setBriefing(true);
     api
       .get(`/games/slots/${id}`)
       .then(({ data }) => {
         if (!alive) return;
         setMachine(data);
         machineRef.current = data;
+        window.setTimeout(() => alive && setBriefing(false), 1100);
         setGrid(
           Array.from({ length: 5 }, () =>
             Array.from(
@@ -245,8 +248,21 @@ export default function SlotGame() {
 
   if (!machine)
     return (
-      <div className="max-w-6xl mx-auto p-16 font-mono text-nvg/70">
-        // loading machine...
+      <div className="relative flex min-h-[70vh] items-center justify-center overflow-hidden bg-black">
+        <img
+          src="/brand/coin-nightops.png"
+          alt="Night Ops Edition"
+          className="absolute inset-0 h-full w-full object-cover opacity-45"
+        />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,0,0,0.15),rgba(0,0,0,0.92))]" />
+        <div className="relative text-center">
+          <p className="font-mono text-xs tracking-[0.4em] text-nvg animate-flicker">
+            // NIGHT OPS BRIEFING
+          </p>
+          <p className="mt-3 font-display text-4xl tracking-widest text-gold">
+            LOADING MACHINE
+          </p>
+        </div>
       </div>
     );
 
@@ -268,6 +284,49 @@ export default function SlotGame() {
           multiplier={bigWin.multiplier}
           onDone={() => setBigWin(null)}
         />
+      )}
+      {briefing && (
+        <div
+          className="fixed inset-0 z-[80] flex items-center justify-center bg-black/85 p-4 backdrop-blur-sm"
+          role="status"
+          aria-live="polite"
+        >
+          <div className="relative w-full max-w-2xl overflow-hidden border border-gold/50 bg-[#050805] shadow-2xl shadow-gold/20">
+            <img
+              src="/brand/coin-nightops.png"
+              alt="Wages of War Casino Night Ops Edition"
+              className="h-56 w-full object-cover object-center sm:h-72"
+            />
+            <div className="absolute inset-x-0 top-0 h-56 bg-gradient-to-b from-black/20 to-[#050805] sm:h-72" />
+            <div className="relative -mt-10 px-5 pb-5 sm:px-8">
+              <p className="font-mono text-[10px] tracking-[0.35em] text-nvg">
+                // MACHINE DEPLOYMENT READY
+              </p>
+              <h2 className="mt-2 font-display text-3xl tracking-widest gold-gradient sm:text-5xl">
+                {machine.name}
+              </h2>
+              <p className="mt-2 text-sm text-foreground/70">{machine.tagline}</p>
+              <div className="mt-4 flex flex-wrap gap-2 font-mono text-[10px] tracking-widest text-muted-foreground">
+                <span className="border border-gold/30 px-2 py-1 text-gold">
+                  {machine.volatility.toUpperCase()} VOLATILITY
+                </span>
+                <span className="border border-nvg/30 px-2 py-1 text-nvg">
+                  {machine.free_spins} FREE SPINS
+                </span>
+                <span className="border border-border px-2 py-1">
+                  BUY FEATURE ENABLED
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setBriefing(false)}
+                className="mt-5 w-full border border-gold bg-gold/10 py-3 font-display tracking-[0.2em] text-gold hover:bg-gold hover:text-black"
+              >
+                ENTER MACHINE
+              </button>
+            </div>
+          </div>
+        </div>
       )}
       <button
         onClick={() => navigate("/lobby")}
