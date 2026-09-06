@@ -13,7 +13,6 @@ from pymongo import ReturnDocument
 from pymongo.errors import DuplicateKeyError
 
 
-JOB_TYPES = {"support_review", "kyc_review", "cashier_review", "system_task"}
 _JOB_TYPE_RE = re.compile(r"^[a-z][a-z0-9_.-]{1,63}$")
 
 
