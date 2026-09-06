@@ -8,7 +8,7 @@ services:
       - ./backend/.env
     environment:
       PORT: 8000
-      MONGO_URL: ${MONGO_URL:-mongodb://localhost:27017}
+      MONGO_URL: ${MONGO_URL:-mongodb://mongo:27017}
       DB_NAME: ${DB_NAME:-test_database}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000,http://localhost:8000,http://127.0.0.1:8000}
       FRONTEND_URL: ${FRONTEND_URL:-}
@@ -28,6 +28,19 @@ services:
       VAULT_PLATFORM: ${VAULT_PLATFORM:-}
     ports:
       - "8000:8000"
+    depends_on:
+      mongo:
+        condition: service_healthy
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --quiet --eval 'db.adminCommand({ ping: 1 }).ok' localhost:27017/test_database"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
   frontend:
     build:
       context: ./frontend
@@ -36,3 +49,6 @@ services:
       - "80:80"
     depends_on:
       - backend
+
+volumes:
+  mongo_data:

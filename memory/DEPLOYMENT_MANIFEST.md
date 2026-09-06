@@ -1,6 +1,6 @@
 # Wages of War Casino — Deployment Manifest
-Source build: `night-vision-gold` (preview). Verified complete, health-check PASS, 91/91 tests.
-This is everything that MUST appear on production (https://wagesofwarcasin0.online) after deploy.
+Source build: `night-vision-gold` (preview). Catalog counts are sourced from the current backend; production health, tests, payments, and deployment remain environment-dependent.
+This is the release inventory for production (https://wagesofwarcasin0.online) after deploy.
 
 ## Pages / Routes (should all load)
 - / (Landing)            - /lobby (search + category tabs + Live Ops cards)
@@ -14,7 +14,7 @@ This is everything that MUST appear on production (https://wagesofwarcasin0.onli
   /cookie-policy, /aml-policy, /bonus-terms, /responsible-gaming
 
 ## Games / Content
-- 82 slot machines (44 AAA flagships) with Hold & Win, jackpots, free spins
+- 145 public slot machines (87 AAA flagships) with Hold & Win, jackpots, and free spins
 - Keno — war-room background + warhead/blast number graphics
 - Coin Flip — grenade (heads) / knife (tails) coins over armory-vault background
 
@@ -37,7 +37,7 @@ This is everything that MUST appear on production (https://wagesofwarcasin0.onli
 - Win celebrations (coin rain + confetti + screen shake)
 - Lobby search bar + category tabs (All/Dragons/Fortune/Military/Egyptian/Ocean)
 - Daily Supply Drop bonus, VIP tiers, leaderboards
-- Giveaway countdown timer (15 Sept 2027)
+- Giveaway countdown timer (configured in the current release)
 - Admin dashboard (users, transactions, withdrawal approval vault)
 
 ## Backend API (all under /api)
@@ -52,7 +52,7 @@ This is everything that MUST appear on production (https://wagesofwarcasin0.onli
 - /health (K8s probe)
 
 ## Integrations
-- Stripe (card) — TEST mode (sk_test/pk_test) until live keys added
+- Stripe (card) — test mode until live keys are explicitly configured
 - NOWPayments (crypto)
 - Stripe Identity (KYC)
 - Emergent-managed Google Auth
