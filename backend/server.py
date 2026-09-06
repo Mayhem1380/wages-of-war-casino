@@ -3842,12 +3842,20 @@ async def admin_cashier_withdrawal_action(
         )
     now_iso = datetime.now(timezone.utc).isoformat()
     if action == "approve":
-        await db.cashier_transactions.update_one(
+        result = await db.cashier_transactions.update_one(
             {"id": txn_id, "status": "pending"},
             {"$set": {"status": "approved", "updated_at": now_iso}},
         )
+        if result.modified_count != 1:
+            raise HTTPException(status_code=409, detail="Withdrawal was changed by another operator")
         return {"id": txn_id, "status": "approved"}
     # reject -> refund held funds
+    result = await db.cashier_transactions.update_one(
+        {"id": txn_id, "status": "pending"},
+        {"$set": {"status": "rejected", "updated_at": now_iso}},
+    )
+    if result.modified_count != 1:
+        raise HTTPException(status_code=409, detail="Withdrawal was changed by another operator")
     await db.users.update_one(
         {"user_id": t["user_id"]},
         {"$inc": {"real_balance_cents": int(t["amount_usd_cents"])}},
@@ -3859,9 +3867,6 @@ async def admin_cashier_withdrawal_action(
             "$set": {"updated_at": now_iso},
         },
         upsert=True,
-    )
-    await db.cashier_transactions.update_one(
-        {"id": txn_id}, {"$set": {"status": "rejected", "updated_at": now_iso}}
     )
     await record_transaction(
         t["user_id"],
