@@ -918,6 +918,28 @@ const BASE_MACHINE_ART = {
   panzer_plunder: { bg: "/slots/tile_panzer_plunder.jpg", thumb: "/slots/tile_panzer_plunder.jpg", panel: "#F6E27A" },
   black_hawk_bounty: { bg: "/slots/tile_black_hawk_bounty.jpg", thumb: "/slots/tile_black_hawk_bounty.jpg", panel: "#FFCD4A" },
   iron_infantry: { bg: "/slots/tile_iron_infantry.jpg", thumb: "/slots/tile_iron_infantry.jpg", panel: "#FF7A3A" },
+  // Expansion roster: reuse existing painted tiles; no new external asset
+  // contract is required for these catalog cards.
+  auric_bastion: { bg: "/slots/bg_gold.jpg", thumb: "/slots/thumb_gold.jpg", panel: "#FFD84E" },
+  blacksite_bounty: { bg: "/slots/tile_night_raid.jpg", thumb: "/slots/tile_night_raid.jpg", panel: "#57E6C6" },
+  cinder_convoy: { bg: "/slots/tile_inferno_warlord.jpg", thumb: "/slots/tile_inferno_warlord.jpg", panel: "#FF7A2E" },
+  crystal_sentinel: { bg: "/slots/tile_sapphire_command.jpg", thumb: "/slots/tile_sapphire_command.jpg", panel: "#7FE3FF" },
+  dreadnought_gold: { bg: "/slots/tile_steel_leviathan.jpg", thumb: "/slots/tile_steel_leviathan.jpg", panel: "#C0D0E0" },
+  ember_outpost: { bg: "/slots/tile_ember_legion.jpg", thumb: "/slots/tile_ember_legion.jpg", panel: "#FF7A2E" },
+  frostline_fortune: { bg: "/slots/bg_frozen.jpg", thumb: "/slots/thumb_frozen.jpg", panel: "#9FD0FF" },
+  ghost_protocol: { bg: "/slots/tile_phantom_strike.jpg", thumb: "/slots/tile_phantom_strike.jpg", panel: "#B07AFF" },
+  golden_watch: { bg: "/slots/tile_midas_command.jpg", thumb: "/slots/tile_midas_command.jpg", panel: "#F6C64A" },
+  ironclad_raiders: { bg: "/slots/tile_ironclad_jackpots.jpg", thumb: "/slots/tile_ironclad_jackpots.jpg", panel: "#C0D0E0" },
+  jade_fireteam: { bg: "/slots/tile_jade_dynasty.jpg", thumb: "/slots/tile_jade_dynasty.jpg", panel: "#2FE86A" },
+  lunar_lancers: { bg: "/slots/tile_solar_vanguard.jpg", thumb: "/slots/tile_solar_vanguard.jpg", panel: "#FFD84E" },
+  midnight_armory: { bg: "/slots/tile_midnight_vanguard.jpg", thumb: "/slots/tile_midnight_vanguard.jpg", panel: "#B07AFF" },
+  neon_brigade: { bg: "/slots/bg_neon.jpg", thumb: "/slots/thumb_neon.jpg", panel: "#FF5A5A" },
+  obsidian_raiders: { bg: "/slots/tile_obsidian_empire.jpg", thumb: "/slots/tile_obsidian_empire.jpg", panel: "#57E6C6" },
+  redline_recon: { bg: "/slots/tile_redline_reign.jpg", thumb: "/slots/tile_redline_reign.jpg", panel: "#FF5A4A" },
+  stormguard_elite: { bg: "/slots/bg_storm.jpg", thumb: "/slots/thumb_storm.jpg", panel: "#9FD0FF" },
+  tactical_titans: { bg: "/slots/tile_thunder_titans.jpg", thumb: "/slots/tile_thunder_titans.jpg", panel: "#F6E27A" },
+  vault_of_victory: { bg: "/slots/tile_money_train_convoy.png", thumb: "/slots/tile_money_train_convoy.png", panel: "#4EE44E" },
+  wildline_warriors: { bg: "/slots/tile_wild_west_recon.jpg", thumb: "/slots/tile_wild_west_recon.jpg", panel: "#C9A06A" },
 };
 
 // Slots upgraded to their own dedicated AAA banner tile (/slots/tile_<id>.jpg).
