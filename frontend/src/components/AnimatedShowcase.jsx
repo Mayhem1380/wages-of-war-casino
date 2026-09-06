@@ -219,11 +219,21 @@ function FloatingCoins() {
 export function AnimatedShowcase({ variant = "promo", testId }) {
   const slides = SLIDES[variant] || SLIDES.promo;
   const [i, setI] = useState(0);
+  const [reducedMotion, setReducedMotion] = useState(false);
 
   useEffect(() => {
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => setReducedMotion(media.matches);
+    update();
+    media.addEventListener?.("change", update);
+    return () => media.removeEventListener?.("change", update);
+  }, []);
+
+  useEffect(() => {
+    if (reducedMotion) return undefined;
     const t = setInterval(() => setI((p) => (p + 1) % slides.length), 5200);
     return () => clearInterval(t);
-  }, [slides.length]);
+  }, [reducedMotion, slides.length]);
 
   const s = slides[i];
 
@@ -238,12 +248,12 @@ export function AnimatedShowcase({ variant = "promo", testId }) {
         <motion.div
           key={i}
           className="absolute inset-0"
-          initial={{ opacity: 0, scale: 1.15 }}
+          initial={{ opacity: 0, scale: reducedMotion ? 1 : 1.15 }}
           animate={{ opacity: 1, scale: 1.0 }}
-          exit={{ opacity: 0, scale: 1.05 }}
+          exit={{ opacity: 0, scale: reducedMotion ? 1 : 1.05 }}
           transition={{
-            opacity: { duration: 0.9 },
-            scale: { duration: 4.6, ease: "linear" },
+            opacity: { duration: reducedMotion ? 0 : 0.9 },
+            scale: { duration: reducedMotion ? 0 : 4.6, ease: "linear" },
           }}
         >
           <img
@@ -262,7 +272,7 @@ export function AnimatedShowcase({ variant = "promo", testId }) {
         }}
       />
       <div className="absolute inset-0 reel-scan opacity-40 pointer-events-none" />
-      <FloatingCoins />
+      {!reducedMotion && <FloatingCoins />}
 
       {/* HUD tag */}
       <div className="absolute top-3 left-3 flex items-center gap-2 font-mono text-[10px] tracking-widest text-nvg/80 z-10">
