@@ -46,6 +46,7 @@ from games import (
 )
 import cashier
 import operations
+import media_release
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -2528,6 +2529,23 @@ class OperationsFinishInput(BaseModel):
     error: Optional[str] = Field(default=None, max_length=2000)
 
 
+class MediaReleaseInput(BaseModel):
+    filename: str = Field(min_length=1, max_length=200)
+    content_type: str
+    size_bytes: int
+    sha256: str = Field(min_length=64, max_length=64)
+    version: str = Field(min_length=1, max_length=32)
+
+
+class MediaPublishInput(BaseModel):
+    owner_confirmed: bool = False
+    checklist: Dict = Field(default_factory=dict)
+
+
+class MediaRollbackInput(BaseModel):
+    reason: str = Field(min_length=3, max_length=1000)
+
+
 DEFAULT_UPGRADES = [
     {
         "id": f"pkg-{i + 1}",
@@ -2779,6 +2797,156 @@ async def operations_audit(
         "created_at", -1
     ).to_list(limit)
     return [operations._public(row) for row in rows]
+
+
+# ---------------------------------------------------------------------------
+# Controlled George media release workflow.  This records metadata only; it
+# never accepts binary data or writes to the filesystem.
+# ---------------------------------------------------------------------------
+@api.get("/admin/media/george")
+async def george_media_status(admin: dict = Depends(require_admin)):
+    active = await db.media_active.find_one({"media_key": media_release.MEDIA_KEY}, {"_id": 0})
+    releases = await db.media_releases.find(
+        {"media_key": media_release.MEDIA_KEY}, {"_id": 0}
+    ).sort("created_at", -1).to_list(100)
+    return {
+        "media_key": media_release.MEDIA_KEY,
+        "active": media_release.public(active),
+        "releases": [media_release.public(row) for row in releases],
+    }
+
+
+@api.post("/admin/media/george/releases", status_code=201)
+async def george_register_release(
+    payload: MediaReleaseInput, admin: dict = Depends(require_admin)
+):
+    try:
+        metadata = media_release.validate_metadata(payload.model_dump())
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+    duplicate = await db.media_releases.find_one(
+        {"media_key": media_release.MEDIA_KEY, "version": metadata["version"]},
+        {"_id": 0},
+    )
+    if duplicate:
+        raise HTTPException(status_code=409, detail="That George version is already registered")
+    now = media_release.now_utc()
+    doc = {
+        **metadata,
+        "release_id": uuid.uuid4().hex,
+        "status": "registered",
+        "owner_confirmed": False,
+        "checklist": {key: False for key in media_release.CHECKLIST_KEYS},
+        "created_by": admin.get("user_id"),
+        "created_at": now,
+        "updated_at": now,
+    }
+    await db.media_releases.insert_one(doc)
+    await operations.audit(
+        db, action="george_media_registered", actor=admin,
+        details={"release_id": doc["release_id"], "version": doc["version"],
+                 "sha256": doc["sha256"]},
+    )
+    return media_release.public(doc)
+
+
+@api.post("/admin/media/george/releases/{release_id}/publish")
+async def george_publish_release(
+    release_id: str,
+    payload: MediaPublishInput,
+    admin: dict = Depends(require_admin),
+):
+    if payload.owner_confirmed is not True:
+        raise HTTPException(status_code=422, detail="Explicit owner confirmation is required")
+    try:
+        checklist = media_release.validate_checklist(payload.checklist)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+    release = await db.media_releases.find_one(
+        {"release_id": release_id, "media_key": media_release.MEDIA_KEY}, {"_id": 0}
+    )
+    if not release:
+        raise HTTPException(status_code=404, detail="George release not found")
+    if release.get("status") != "registered":
+        raise HTTPException(status_code=409, detail="Release is not publishable in its current state")
+    current = await db.media_active.find_one(
+        {"media_key": media_release.MEDIA_KEY}, {"_id": 0}
+    )
+    now = media_release.now_utc()
+    updated = await db.media_releases.find_one_and_update(
+        {"release_id": release_id, "status": "registered"},
+        {"$set": {
+            "status": "published",
+            "owner_confirmed": True,
+            "owner_confirmed_by": admin.get("user_id"),
+            "checklist": checklist,
+            "published_by": admin.get("user_id"),
+            "published_at": now,
+            "updated_at": now,
+            "previous_active": current,
+        }},
+        projection={"_id": 0},
+        return_document=True,
+    )
+    if not updated:
+        raise HTTPException(status_code=409, detail="Release was changed by another operator")
+    active = {key: updated[key] for key in (
+        "media_key", "release_id", "filename", "content_type", "size_bytes",
+        "sha256", "version"
+    )}
+    active["activated_at"] = now
+    await db.media_active.replace_one(
+        {"media_key": media_release.MEDIA_KEY}, active, upsert=True
+    )
+    await operations.audit(
+        db, action="george_media_published", actor=admin, details={
+            "release_id": release_id, "version": updated["version"],
+            "checklist": checklist,
+        },
+    )
+    return media_release.public(updated)
+
+
+@api.post("/admin/media/george/releases/{release_id}/rollback")
+async def george_rollback_release(
+    release_id: str,
+    payload: MediaRollbackInput,
+    admin: dict = Depends(require_admin),
+):
+    release = await db.media_releases.find_one(
+        {"release_id": release_id, "media_key": media_release.MEDIA_KEY}, {"_id": 0}
+    )
+    if not release:
+        raise HTTPException(status_code=404, detail="George release not found")
+    active = await db.media_active.find_one(
+        {"media_key": media_release.MEDIA_KEY}, {"_id": 0}
+    )
+    if not active or active.get("release_id") != release_id:
+        raise HTTPException(status_code=409, detail="That release is not currently active")
+    previous = release.get("previous_active")
+    if previous:
+        await db.media_active.replace_one(
+            {"media_key": media_release.MEDIA_KEY}, previous, upsert=True
+        )
+    else:
+        await db.media_active.delete_one({"media_key": media_release.MEDIA_KEY})
+    now = media_release.now_utc()
+    updated = await db.media_releases.find_one_and_update(
+        {"release_id": release_id, "status": "published"},
+        {"$set": {
+            "status": "rolled_back", "rollback_reason": payload.reason,
+            "rolled_back_by": admin.get("user_id"), "rolled_back_at": now,
+            "updated_at": now,
+        }},
+        projection={"_id": 0}, return_document=True,
+    )
+    await operations.audit(
+        db, action="george_media_rolled_back", actor=admin, details={
+            "release_id": release_id, "reason": payload.reason,
+            "restored_release_id": previous.get("release_id") if previous else None,
+        },
+    )
+    return media_release.public(updated)
 
 
 @api.post("/fleet/enquiry")
@@ -3774,6 +3942,16 @@ async def startup():
     if operations_audit is not None:
         await _safe_create_index(operations_audit, "created_at")
         await _safe_create_index(operations_audit, "job_id")
+    media_releases = getattr(db, "media_releases", None)
+    media_active = getattr(db, "media_active", None)
+    if media_releases is not None:
+        await _safe_create_index(media_releases, "release_id", unique=True)
+        await _safe_create_index(
+            media_releases, [("media_key", 1), ("version", 1)], unique=True
+        )
+        await _safe_create_index(media_releases, "created_at")
+    if media_active is not None:
+        await _safe_create_index(media_active, "media_key", unique=True)
     await db.house_bankroll.update_one(
         {"_id": "house"},
         {
