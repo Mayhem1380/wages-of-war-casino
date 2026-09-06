@@ -145,7 +145,9 @@ export default function Lobby() {
       return okCat && okQ;
     });
   }, [slots, query, cat]);
-  const featuredSlots = slots.slice(0, 6);
+  const featuredSlots = [...slots]
+    .sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
+    .slice(0, 6);
 
   const catCount = (c) =>
     c === "All" ? slots.length : slots.filter((s) => catOf(s) === c).length;
@@ -520,7 +522,7 @@ export default function Lobby() {
                   </div>
                   <div className="absolute top-3 right-3 flex flex-col items-end gap-1">
                     <span className="font-mono text-[9px] px-2 py-0.5 bg-black/70 border border-gold/50 text-gold tracking-widest">
-                      {s.volatility?.toUpperCase()} VOLATILITY
+                      {(s.volatility || "MEDIUM").toUpperCase()} VOLATILITY
                     </span>
                     <span className="font-mono text-[9px] px-2 py-0.5 bg-black/70 border border-alert/50 text-alert tracking-widest">
                       {s.paylines} PAYLINES
@@ -596,7 +598,7 @@ export default function Lobby() {
                 </div>
                 <div className="absolute top-3 right-3 flex flex-col items-end gap-1">
                   <span className="font-mono text-[9px] px-2 py-0.5 bg-black/70 border border-gold/40 text-gold tracking-widest">
-                    {s.volatility?.toUpperCase()} VOLATILITY
+                    {(s.volatility || "MEDIUM").toUpperCase()} VOLATILITY
                   </span>
                   <span className="font-mono text-[9px] px-2 py-0.5 bg-black/70 border border-alert/40 text-alert tracking-widest">
                     {s.paylines} PAYLINES

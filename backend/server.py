@@ -545,6 +545,15 @@ async def adjust_balance(
     return await db.users.find_one({"user_id": user_id}, {"_id": 0})
 
 
+def get_public_slot_machine(machine_id: str):
+    if machine_id not in PUBLIC_SLOT_IDS:
+        raise HTTPException(status_code=404, detail="Machine not found")
+    machine = SLOT_MACHINES.get(machine_id)
+    if not machine:
+        raise HTTPException(status_code=404, detail="Machine not found")
+    return machine
+
+
 async def record_transaction(
     user_id: str, ttype: str, amount: float, meta: dict = None
 ):
@@ -1382,11 +1391,7 @@ async def slot_detail(machine_id: str):
 
 @api.post("/games/slots/spin")
 async def slots_spin(payload: SpinInput, user: dict = Depends(require_user)):
-    if payload.machine_id not in PUBLIC_SLOT_IDS:
-        raise HTTPException(status_code=404, detail="Machine not found")
-    m = SLOT_MACHINES.get(payload.machine_id)
-    if not m:
-        raise HTTPException(status_code=404, detail="Machine not found")
+    m = get_public_slot_machine(payload.machine_id)
     if payload.bet < 20:
         raise HTTPException(status_code=400, detail="Minimum bet is 20 credits")
     if payload.bet > 100000:
@@ -1472,11 +1477,7 @@ BUY_FEATURE_COST_MULT = 100  # buy the free-spins bonus for 100x the total bet
 @api.post("/games/slots/buy-bonus")
 async def slots_buy_bonus(payload: SpinInput, user: dict = Depends(require_user)):
     """Buy Feature — pay 100x the bet to instantly trigger the free-spins bonus."""
-    if payload.machine_id not in PUBLIC_SLOT_IDS:
-        raise HTTPException(status_code=404, detail="Machine not found")
-    m = SLOT_MACHINES.get(payload.machine_id)
-    if not m:
-        raise HTTPException(status_code=404, detail="Machine not found")
+    m = get_public_slot_machine(payload.machine_id)
     if payload.bet < 20:
         raise HTTPException(status_code=400, detail="Minimum bet is 20 credits")
     spins = int(m.get("free_spins", 0) or 0)
