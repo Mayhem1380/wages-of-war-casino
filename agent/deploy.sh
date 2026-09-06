@@ -48,6 +48,8 @@ fi
 
 echo "Packaging frontend build..."
 TARFILE="$REPO_ROOT/wagesofwar_build_$(date +%Y%m%d%H%M%S).tar.gz"
+TARBASENAME="$(basename "$TARFILE")"
+trap 'rm -f "$TARFILE"' EXIT
 tar -czf "$TARFILE" -C "$FRONTEND_DIR" build
 
 echo "Uploading $TARFILE to $USER@$HOST:$DEST"
@@ -58,6 +60,6 @@ else
 fi
 
 echo "Upload complete. Connect to host and extract:"
-echo "ssh $USER@$HOST 'cd $DEST && tar -xzf $TARFILE && rm $TARFILE'"
+echo "ssh $USER@$HOST 'cd $DEST && tar -xzf $TARBASENAME && rm $TARBASENAME'"
 
 echo "Done."
