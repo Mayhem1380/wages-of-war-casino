@@ -3258,6 +3258,12 @@ async def _credit_crypto_deposit(payment_id: str):
             {"user_id": t["user_id"]},
             {"$inc": {"real_balance_cents": int(t["amount_usd_cents"])}},
         )
+        await record_house_cashflow(
+            t["amount_usd_cents"] / 100.0,
+            "deposit",
+            "crypto_deposit_completed",
+            {"user_id": t["user_id"], "payment_id": payment_id},
+        )
         await record_transaction(
             t["user_id"],
             "deposit_crypto",
@@ -3303,12 +3309,18 @@ async def cashier_withdraw(payload: WithdrawInput, user: dict = Depends(require_
             status_code=403,
             detail="Identity verification required before withdrawing. Please complete KYC in the Cashier.",
         )
-    if int(fresh.get("real_balance_cents", 0)) < usd_cents:
-        raise HTTPException(status_code=400, detail="Insufficient cash balance")
-    # hold funds immediately
-    await db.users.update_one(
-        {"user_id": user["user_id"]}, {"$inc": {"real_balance_cents": -usd_cents}}
+    if not fresh.get("kyc_banking_verified"):
+        raise HTTPException(
+            status_code=403,
+            detail="Verified payout banking details are required before withdrawing.",
+        )
+    # Reserve funds atomically so concurrent withdrawal requests cannot overdraw.
+    debit = await db.users.update_one(
+        {"user_id": user["user_id"], "real_balance_cents": {"$gte": usd_cents}},
+        {"$inc": {"real_balance_cents": -usd_cents}},
     )
+    if not debit.modified_count:
+        raise HTTPException(status_code=400, detail="Insufficient cash balance")
     ref = str(uuid.uuid4())
     vault = await cashier.vault_submit_withdrawal(
         code, payload.amount, payload.destination, ref
