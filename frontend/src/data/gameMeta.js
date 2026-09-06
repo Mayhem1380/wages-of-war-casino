@@ -1351,6 +1351,48 @@ export const MACHINE_ART = {
   },
 };
 
+// Give the 20 expansion slots real painted art by inheriting each one's
+// gameplay template's tile/background (pure re-use of existing assets).
+const NEW_SLOT_TEMPLATE_ART = {
+  auric_bastion: "gold_bonanza",
+  blacksite_bounty: "night_raid",
+  cinder_convoy: "inferno_airstrike",
+  crystal_sentinel: "sapphire_command",
+  dreadnought_gold: "steel_leviathan",
+  ember_outpost: "ember_legion",
+  frostline_fortune: "frozen_front",
+  ghost_protocol: "phantom_strike",
+  golden_watch: "midas_command",
+  ironclad_raiders: "ironclad_jackpots",
+  jade_fireteam: "jade_dynasty",
+  lunar_lancers: "solar_vanguard",
+  midnight_armory: "midnight_vanguard",
+  neon_brigade: "neon_reserve",
+  obsidian_raiders: "obsidian_empire",
+  redline_recon: "redline_reign",
+  stormguard_elite: "stormbreaker",
+  tactical_titans: "thunder_titans",
+  vault_of_victory: "money_train_convoy",
+  wildline_warriors: "wild_west_recon",
+};
+const _NEW_ART_FALLBACKS = [
+  "/slots/bg_west.jpg", "/slots/bg_dynasty.jpg", "/slots/bg_neon.jpg",
+  "/slots/bg_kraken.jpg", "/slots/bg_midnight.jpg", "/slots/bg_dragon.jpg",
+  "/slots/tile_thunder_titans.jpg", "/slots/tile_redline_reign.jpg",
+  "/slots/tile_crimson_circuit.jpg", "/slots/tile_diamond_commando.jpg",
+];
+Object.entries(NEW_SLOT_TEMPLATE_ART).forEach(([id, tpl], i) => {
+  const src = {
+    ...(FLAGSHIP_ART[tpl] || {}),
+    ...(BASE_MACHINE_ART[tpl] || {}),
+    ...(MACHINE_ART[tpl] || {}),
+  };
+  const bg = src.bg || _NEW_ART_FALLBACKS[i % _NEW_ART_FALLBACKS.length];
+  const thumb = src.thumb || bg;
+  BASE_MACHINE_ART[id] = { bg, thumb, panel: src.panel || src.accent || "#4EE44E" };
+});
+
+
 export const resolveMachineArt = (id, fallback = {}) => {
   const base = BASE_MACHINE_ART[id] || {
     bg: "",

@@ -353,3 +353,10 @@ REMAINING / NEXT:
 - Footer: user wants their submarine image at bottom. Merged Layout lost BRAND.footerUnderwater (→ url(undefined)) and had a CSS fake-submarine. Added footerUnderwater=/brand/submarine_footer.jpg, removed CSS submarine, lightened overlay. Submarine now shows.
 - Verified: backend imports (168 machines), frontend compiles clean, API /games/slots returns 166 with new names, lobby renders 166 cards.
 - TODO next: map tile art to the 20 new slots (currently fallback gold tiles); user may upload 20 tile images.
+
+### 06 Sep 2026 (cont.) — All GitHub upgrades verified working + 2 more crash fixes
+- Confirmed all copilot/main UPGRADES are merged & live: operations.py + media_release.py backend modules (routers included in server.py), Winners' Circle (WinnersSection) on lobby, Commercial Spotlight, IntermissionShowcase ("Between Missions" reel) on slot pages, KenoLiveBoard, slot guards, Night Ops briefing modal, PixiReelFX ambient reel FX.
+- Gave all 20 new slots REAL painted art (no image-gen, zero credits): each inherits its gameplay template's tile/bg via NEW_SLOT_TEMPLATE_ART loop in gameMeta.js (+ fallback list). Verified: Ghost Squadron→phantom_strike, Neon Kraken→neon, Oceanic Overlord→money_train_convoy, Golden Grunt→midas_command, Hellfire Harpoon→bg_inferno (all files exist on disk).
+- FIX: PixiReelFX destroyed the Pixi Application before init() finished (React StrictMode double-mount) → "this._cancelResize is not a function" runtime overlay crashing the slot pages. Added initialized flag + safeDestroy try/catch. Ghost Squadron slot page now renders clean (title, reels, denominations, Buy Feature, art), no overlay.
+- Verified functional via API (admin token): slot spin on new slots (ghost_protocol grid + vault_of_victory win 6.0), keno /games/keno/play (stake), coinflip, wheel/status, admin/bankroll. Frontend compiles clean; lobby renders 166 cards.
+- Platform status: 100% functional in preview. Remaining cosmetic-only: 20 new slots reuse existing art (user may upload dedicated tiles later).

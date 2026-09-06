@@ -19,7 +19,16 @@ export const PixiReelFX = React.memo(function PixiReelFX({ accent = "#F6C64A", s
 
     let disposed = false;
     let app;
+    let initialized = false;
     let resizeObserver;
+
+    const safeDestroy = (a) => {
+      try {
+        a?.destroy(true, { children: true, texture: true, textureSource: true });
+      } catch (e) {
+        /* pixi app was not fully initialized yet — ignore */
+      }
+    };
 
     const boot = async () => {
       app = new Application();
@@ -30,9 +39,10 @@ export const PixiReelFX = React.memo(function PixiReelFX({ accent = "#F6C64A", s
         autoDensity: true,
       });
       if (disposed) {
-        app.destroy(true, { children: true, texture: true, textureSource: true });
+        safeDestroy(app);
         return;
       }
+      initialized = true;
 
       host.appendChild(app.canvas);
       app.canvas.setAttribute("aria-hidden", "true");
@@ -97,7 +107,7 @@ export const PixiReelFX = React.memo(function PixiReelFX({ accent = "#F6C64A", s
     return () => {
       disposed = true;
       resizeObserver?.disconnect();
-      app?.destroy(true, { children: true, texture: true, textureSource: true });
+      if (initialized) safeDestroy(app);
     };
   }, [accent]);
 
