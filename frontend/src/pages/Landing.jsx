@@ -8,6 +8,7 @@ import api from "@/lib/api";
 import { AnimatedShowcase } from "@/components/AnimatedShowcase";
 import { CinematicReel } from "@/components/CinematicReel";
 import { PromoScreen } from "@/components/PromoScreen";
+import { CommercialSpotlight } from "@/components/CommercialSpotlight";
 import { GiveawayAlert } from "@/components/GiveawayAlert";
 import {
   Coins,
@@ -169,6 +170,8 @@ export default function Landing() {
           </div>
         </div>
       </section>
+
+      <CommercialSpotlight />
 
       {/* HERO */}
       <section className="relative overflow-hidden">
