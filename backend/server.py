@@ -45,6 +45,7 @@ from games import (
     play_holdwin,
 )
 import cashier
+import operations
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -2511,6 +2512,22 @@ class BalanceAdjustInput(BaseModel):
     mode: str = "delta"  # "delta" or "set"
 
 
+class OperationsJobInput(BaseModel):
+    job_type: str = Field(min_length=2, max_length=64)
+    payload: Dict = Field(default_factory=dict)
+    idempotency_key: Optional[str] = Field(default=None, max_length=128)
+
+
+class OperationsLeaseInput(BaseModel):
+    lease_seconds: int = Field(default=300, ge=30, le=3600)
+
+
+class OperationsFinishInput(BaseModel):
+    lease_token: str = Field(min_length=1, max_length=128)
+    result: Dict = Field(default_factory=dict)
+    error: Optional[str] = Field(default=None, max_length=2000)
+
+
 DEFAULT_UPGRADES = [
     {
         "id": f"pkg-{i + 1}",
@@ -2659,6 +2676,109 @@ async def admin_enquiries(admin: dict = Depends(require_admin)):
         .sort("created_at", -1)
         .to_list(200)
     )
+
+
+# ---------------------------------------------------------------------------
+# HQ operations foundation.  These endpoints coordinate auditable work only:
+# they do not execute payments, adjust balances, or call external providers.
+# ---------------------------------------------------------------------------
+@api.post("/admin/operations/jobs", status_code=201)
+async def operations_create_job(
+    payload: OperationsJobInput, admin: dict = Depends(require_admin)
+):
+    try:
+        job, created = await operations.create_job(
+            db,
+            job_type=payload.job_type,
+            payload=payload.payload,
+            actor=admin,
+            idempotency_key=payload.idempotency_key,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+    return {"job": job, "created": created}
+
+
+@api.get("/admin/operations/jobs")
+async def operations_list_jobs(
+    status: Optional[str] = None,
+    limit: int = 100,
+    admin: dict = Depends(require_admin),
+):
+    if status and status not in {"queued", "leased", "completed", "failed"}:
+        raise HTTPException(status_code=400, detail="Invalid job status")
+    limit = max(1, min(limit, 200))
+    query = {"status": status} if status else {}
+    rows = await db.operations_jobs.find(query, {"_id": 0}).sort(
+        "created_at", -1
+    ).to_list(limit)
+    return [operations._public(row, include_lease=False) for row in rows]
+
+
+@api.post("/admin/operations/jobs/{job_id}/claim")
+async def operations_claim_job(
+    job_id: str,
+    payload: OperationsLeaseInput = OperationsLeaseInput(),
+    admin: dict = Depends(require_admin),
+):
+    job = await operations.claim_job(
+        db, job_id=job_id, actor=admin, lease_seconds=payload.lease_seconds
+    )
+    if not job:
+        raise HTTPException(status_code=409, detail="Job is unavailable")
+    return job
+
+
+@api.post("/admin/operations/jobs/{job_id}/complete")
+async def operations_complete_job(
+    job_id: str,
+    payload: OperationsFinishInput,
+    admin: dict = Depends(require_admin),
+):
+    job = await operations.finish_job(
+        db,
+        job_id=job_id,
+        lease_token=payload.lease_token,
+        actor=admin,
+        success=True,
+        result=payload.result,
+    )
+    if not job:
+        raise HTTPException(status_code=409, detail="Invalid or expired job lease")
+    return job
+
+
+@api.post("/admin/operations/jobs/{job_id}/fail")
+async def operations_fail_job(
+    job_id: str,
+    payload: OperationsFinishInput,
+    admin: dict = Depends(require_admin),
+):
+    if not payload.error:
+        raise HTTPException(status_code=422, detail="error is required")
+    job = await operations.finish_job(
+        db,
+        job_id=job_id,
+        lease_token=payload.lease_token,
+        actor=admin,
+        success=False,
+        result=payload.result,
+        error=payload.error,
+    )
+    if not job:
+        raise HTTPException(status_code=409, detail="Invalid or expired job lease")
+    return job
+
+
+@api.get("/admin/operations/audit")
+async def operations_audit(
+    limit: int = 100, admin: dict = Depends(require_admin)
+):
+    limit = max(1, min(limit, 200))
+    rows = await db.operations_audit.find({}, {"_id": 0}).sort(
+        "created_at", -1
+    ).to_list(limit)
+    return [operations._public(row) for row in rows]
 
 
 @api.post("/fleet/enquiry")
@@ -3640,6 +3760,20 @@ async def startup():
     await _safe_create_index(db.payment_transactions, "session_id")
     await _safe_create_index(db.house_ledger, "created_at")
     await _safe_create_index(db.house_bankroll, "_id")
+    # Keep startup compatible with restricted/fake database handles used by
+    # health checks; Motor exposes these collections lazily in production.
+    operations_jobs = getattr(db, "operations_jobs", None)
+    operations_audit = getattr(db, "operations_audit", None)
+    if operations_jobs is not None:
+        await _safe_create_index(operations_jobs, "job_id", unique=True)
+        await _safe_create_index(operations_jobs, "status")
+        await _safe_create_index(operations_jobs, "lease_until")
+        await _safe_create_index(
+            operations_jobs, "idempotency_key", unique=True, sparse=True
+        )
+    if operations_audit is not None:
+        await _safe_create_index(operations_audit, "created_at")
+        await _safe_create_index(operations_audit, "job_id")
     await db.house_bankroll.update_one(
         {"_id": "house"},
         {
