@@ -121,7 +121,7 @@ export default function Landing() {
     <div data-testid={LANDING.hero}>
       {/* NEXUS FLEET banner */}
       <a
-        href="https://gaming-fleet-hq.preview.emergentagent.com"
+        href="https://nexusstudiomaster.com"
         target="_blank"
         rel="noopener noreferrer"
         data-testid="nexus-fleet-banner"
@@ -188,7 +188,7 @@ export default function Landing() {
           <div className="mx-auto max-w-3xl text-center sm:text-left sm:mx-0 sm:max-w-[38rem] md:max-w-[42rem]">
             <div className="flex flex-wrap items-center justify-center gap-2 mb-6 animate-pop sm:justify-start">
               <span className="border border-nvg/50 text-nvg font-mono text-xs px-3 py-1 tracking-widest">
-                MGA/B2C/912/2025
+                PLAY-MONEY MODE
               </span>
               <span className="border border-gold/50 text-gold font-mono text-xs px-3 py-1 tracking-widest">
                 NIGHT-VISION OPS
@@ -197,7 +197,7 @@ export default function Landing() {
                 data-testid="hero-award-badge"
                 className="flex items-center gap-1.5 border border-gold/70 bg-gold/10 text-gold font-mono text-xs px-3 py-1 tracking-widest glow-gold"
               >
-                <Trophy size={13} weight="fill" /> BEST PLATFORM 2026
+                <Trophy size={13} weight="fill" /> NIGHT OPS EDITION
               </span>
             </div>
             <h1
@@ -304,7 +304,7 @@ export default function Landing() {
             muted
             loop
             playsInline
-            preload="auto"
+            preload="metadata"
             className="absolute inset-0 w-full h-full object-cover"
           />
           <span className="absolute top-3 left-3 flex items-center gap-2 font-mono text-[10px] tracking-widest text-nvg/80 bg-black/50 px-2 py-1 pointer-events-none">
