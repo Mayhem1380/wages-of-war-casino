@@ -22,6 +22,8 @@ import json
 from datetime import datetime, timezone, timedelta
 import asyncio
 import shutil
+import re
+from urllib.parse import urlparse
 
 import stripe
 
@@ -252,6 +254,23 @@ CORS_ORIGINS = _resolved_cors_origins()
 CORS_ALLOW_ORIGINS = CORS_ORIGINS
 # Any subdomain of preview.emergentagent.com is a trusted first-party preview host.
 CORS_ALLOW_ORIGIN_REGEX = r"^(https?://(localhost|127\.0\.0\.1)(:\d+)?|https://[a-zA-Z0-9-]+\.preview\.emergentagent\.com)$"
+
+
+def _safe_frontend_origin(candidate: Optional[str]) -> str:
+    """Accept only configured or first-party preview origins for redirects."""
+    origin = (candidate or FRONTEND_URL).strip().rstrip("/")
+    parsed = urlparse(origin)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        return FRONTEND_URL.rstrip("/")
+    if origin in CORS_ORIGINS or re.match(CORS_ALLOW_ORIGIN_REGEX, origin):
+        return origin
+    return FRONTEND_URL.rstrip("/")
+
+
+def _mask_financial_value(value: Optional[str]) -> Optional[str]:
+    cleaned = "".join(ch for ch in (value or "") if ch.isalnum())
+    return f"••••{cleaned[-4:]}" if cleaned else None
+
 
 app = FastAPI(title="Wages of War Casino API")
 api = APIRouter(prefix="/api")
@@ -807,23 +826,28 @@ async def kyc_banking(payload: KycBankingDetailsInput, user: dict = Depends(requ
         KycBankingDetailsInput.validate_details(payload)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
-    cleaned = {
+    masked = {
         "account_holder": payload.account_holder.strip(),
         "bank_name": payload.bank_name.strip(),
         "bank_country": payload.bank_country.strip(),
-        "account_number": payload.account_number.strip(),
-        "bsb_code": (payload.bsb_code or "").strip(),
-        "routing_number": (payload.routing_number or "").strip(),
-        "iban": (payload.iban or "").strip(),
-        "swift_code": (payload.swift_code or "").strip(),
-        "address_line1": (payload.address_line1 or "").strip(),
-        "verified_at": datetime.now(timezone.utc).isoformat(),
+        "account_number_last4": _mask_financial_value(payload.account_number),
+        "bsb_last4": _mask_financial_value(payload.bsb_code),
+        "routing_last4": _mask_financial_value(payload.routing_number),
+        "iban_last4": _mask_financial_value(payload.iban),
+        "swift_last4": _mask_financial_value(payload.swift_code),
+        "submitted_at": datetime.now(timezone.utc).isoformat(),
     }
     await db.users.update_one(
         {"user_id": user["user_id"]},
-        {"$set": {"kyc_banking_details": cleaned, "kyc_banking_verified": True, "kyc_banking_status": "verified"}},
+        {
+            "$set": {
+                "kyc_banking_details": masked,
+                "kyc_banking_verified": False,
+                "kyc_banking_status": "submitted",
+            }
+        },
     )
-    return {"ok": True, "banking_verified": True}
+    return {"ok": True, "banking_verified": False, "banking_status": "submitted"}
 
 
 @api.get("/kyc/banking")
@@ -842,7 +866,7 @@ async def kyc_session(payload: KycSessionInput, user: dict = Depends(require_use
     fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
     if fresh.get("kyc_approved"):
         return {"already_approved": True}
-    origin = (payload.origin_url or FRONTEND_URL).rstrip("/")
+    origin = _safe_frontend_origin(payload.origin_url)
     kwargs = {
         "type": "document",
         "options": {"document": {"require_matching_selfie": True}},
@@ -2783,14 +2807,15 @@ async def checkout(payload: CheckoutInput, user: dict = Depends(require_user)):
             detail="This credit package is already in progress for your account.",
         )
 
+    origin = _safe_frontend_origin(payload.origin_url)
     try:
         price = _ensure_price(pkg)
         total_credits = pkg["credits"] + pkg.get("bonus", 0)
         kwargs = dict(
             line_items=[{"price": price.id, "quantity": 1}],
             mode="payment",
-            success_url=f"{payload.origin_url}/payment/success?session_id={{CHECKOUT_SESSION_ID}}",
-            cancel_url=f"{payload.origin_url}/wallet",
+            success_url=f"{origin}/payment/success?session_id={{CHECKOUT_SESSION_ID}}",
+            cancel_url=f"{origin}/wallet",
             metadata={
                 "user_id": user["user_id"],
                 "lookup_key": pkg["lookup_key"],
@@ -3128,6 +3153,7 @@ async def cashier_deposit_stripe(
             detail=f"Maximum deposit is {cashier.MAX_DEPOSIT_AUD} AUD per transaction",
         )
     minor = cashier.to_minor_unit(payload.amount, code)
+    origin = _safe_frontend_origin(payload.origin_url)
     try:
         session = stripe.checkout.Session.create(
             line_items=[
@@ -3141,8 +3167,8 @@ async def cashier_deposit_stripe(
                 }
             ],
             mode="payment",
-            success_url=f"{payload.origin_url}/cashier?deposit=success&session_id={{CHECKOUT_SESSION_ID}}",
-            cancel_url=f"{payload.origin_url}/cashier?deposit=cancel",
+            success_url=f"{origin}/cashier?deposit=success&session_id={{CHECKOUT_SESSION_ID}}",
+            cancel_url=f"{origin}/cashier?deposit=cancel",
             metadata={
                 "kind": "cashier_deposit",
                 "user_id": user["user_id"],
@@ -3203,6 +3229,11 @@ async def cashier_deposit_crypto(
     if usd_cents < cashier.MIN_DEPOSIT_USD_CENTS:
         raise HTTPException(
             status_code=400, detail=f"Minimum deposit is {cashier.MIN_DEPOSIT_AUD} AUD"
+        )
+    if usd_cents > cashier.MAX_DEPOSIT_USD_CENTS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Maximum deposit is {cashier.MAX_DEPOSIT_AUD} AUD per transaction",
         )
     order_id = f"wow:{user['user_id']}:{uuid.uuid4().hex[:10]}"
     ipn_url = f"{os.environ.get('FRONTEND_URL','').replace('http://','https://')}/api/webhooks/nowpayments"
@@ -3323,11 +3354,6 @@ async def cashier_withdraw(payload: WithdrawInput, user: dict = Depends(require_
         raise HTTPException(
             status_code=403,
             detail="Identity verification required before withdrawing. Please complete KYC in the Cashier.",
-        )
-    if not fresh.get("kyc_banking_verified"):
-        raise HTTPException(
-            status_code=403,
-            detail="Verified payout banking details are required before withdrawing.",
         )
     # Reserve funds atomically so concurrent withdrawal requests cannot overdraw.
     debit = await db.users.update_one(
