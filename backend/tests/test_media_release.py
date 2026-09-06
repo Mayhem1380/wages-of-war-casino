@@ -1,4 +1,5 @@
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
@@ -43,3 +44,13 @@ def test_publish_checklist_requires_all_three_controls():
     assert media_release.validate_checklist(
         {"legal": True, "licensing": True, "deployment": True}
     )["deployment"] is True
+
+
+def test_public_projection_hides_id_and_serializes_release_dates():
+    public = media_release.public({
+        "_id": "internal",
+        "release_id": "release-1",
+        "created_at": datetime(2026, 1, 1, tzinfo=timezone.utc),
+    })
+    assert "_id" not in public
+    assert public["created_at"].startswith("2026-01-01T00:00:00")
