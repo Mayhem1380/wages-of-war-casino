@@ -2940,6 +2940,8 @@ async def george_rollback_release(
         }},
         projection={"_id": 0}, return_document=True,
     )
+    if not updated:
+        raise HTTPException(status_code=409, detail="Release was changed by another operator")
     await operations.audit(
         db, action="george_media_rolled_back", actor=admin, details={
             "release_id": release_id, "reason": payload.reason,
