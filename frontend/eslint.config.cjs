@@ -1,17 +1,14 @@
 module.exports = {
-  languageOptions: {
-    ecmaVersion: 2021,
-    sourceType: 'module'
-  },
   env: {
     browser: true,
     es2021: true
   },
-  plugins: {
-    react: require('eslint-plugin-react'),
-    'jsx-a11y': require('eslint-plugin-jsx-a11y'),
-    'react-hooks': require('eslint-plugin-react-hooks')
+  parserOptions: {
+    ecmaVersion: 'latest',
+    sourceType: 'module',
+    ecmaFeatures: { jsx: true }
   },
+  plugins: ['react', 'jsx-a11y', 'react-hooks'],
   settings: {
     react: { version: 'detect' }
   },
