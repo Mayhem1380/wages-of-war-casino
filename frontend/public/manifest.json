@@ -1,6 +1,7 @@
 {
   "short_name": "Wages",
   "name": "Wages of War Casino",
+  "description": "Night Ops casino gaming with cinematic slots, Keno, Coin Flip, rewards, and live operations.",
   "icons": [
     {
       "src": "/brand/emblem.jpeg",
@@ -15,6 +16,33 @@
   ],
   "start_url": "/",
   "display": "standalone",
+  "orientation": "any",
   "theme_color": "#050605",
-  "background_color": "#000000"
+  "background_color": "#000000",
+  "shortcuts": [
+    {
+      "name": "Open Lobby",
+      "short_name": "Lobby",
+      "url": "/lobby",
+      "icons": [{ "src": "/brand/emblem.jpeg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Launch Warhead Keno",
+      "short_name": "Keno",
+      "url": "/keno",
+      "icons": [{ "src": "/slots/keno_warhead.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Play Coin Flip",
+      "short_name": "Coin Flip",
+      "url": "/coinflip",
+      "icons": [{ "src": "/slots/coin_heads.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Spin Daily Wheel",
+      "short_name": "Daily Wheel",
+      "url": "/wheel",
+      "icons": [{ "src": "/brand/emblem.jpeg", "sizes": "192x192" }]
+    }
+  ]
 }
