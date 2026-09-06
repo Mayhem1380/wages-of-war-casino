@@ -8,6 +8,7 @@ import { SymbolTile } from "@/components/SymbolTile";
 import { AnimatedShowcase } from "@/components/AnimatedShowcase";
 import { LobbyHype } from "@/components/LobbyHype";
 import { LiveDrawBoard } from "@/components/LiveDrawBoard";
+import { WinnersSection } from "@/components/WinnersSection";
 import {
   Target,
   CaretRight,
@@ -198,6 +199,7 @@ export default function Lobby() {
 
       {/* WARKINO always-on live draw board */}
       <LiveDrawBoard />
+      <WinnersSection compact />
 
       {/* PLAYER QUICK-DEPLOY LAUNCHPAD */}
       <div className="mb-10" data-testid="player-command-hub">

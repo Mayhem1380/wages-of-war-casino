@@ -9,6 +9,7 @@ import { AnimatedShowcase } from "@/components/AnimatedShowcase";
 import { CinematicReel } from "@/components/CinematicReel";
 import { PromoScreen } from "@/components/PromoScreen";
 import { CommercialSpotlight } from "@/components/CommercialSpotlight";
+import { WinnersSection } from "@/components/WinnersSection";
 import { GiveawayAlert } from "@/components/GiveawayAlert";
 import {
   Coins,
@@ -172,6 +173,7 @@ export default function Landing() {
       </section>
 
       <CommercialSpotlight />
+      <WinnersSection />
 
       {/* HERO */}
       <section className="relative overflow-hidden">
