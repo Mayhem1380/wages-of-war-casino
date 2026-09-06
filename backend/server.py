@@ -631,7 +631,7 @@ def safe_support_reply(text: str) -> str:
     """
     cleaned = (text or "").strip()
     if not cleaned:
-        return "Hi — I'm the 24/7 assistant. Try 'deposit', 'withdraw', or 'verify'. For urgent support contact admin@wow.local"
+        return "Hi — I'm the 24/7 assistant. Try 'deposit', 'withdraw', or 'verify'. For urgent support, open a support ticket so the HQ team can review it."
 
     lower = cleaned.lower()
 
@@ -672,7 +672,7 @@ def safe_support_reply(text: str) -> str:
     if "support" in lower or "help" in lower:
         return "I can assist with deposits, withdrawals, verification, and basic account questions. For sensitive cases, an admin review can be requested."
 
-    return "Hi — I'm the 24/7 assistant. Try 'deposit', 'withdraw', or 'verify'. For urgent support contact admin@wow.local"
+    return "Hi — I'm the 24/7 assistant. Try 'deposit', 'withdraw', or 'verify'. For urgent support, open a support ticket so the HQ team can review it."
 
 
 @api.post("/support/message")
@@ -993,13 +993,21 @@ async def _process_withdrawals_loop():
             available_cents = int(summary.get("available_cents", 0))
 
             for t in pending:
+                claimed = await db.cashier_transactions.find_one_and_update(
+                    {"id": t["id"], "direction": "withdrawal", "status": "pending"},
+                    {"$set": {"status": "processing", "updated_at": datetime.now(timezone.utc).isoformat()}},
+                    projection={"_id": 0},
+                )
+                if not claimed:
+                    continue
+                t = claimed
                 now_iso = datetime.now(timezone.utc).isoformat()
                 amt_cents = int(round(float(t.get("amount_usd", 0) or 0) * 100))
 
                 # Hold the payout if the vault lacks the funds to cover it.
                 if available_cents - amt_cents < reserve_cents:
                     await db.cashier_transactions.update_one(
-                        {"id": t["id"]},
+                        {"id": t["id"], "status": "processing"},
                         {"$set": {
                             "status": "pending",
                             "vault_hold": True,
@@ -1040,11 +1048,18 @@ async def _process_withdrawals_loop():
                     else:
                         # keep pending; vault may be temporarily unavailable
                         await db.cashier_transactions.update_one(
-                            {"id": t["id"]},
+                            {"id": t["id"], "status": "processing"},
                             {"$set": {"status": "pending", "updated_at": now_iso}},
                         )
                 except Exception:
-                    pass
+                    await db.cashier_transactions.update_one(
+                        {"id": t["id"], "status": "processing"},
+                        {"$set": {
+                            "status": "pending",
+                            "vault_detail": "Withdrawal worker retry scheduled",
+                            "updated_at": now_iso,
+                        }},
+                    )
         except Exception:
             pass
         await asyncio.sleep(30)
@@ -3322,9 +3337,6 @@ async def cashier_withdraw(payload: WithdrawInput, user: dict = Depends(require_
     if not debit.modified_count:
         raise HTTPException(status_code=400, detail="Insufficient cash balance")
     ref = str(uuid.uuid4())
-    vault = await cashier.vault_submit_withdrawal(
-        code, payload.amount, payload.destination, ref
-    )
     now_iso = datetime.now(timezone.utc).isoformat()
     await db.cashier_transactions.insert_one(
         {
@@ -3339,10 +3351,10 @@ async def cashier_withdraw(payload: WithdrawInput, user: dict = Depends(require_
             "amount_usd_cents": usd_cents,
             "status": "pending",
             "provider": "vault",
-            "provider_ref": vault.get("vault_id") or ref,
+            "provider_ref": ref,
             "destination": payload.destination,
-            "vault_ok": vault["ok"],
-            "vault_detail": vault["detail"],
+            "vault_ok": False,
+            "vault_detail": "Queued for the withdrawal worker",
             "sandbox": cashier.is_placeholder_vault(),
             "created_at": now_iso,
             "updated_at": now_iso,
@@ -3365,7 +3377,7 @@ async def cashier_withdraw(payload: WithdrawInput, user: dict = Depends(require_
     return {
         "id": ref,
         "status": "pending",
-        "vault_connected": vault["ok"],
+        "vault_connected": False,
         "balance_usd": round(
             (int(fresh.get("real_balance_cents", 0)) - usd_cents) / 100.0, 2
         ),
@@ -3485,14 +3497,20 @@ async def admin_cashier_withdrawal_action(
     t = await db.cashier_transactions.find_one(
         {"id": txn_id, "direction": "withdrawal"}
     )
-    if not t or t["status"] != "pending":
+    if not t or t["status"] not in ("pending", "processing"):
         raise HTTPException(
-            status_code=400, detail="No pending withdrawal with that id"
+            status_code=400, detail="No actionable withdrawal with that id"
+        )
+    if action == "reject" and t["status"] == "processing":
+        raise HTTPException(
+            status_code=409,
+            detail="Withdrawal is already with the vault and cannot be rejected here",
         )
     now_iso = datetime.now(timezone.utc).isoformat()
     if action == "approve":
         await db.cashier_transactions.update_one(
-            {"id": txn_id}, {"$set": {"status": "completed", "updated_at": now_iso}}
+            {"id": txn_id, "status": {"$in": ["pending", "processing"]}},
+            {"$set": {"status": "completed", "updated_at": now_iso}},
         )
         await db.house_bankroll.update_one(
             {"_id": "house"},
@@ -3516,6 +3534,14 @@ async def admin_cashier_withdrawal_action(
     await db.users.update_one(
         {"user_id": t["user_id"]},
         {"$inc": {"real_balance_cents": int(t["amount_usd_cents"])}},
+    )
+    await db.house_bankroll.update_one(
+        {"_id": "house"},
+        {
+            "$inc": {"pending_payout_cents": -int(t["amount_usd_cents"])},
+            "$set": {"updated_at": now_iso},
+        },
+        upsert=True,
     )
     await db.cashier_transactions.update_one(
         {"id": txn_id}, {"$set": {"status": "rejected", "updated_at": now_iso}}

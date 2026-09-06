@@ -1398,7 +1398,7 @@ export const BRAND = {
   emblem: "/brand/winged_emblem.png",
   promo: "/brand/promo-platforms.jpeg",
   coin: "/brand/winged_emblem.png",
-  coinNightOps: "/brand/header_coin.png",
+  coinNightOps: "/brand/coin-nightops.png",
   nexusBanner: "/brand/nexus-banner.jpg",
   nexusSizzle: "/brand/nexus_fleet_sizzle.jpg",
   jungleAmbush: "/brand/jungle_ambush.jpg",
