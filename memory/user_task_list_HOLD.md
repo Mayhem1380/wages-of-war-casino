@@ -37,6 +37,12 @@ emblem, underwater with bubbles) must sit at the VERY BOTTOM of the page (footer
   is the exact one and that the footer shows ONLY this, no leftover ship.)
 - Newest uploaded artifact = this submarine (highest-numbered PNG in artifacts).
 
+## TASK 3 (confirmed)
+Put the "WARKINO Special Forces — Night Ops Edition" image (casino keno table, glass ball
+machine, WARKINO skull emblem, "DRAWING: NIGHT OPS / LAST DRAWN: 74") into the KENO tile
+(the Keno / WARKINO game tile on the lobby).
+- Newest uploaded artifact = this WARKINO image.
+
 ## REMAINING TASKS
 - User will provide the rest of the list before saying "ready". Append here as they come.
 - NOTE: user reports paying repeatedly for Task 1 (3 ships into tiles) and Task 2 (submarine
