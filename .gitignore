@@ -93,6 +93,8 @@ agenthub/agents/youtube/db
 
 # Build caches
 .cache/
+tmp_small_build/
+tmp_upload_parts/
 
 # Generated package manager files
 # Keep lockfiles tracked so CI installs are reproducible.
