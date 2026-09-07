@@ -29,8 +29,18 @@ Do NOT change the price, just put the ships in those tiles."
   fleet tiles (Fleet Sales / Nexus Fleet page) while keeping existing prices unchanged.
 - NEED FROM USER: which exact ship images go on which tiles (they said "there's many").
 
+## TASK 2 (confirmed)
+The "Night Ops Edition" submarine image (dark sub with Wages of War Casino jet+wings
+emblem, underwater with bubbles) must sit at the VERY BOTTOM of the page (footer).
+- REMOVE the other/current bottom ship image that's there now, put THIS submarine there,
+  cleaned up. (This is the image already saved as /brand/submarine_footer.jpg — confirm it
+  is the exact one and that the footer shows ONLY this, no leftover ship.)
+- Newest uploaded artifact = this submarine (highest-numbered PNG in artifacts).
+
 ## REMAINING TASKS
 - User will provide the rest of the list before saying "ready". Append here as they come.
+- NOTE: user reports paying repeatedly for Task 1 (3 ships into tiles) and Task 2 (submarine
+  footer) without them sticking — must make these persist this time (commit to repo).
 
 ## RULES WHEN USER SAYS GO
 - Do the whole list in one pass, then verify, then report. Save everything.
