@@ -360,3 +360,10 @@ REMAINING / NEXT:
 - FIX: PixiReelFX destroyed the Pixi Application before init() finished (React StrictMode double-mount) → "this._cancelResize is not a function" runtime overlay crashing the slot pages. Added initialized flag + safeDestroy try/catch. Ghost Squadron slot page now renders clean (title, reels, denominations, Buy Feature, art), no overlay.
 - Verified functional via API (admin token): slot spin on new slots (ghost_protocol grid + vault_of_victory win 6.0), keno /games/keno/play (stake), coinflip, wheel/status, admin/bankroll. Frontend compiles clean; lobby renders 166 cards.
 - Platform status: 100% functional in preview. Remaining cosmetic-only: 20 new slots reuse existing art (user may upload dedicated tiles later).
+
+## Changelog — 2026-06 (visual polish pass)
+- Keno lobby tile now uses WARKINO "Night Ops Edition" ball-machine art (/slots/warkino_tile.jpg).
+- Dog-Tag Flip lobby tile now uses Shark Splitters art (/slots/sharkflip_tile.png).
+- CoinFlipGame: added animated conic glow ring + orbiting shark coins around the coin during the flip.
+- Submarine footer confirmed wired via BRAND.footerUnderwater = /brand/submarine_footer.jpg.
+- PENDING (need user uploads): 3 naval ship graphics for Fleet Sales cards ($5,000 / $5,800 / $35,000) and a volcano image — NOT present in current uploads (only jet-fighter medallions found).

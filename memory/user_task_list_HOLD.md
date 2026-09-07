@@ -43,6 +43,14 @@ machine, WARKINO skull emblem, "DRAWING: NIGHT OPS / LAST DRAWN: 74") into the K
 (the Keno / WARKINO game tile on the lobby).
 - Newest uploaded artifact = this WARKINO image.
 
+## TASK 4: All 176 slots premium-complete — outer+inner graphics, features, sound,
+   cinematic, latest engine, no-scroll layout on the machine. (User's 2600 graphics were
+   "lost"; the Atari/ROM code pastes are noise — ignore. Use existing /slots art + CSV.)
+## TASK 5: Volcano picture into the empty volcano tile (image user provided).
+## TASK 6: Coin Flip — graphics on the OUTSIDE lobby tile + premium graphics around the
+   grenade during the flip on the digital screen.
+## TASK 7: Fix slot machine so you do NOT have to scroll down to play (reels above fold).
+
 ## REMAINING TASKS
 - User will provide the rest of the list before saying "ready". Append here as they come.
 - NOTE: user reports paying repeatedly for Task 1 (3 ships into tiles) and Task 2 (submarine

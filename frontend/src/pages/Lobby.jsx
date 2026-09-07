@@ -737,16 +737,15 @@ export default function Lobby() {
           onClick={() => navigate("/keno")}
         >
           <div
-            className="ops-tile relative p-6 min-h-[160px] flex items-center gap-5"
+            className="ops-tile relative p-6 min-h-[200px] flex items-center gap-5"
             style={{
               backgroundImage:
-                "linear-gradient(120deg, rgba(10,31,10,0.82), rgba(10,13,10,0.94)), url(/slots/keno_bg.jpg)",
+                "linear-gradient(90deg, rgba(6,14,6,0.94) 0%, rgba(6,14,6,0.70) 44%, rgba(6,14,6,0.10) 100%), url(/slots/warkino_tile.jpg)",
               backgroundSize: "cover",
               backgroundPosition: "center",
             }}
           >
-            <Target size={64} weight="duotone" className="relative z-[1] text-nvg shrink-0" />
-            <div className="relative z-[1]">
+            <div className="relative z-[1] max-w-[62%]">
               <h3 className="font-display text-4xl tracking-wide text-foreground group-hover:text-nvg">
                 WARHEAD KENO
               </h3>
@@ -767,16 +766,15 @@ export default function Lobby() {
           onClick={() => navigate("/coinflip")}
         >
           <div
-            className="ops-tile relative p-6 min-h-[160px] flex items-center gap-5"
+            className="ops-tile relative p-6 min-h-[200px] flex items-center gap-5"
             style={{
               backgroundImage:
-                "linear-gradient(120deg, rgba(35,26,6,0.82), rgba(10,13,10,0.94)), url(/slots/coinflip_bg.jpg)",
+                "linear-gradient(90deg, rgba(20,15,4,0.94) 0%, rgba(20,15,4,0.70) 44%, rgba(20,15,4,0.08) 100%), url(/slots/sharkflip_tile.png)",
               backgroundSize: "cover",
               backgroundPosition: "center",
             }}
           >
-            <Coins size={64} weight="duotone" className="relative z-[1] text-gold shrink-0" />
-            <div className="relative z-[1]">
+            <div className="relative z-[1] max-w-[62%]">
               <h3 className="font-display text-4xl tracking-wide text-foreground group-hover:gold-gradient">
                 DOG-TAG FLIP
               </h3>
