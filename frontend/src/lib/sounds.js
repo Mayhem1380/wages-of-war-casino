@@ -60,8 +60,6 @@ export const soundManager = {
     if (c && c.state === "suspended") c.resume();
     return c;
   },
-  combatAmbienceStart: (...a) => sfx.combatAmbienceStart(...a),
-  combatAmbienceStop: (...a) => sfx.combatAmbienceStop(...a),
 };
 
 function tone({
@@ -355,11 +353,5 @@ export const sfx = {
     } catch (e) {
       console.debug("sound stop failed", e);
     }
-  },
-
-  // Soft radar-blip used by the digital live feed (draws/winners ticker).
-  liveTicker: () => {
-    tone({ freq: 1180, dur: 0.05, type: "sine", gain: 0.1, send: 0.5 });
-    tone({ freq: 1180, dur: 0.05, type: "sine", gain: 0.06, start: 0.06, send: 0.5 });
   },
 };

@@ -32,7 +32,7 @@ This is the release inventory for production (https://wagesofwarcasin0.online) a
 - Dual-logic wallet: play-money credits + real-money (cents) balance
 - Cashier: Stripe card deposits + NOWPayments crypto deposits + withdrawals
 - KYC / Identity Verification (Stripe Identity, 18+ gate) — blocks withdrawals until verified
-- Wheel of Wealth (one spin for a $500+ deposit or each $1,000 deposit milestone; $5–$50, Spin Again, and $500 Major)
+- Daily Streak Wheel (free daily spin, 500–50,000, x2 on 7-day streak)
 - Live Tournament "Operation High Roller" (5,000,000 pool, 24h rolling, top-10 payout)
 - Win celebrations (coin rain + confetti + screen shake)
 - Lobby search bar + category tabs (All/Dragons/Fortune/Military/Egyptian/Ocean)

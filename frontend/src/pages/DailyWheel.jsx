@@ -147,7 +147,7 @@ export default function DailyWheel() {
             WHEEL OF WEALTH
           </h1>
           <p className="text-muted-foreground mt-2 max-w-xl mx-auto">
-            Win real cash back — <span className="text-gold">$5 up to $500</span>,
+            Win real cash back — <span className="text-gold">$5 up to $50</span>,
             no wagering, no terms.
           </p>
         </div>
@@ -166,16 +166,16 @@ export default function DailyWheel() {
             AVAILABLE
           </div>
           <p className="font-mono text-[11px] text-muted-foreground tracking-wide text-center">
-            Earn a spin for every single deposit of{" "}
+            Earn a spin for every deposit over{" "}
             <span className="text-gold">${status?.big_deposit_usd ?? 500}</span>{" "}
-            or more. No check-in required.
+            — plus a free spin every{" "}
+            <span className="text-gold">${status?.milestone_usd ?? 1000}</span> in
+            total deposits.
           </p>
         </div>
 
         {/* Wheel */}
-        <div className={`wheel-stage relative mx-auto w-[320px] h-[320px] sm:w-[380px] sm:h-[380px] ${spinning ? "wheel-stage-spinning" : ""}`}>
-          <div className="wheel-heat-ring" aria-hidden="true" />
-          <div className="wheel-sparks" aria-hidden="true" />
+        <div className="relative mx-auto w-[320px] h-[320px] sm:w-[380px] sm:h-[380px]">
           <div className="absolute left-1/2 -translate-x-1/2 -top-2 z-20">
             <div
               className="w-0 h-0"

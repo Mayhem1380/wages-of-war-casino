@@ -76,25 +76,11 @@ export function LiveDrawBoard() {
           return (
             <div
               key={n}
-              className={`aspect-square flex items-center justify-center text-[9px] sm:text-[10px] font-mono rounded-sm ${
-                hit ? "keno-ball-neon" : ""
-              }`}
+              className="aspect-square flex items-center justify-center text-[9px] sm:text-[10px] font-mono rounded-sm"
               style={{
-                background: isLast
-                  ? "#7CFF6B"
-                  : hit
-                    ? "rgba(78,228,78,0.35)"
-                    : "rgba(255,255,255,0.04)",
-                color: isLast ? "#052b02" : hit ? "#CFFFC4" : "rgba(255,255,255,0.35)",
-                border: hit
-                  ? "1px solid rgba(120,255,110,0.85)"
-                  : "1px solid rgba(255,255,255,0.06)",
-                boxShadow: isLast
-                  ? "0 0 14px rgba(124,255,107,0.95), 0 0 30px rgba(124,255,107,0.6)"
-                  : hit
-                    ? "0 0 8px rgba(78,228,78,0.6)"
-                    : "none",
-                filter: isLast ? "saturate(1.6) brightness(1.3)" : undefined,
+                background: isLast ? "#F6C64A" : hit ? "rgba(212,175,55,0.28)" : "rgba(255,255,255,0.04)",
+                color: isLast ? "#150c02" : hit ? "#F6E27A" : "rgba(255,255,255,0.35)",
+                border: hit ? "1px solid rgba(212,175,55,0.6)" : "1px solid rgba(255,255,255,0.06)",
                 transition: "all .3s",
               }}
             >

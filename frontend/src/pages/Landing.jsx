@@ -11,8 +11,6 @@ import { PromoScreen } from "@/components/PromoScreen";
 import { CommercialSpotlight } from "@/components/CommercialSpotlight";
 import { WinnersSection } from "@/components/WinnersSection";
 import { GiveawayAlert } from "@/components/GiveawayAlert";
-import { FeatureIcon } from "@/components/FeatureIcon";
-import { useCinematicScore } from "@/lib/cinematicScore";
 import {
   Coins,
   GameController,
@@ -25,8 +23,6 @@ import {
   Gift,
   Clock,
   ArrowUpRight,
-  SpeakerSimpleHigh,
-  SpeakerSimpleSlash,
 } from "@phosphor-icons/react";
 
 const GIVEAWAY_TARGET = Date.now() + 395 * 86400000; // 13+ months to keep the giveaway visible and compliant with 12+ month minimums.
@@ -113,7 +109,6 @@ export default function Landing() {
   const { user, openAuth } = useAuth();
   const navigate = useNavigate();
   const [slots, setSlots] = useState([]);
-  const briefingScore = useCinematicScore();
 
   useEffect(() => {
     api
@@ -139,49 +134,6 @@ export default function Landing() {
 
       {/* CINEMATIC HERO REEL — top of page */}
       <CinematicReel onEnlist={primaryCta} />
-
-      <section className="max-w-[1400px] mx-auto px-4 sm:px-8 pt-6 sm:pt-8">
-        <div className="grid gap-4 md:grid-cols-3">
-          {[
-            {
-              icon: Coins,
-              img: "/brand/stat_rifle.jpg",
-              title: "High-roller payouts",
-              text: "Elite multiplier stacks, VIP reward drops, and premium jackpot windows tuned for big-win moments.",
-            },
-            {
-              icon: Medal,
-              img: "/brand/stat_vip.jpg",
-              title: "HQ-grade access",
-              text: "Fast-track VIP rank ladders, supply drops, and a polished premium flow designed to feel premium from the first click.",
-            },
-            {
-              icon: ShieldCheck,
-              img: "/brand/stat_supply.jpg",
-              title: "Battle-tested trust",
-              text: "Protected wallet flows, verification-first KYC, and clean compliance framing keep the platform credible and confident.",
-            },
-          ].map(({ icon: Icon, img, title, text }) => (
-            <div key={title} className="hq-panel hq-feature-card p-5 sm:p-6">
-              <div
-                className="hq-feature-art"
-                style={{ backgroundImage: `url(${img})` }}
-                aria-hidden="true"
-              />
-              <div className="relative z-[1] flex items-center gap-3 mb-4">
-                <div className="w-11 h-11 rounded-xl border border-gold/30 bg-gold/10 flex items-center justify-center text-gold">
-                  <Icon size={22} weight="fill" />
-                </div>
-                <span className="hq-section-label">HQ FEATURE</span>
-              </div>
-              <h3 className="relative z-[1] font-display text-3xl tracking-wide text-foreground leading-none mb-2">
-                {title}
-              </h3>
-              <p className="relative z-[1] text-sm text-foreground/75 leading-relaxed">{text}</p>
-            </div>
-          ))}
-        </div>
-      </section>
 
       {/* PROMO BROADCAST — user banners */}
       <PromoScreen />
@@ -224,14 +176,12 @@ export default function Landing() {
       <WinnersSection />
 
       {/* HERO */}
-      <section className="relative overflow-hidden" aria-label="Hero section">
+      <section className="relative overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url(${BRAND.hero})` }}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-[#050605]" />
-        <div className="hero-ambient hero-ambient-left" aria-hidden="true" />
-        <div className="hero-ambient hero-ambient-right" aria-hidden="true" />
         <img
           src={BRAND.coinNightOps}
           alt="Wages of War Casino — Night Ops Edition"
@@ -241,7 +191,7 @@ export default function Landing() {
         />
         <div className="relative max-w-[1400px] mx-auto px-4 sm:px-8 pt-16 pb-20 sm:pt-24 sm:pb-28 md:pt-32 md:pb-40">
           <div className="mx-auto max-w-3xl text-center sm:text-left sm:mx-0 sm:max-w-[38rem] md:max-w-[42rem]">
-            <div className="hero-badges flex flex-wrap items-center justify-center gap-2 mb-6 animate-pop sm:justify-start">
+            <div className="flex flex-wrap items-center justify-center gap-2 mb-6 animate-pop sm:justify-start">
               <span className="border border-nvg/50 text-nvg font-mono text-xs px-3 py-1 tracking-widest">
                 PLAY-MONEY MODE
               </span>
@@ -256,17 +206,17 @@ export default function Landing() {
               </span>
             </div>
             <h1
-              className="hero-title font-display text-5xl sm:text-7xl lg:text-8xl leading-[0.85] tracking-tight animate-pop"
+              className="font-display text-5xl sm:text-7xl lg:text-8xl leading-[0.85] tracking-tight animate-pop"
               style={{ animationDelay: "0.05s" }}
             >
               <span className="gold-gradient">WAGES OF WAR</span>
               <br />
-              <span className="hero-subtitle text-foreground/90 text-3xl sm:text-5xl lg:text-6xl tracking-[0.2em]">
+              <span className="text-foreground/90 text-3xl sm:text-5xl lg:text-6xl tracking-[0.2em]">
                 CASINO
               </span>
             </h1>
             <p
-              className="hero-copy mx-auto mt-6 max-w-xl text-base text-foreground/80 leading-relaxed animate-pop sm:mx-0 sm:text-lg"
+              className="mx-auto mt-6 max-w-xl text-base text-foreground/80 leading-relaxed animate-pop sm:mx-0 sm:text-lg"
               style={{ animationDelay: "0.1s" }}
             >
               Deploy into the most elite military-themed slot floor ever
@@ -274,13 +224,13 @@ export default function Landing() {
               gold-tier rewards — powered by pure play-money credits.
             </p>
             <div
-              className="hero-actions mt-9 flex flex-col items-center gap-4 animate-pop sm:flex-row sm:items-center sm:justify-start"
+              className="mt-9 flex flex-col items-center gap-4 animate-pop sm:flex-row sm:items-center sm:justify-start"
               style={{ animationDelay: "0.15s" }}
             >
               <Button
                 data-testid={LANDING.enlistCta}
                 onClick={primaryCta}
-                className="hq-button w-full font-display text-xl tracking-widest px-8 h-14 gap-2 sm:w-auto"
+                className="w-full bg-gold hover:bg-gold/90 text-black font-display text-xl tracking-widest px-8 h-14 glow-gold gap-2 sm:w-auto"
               >
                 <Lightning size={22} weight="fill" />
                 {user ? "RESUME OPS" : "ENLIST — GET 10,000 FREE"}
@@ -291,7 +241,7 @@ export default function Landing() {
                   user ? navigate("/cashier") : openAuth("register")
                 }
                 variant="outline"
-                className="hq-button-secondary w-full font-display text-xl tracking-widest px-8 h-14 gap-2 sm:w-auto"
+                className="w-full border-gold/40 text-gold hover:bg-gold/10 font-display text-xl tracking-widest px-8 h-14 gap-2 sm:w-auto"
               >
                 <Gift size={22} weight="fill" /> CLAIM $10 VERIFY BONUS
               </Button>
@@ -299,7 +249,7 @@ export default function Landing() {
                 data-testid={LANDING.enterLobby}
                 onClick={() => navigate("/lobby")}
                 variant="outline"
-                className="w-full border border-nvg/40 text-nvg hover:bg-nvg/10 font-display text-xl tracking-widest px-8 h-14 gap-2 sm:w-auto"
+                className="w-full border-nvg/40 text-nvg hover:bg-nvg/10 font-display text-xl tracking-widest px-8 h-14 gap-2 sm:w-auto"
               >
                 <GameController size={22} weight="fill" /> ENTER LOBBY
               </Button>
@@ -308,56 +258,21 @@ export default function Landing() {
         </div>
       </section>
 
-      <section className="max-w-[1400px] mx-auto px-4 sm:px-8 pt-4 sm:pt-8">
-        <div className="luxury-shell">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <div className="luxury-tag">// ELITE EXPERIENCE</div>
-              <h2 className="font-display text-4xl sm:text-5xl tracking-wide text-foreground mt-2">
-                PREMIUM PLAY, ENGINEERED FOR ROYAL SESSIONS
-              </h2>
-            </div>
-            <div className="font-mono text-[10px] sm:text-xs tracking-[0.3em] text-nvg/80 uppercase">
-              Cinematic visuals • high-stakes flow • luxury trust
-            </div>
-          </div>
-
-          <div className="mt-6 grid gap-4 md:grid-cols-4">
-            {[
-              { label: "Live Ops Deck", value: "24/7" },
-              { label: "VIP Flow", value: "8 Tiers" },
-              { label: "Avg. Session", value: "18 min" },
-              { label: "Reward Depth", value: "High" },
-            ].map((item) => (
-              <div key={item.label} className="premium-stat">
-                <div className="premium-stat-value">{item.value}</div>
-                <div className="premium-stat-label">{item.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* STATS STRIP */}
       <section className="border-y border-gold/20 bg-black/50">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-8 grid grid-cols-2 md:grid-cols-4">
           {[
-            { Icon: GameController, img: "/brand/stat_rifle.jpg", label: "SLOT MACHINES", value: "145 Elite" },
-            { Icon: Target, img: "/brand/stat_keno.jpg", label: "WARHEAD KENO", value: "5000x Max" },
-            { Icon: Medal, img: "/brand/stat_vip.jpg", label: "VIP RANKS", value: "8 Tiers" },
-            { Icon: Gift, img: "/brand/stat_supply.jpg", label: "DAILY SUPPLY DROP", value: "Every 24h" },
+            { Icon: GameController, label: "SLOT MACHINES", value: "145 Elite" },
+            { Icon: Target, label: "WARHEAD KENO", value: "5000x Max" },
+            { Icon: Medal, label: "VIP RANKS", value: "8 Tiers" },
+            { Icon: Gift, label: "DAILY SUPPLY DROP", value: "Every 24h" },
           ].map((s, i) => (
             <div
               key={s.label}
-              className="stat-strip-item relative flex items-center gap-3 py-6 px-4 border-r border-border last:border-r-0 overflow-hidden"
+              className="flex items-center gap-3 py-6 px-4 border-r border-border last:border-r-0"
             >
-              <div
-                className="stat-strip-art"
-                style={{ backgroundImage: `url(${s.img})` }}
-                aria-hidden="true"
-              />
-              <s.Icon size={30} weight="fill" className="relative z-[1] text-nvg" />
-              <div className="relative z-[1]">
+              <s.Icon size={30} weight="fill" className="text-nvg" />
+              <div>
                 <div className="font-display text-2xl tracking-wide text-gold leading-none">
                   {s.value}
                 </div>
@@ -384,9 +299,6 @@ export default function Landing() {
         </div>
         <div
           data-testid="home-intro-video"
-          onPointerDown={() => {
-            if (!briefingScore.on) briefingScore.toggle();
-          }}
           className="hud hud-gold relative overflow-hidden aspect-video"
         >
           <video
@@ -409,23 +321,15 @@ export default function Landing() {
           className="mt-3 flex items-center gap-3 hud px-3 py-2"
         >
           <span className="font-mono text-[10px] tracking-widest text-nvg/80 whitespace-nowrap">
-            ◉ WAR SCORE
+            ◉ RADIO BROADCAST
           </span>
-          <span className="flex-1 font-mono text-[10px] tracking-widest text-muted-foreground">
-            Original solemn strings — instrumental only, no movie audio.
-          </span>
-          <button
+          <audio
             data-testid="promo-voiceover"
-            onClick={briefingScore.toggle}
-            className="flex items-center gap-2 px-3 py-1.5 bg-black/60 border border-gold/30 text-gold font-mono text-[10px] tracking-widest hover:bg-black/80"
-          >
-            {briefingScore.on ? (
-              <SpeakerSimpleHigh size={12} weight="fill" />
-            ) : (
-              <SpeakerSimpleSlash size={12} weight="fill" />
-            )}
-            {briefingScore.on ? "SCORE ON" : "PLAY SCORE"}
-          </button>
+            src="/brand/wages_of_war_voiceover.mp3"
+            controls
+            preload="metadata"
+            className="w-full h-9"
+          />
         </div>
       </section>
 
@@ -453,37 +357,29 @@ export default function Landing() {
                   title: "TACTICAL PAYLINES",
                   body: "High-contrast reels, precision bonus states, and premium unlocks tuned for elite sessions.",
                   icon: Target,
-                  img: "/brand/stat_keno.jpg",
                 },
                 {
                   title: "GOLD VAULT",
                   body: "Instant credit visibility, VIP rank-ups, and gold-boosted rewards that reward consistent play.",
                   icon: Coins,
-                  img: "/brand/stat_supply.jpg",
                 },
                 {
                   title: "ELITE OPS",
                   body: "Night-vision branding, polished UX, and a cleaner path from entrance to payout geometry.",
                   icon: ShieldCheck,
-                  img: "/brand/stat_rifle.jpg",
                 },
-              ].map(({ title, body, icon: Icon, img }) => (
+              ].map(({ title, body, icon: Icon }) => (
                 <div
                   key={title}
-                  className="ops-card group relative overflow-hidden rounded border border-gold/20 bg-black/30 p-4 transition-all duration-300 hover:border-gold/60 hover:shadow-[0_0_28px_rgba(212,175,55,0.18)]"
+                  className="group rounded border border-gold/20 bg-black/30 p-4 transition-all duration-300 hover:border-gold/60 hover:shadow-[0_0_28px_rgba(212,175,55,0.18)]"
                 >
-                  <div
-                    className="ops-card-art"
-                    style={{ backgroundImage: `url(${img})` }}
-                    aria-hidden="true"
-                  />
-                  <div className="relative z-[1] mb-4 inline-flex h-11 w-11 items-center justify-center rounded border border-gold/40 bg-gold/10 text-gold">
-                    <FeatureIcon icon={Icon} alt={title} size={20} className="text-gold" />
+                  <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded border border-gold/40 bg-gold/10 text-gold">
+                    <Icon size={20} weight="fill" />
                   </div>
-                  <h3 className="relative z-[1] font-display text-2xl tracking-wide text-foreground mb-2">
+                  <h3 className="font-display text-2xl tracking-wide text-foreground mb-2">
                     {title}
                   </h3>
-                  <p className="relative z-[1] font-mono text-[11px] leading-relaxed text-muted-foreground">
+                  <p className="font-mono text-[11px] leading-relaxed text-muted-foreground">
                     {body}
                   </p>
                 </div>
@@ -491,15 +387,8 @@ export default function Landing() {
             </div>
           </div>
 
-          <div
-            className="hud target-profile-card relative overflow-hidden p-6 md:p-8 border-nvg/30 bg-[radial-gradient(circle_at_top,_rgba(78,228,78,0.12),_transparent_45%)]"
-          >
-            <div
-              className="target-profile-art"
-              style={{ backgroundImage: "url(/brand/stat_vip.jpg)" }}
-              aria-hidden="true"
-            />
-            <div className="relative z-[1] font-mono text-[10px] tracking-[0.35em] text-nvg/75 uppercase">
+          <div className="hud p-6 md:p-8 border-nvg/30 bg-[radial-gradient(circle_at_top,_rgba(78,228,78,0.12),_transparent_45%)]">
+            <div className="font-mono text-[10px] tracking-[0.35em] text-nvg/75 uppercase">
               // target profile
             </div>
             <div className="mt-4 flex items-center justify-between gap-4">

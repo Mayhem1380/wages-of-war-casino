@@ -715,74 +715,6 @@ SLOT_MACHINES = {
         10,
         82,
     ),
-    "frigate": _machine(
-        "frigate",
-        "Frigate",
-        "Escort the convoy, sink the fleet",
-        "naval",
-        "Medium",
-        {
-            "radar": 5,
-            "deckgun": 7,
-            "torpedo": 8,
-            "ace": 11,
-            "king": 12,
-            "queen": 13,
-            "jack": 14,
-            "ten": 15,
-            "wild": 4,
-            "scatter": 4,
-        },
-        "wild",
-        "scatter",
-        {
-            "radar": {"3": 8, "4": 20, "5": 50},
-            "deckgun": {"3": 4, "4": 12, "5": 30},
-            "torpedo": {"3": 3, "4": 8, "5": 20},
-            "ace": {"3": 1, "4": 4, "5": 10},
-            "king": {"3": 0.8, "4": 3, "5": 8},
-            "queen": {"3": 0.6, "4": 2, "5": 6},
-            "jack": {"3": 0.5, "4": 1.5, "5": 5},
-            "ten": {"3": 0.4, "4": 1, "5": 4},
-        },
-        {"3": 3, "4": 10, "5": 25},
-        10,
-        83,
-    ),
-    "destroyer": _machine(
-        "destroyer",
-        "Destroyer",
-        "Full spread torpedoes, no survivors",
-        "naval",
-        "High",
-        {
-            "torpedo": 5,
-            "deckgun": 7,
-            "radar": 8,
-            "ace": 11,
-            "king": 12,
-            "queen": 13,
-            "jack": 14,
-            "ten": 15,
-            "wild": 4,
-            "scatter": 4,
-        },
-        "wild",
-        "scatter",
-        {
-            "torpedo": {"3": 10, "4": 25, "5": 60},
-            "deckgun": {"3": 5, "4": 14, "5": 35},
-            "radar": {"3": 3, "4": 9, "5": 22},
-            "ace": {"3": 1, "4": 4, "5": 10},
-            "king": {"3": 0.8, "4": 3, "5": 8},
-            "queen": {"3": 0.6, "4": 2, "5": 6},
-            "jack": {"3": 0.5, "4": 1.5, "5": 5},
-            "ten": {"3": 0.4, "4": 1, "5": 4},
-        },
-        {"3": 3, "4": 12, "5": 30},
-        10,
-        85,
-    ),
     "warpath_legends": _machine(
         "warpath_legends",
         "Warpath Legends",
@@ -4350,58 +4282,29 @@ SLOT_MACHINES = {
     ),
 }
 
-GOLDEN_DRAGON_REEL_STRIPS = [
-    ["gold_coin", "ace", "king", "lantern", "golden_dragon", "ace", "king", "gold_coin", "firecracker", "lantern", "ace", "king", "gold_coin", "lantern", "ace", "king"],
-    ["lantern", "king", "ace", "gold_coin", "ace", "king", "golden_dragon", "lantern", "king", "ace", "gold_coin", "firecracker", "lantern", "ace", "king", "gold_coin"],
-    ["ace", "gold_coin", "lantern", "king", "firecracker", "ace", "gold_coin", "lantern", "golden_dragon", "king", "ace", "gold_coin", "lantern", "king", "ace", "gold_coin"],
-    ["king", "lantern", "gold_coin", "ace", "king", "gold_coin", "lantern", "ace", "king", "golden_dragon", "firecracker", "gold_coin", "lantern", "ace", "king", "gold_coin"],
-    ["gold_coin", "ace", "king", "lantern", "ace", "king", "gold_coin", "lantern", "ace", "king", "gold_coin", "firecracker", "golden_dragon", "lantern", "ace", "king"],
-]
-
-SLOT_MACHINES["golden_dragon"] = _machine(
-    "golden_dragon",
-    "Golden Dragon",
-    "Strike the fire and claim the fortune",
-    "adventure",
-    "High",
-    {"golden_dragon": 1, "firecracker": 1, "gold_coin": 1, "lantern": 1, "ace": 1, "king": 1},
-    "golden_dragon",
-    "firecracker",
-    {
-        "golden_dragon": {"3": 20, "4": 50, "5": 250},
-        "gold_coin": {"3": 10, "4": 25, "5": 100},
-        "lantern": {"3": 5, "4": 15, "5": 50},
-        "ace": {"3": 2, "4": 5, "5": 15},
-        "king": {"3": 1, "4": 2.5, "5": 10},
-    },
-    {"3": 3, "4": 10, "5": 50},
-    10,
-    101,
-)
-SLOT_MACHINES["golden_dragon"]["reel_strips"] = GOLDEN_DRAGON_REEL_STRIPS
 # Expansion roster.  These are deliberately built from the same audited
 # five-reel engine definitions as the existing catalog: no alternate spin
 # implementation or untracked asset contract is introduced.
 _ADDITIONAL_SLOTS = [
     ("auric_bastion", "Auric Bastion", "Fortify the golden frontier", "fortune", "Medium", "gold_bonanza", 88, 9),
     ("blacksite_bounty", "Blacksite Bounty", "Extract the classified haul", "heist", "High", "night_raid", 87, 10),
-    ("cinder_convoy", "Hellfire Harpoon", "Escort the burning payload", "inferno", "High", "inferno_airstrike", 86, 10),
-    ("crystal_sentinel", "Abyssal Ambush", "Guard the vault of light", "olympus", "Medium", "sapphire_command", 85, 8),
-    ("dreadnought_gold", "Depth Charge Riches", "Command the bullion fleet", "naval", "High", "steel_leviathan", 84, 10),
-    ("ember_outpost", "Silent Strike", "Hold the line for glory", "inferno", "High", "ember_legion", 83, 9),
-    ("frostline_fortune", "Sapphire Siege", "Break through the frozen front", "military", "Medium", "frozen_front", 82, 8),
-    ("ghost_protocol", "Ghost Squadron", "Disappear with the jackpot", "heist", "High", "phantom_strike", 81, 10),
-    ("golden_watch", "Golden Grunt", "Time the perfect strike", "military", "Medium", "midas_command", 80, 9),
-    ("ironclad_raiders", "Ironclad Infantry", "Board the armored reserve", "naval", "High", "ironclad_jackpots", 79, 10),
+    ("cinder_convoy", "Cinder Convoy", "Escort the burning payload", "inferno", "High", "inferno_airstrike", 86, 10),
+    ("crystal_sentinel", "Crystal Sentinel", "Guard the vault of light", "olympus", "Medium", "sapphire_command", 85, 8),
+    ("dreadnought_gold", "Dreadnought Gold", "Command the bullion fleet", "naval", "High", "steel_leviathan", 84, 10),
+    ("ember_outpost", "Ember Outpost", "Hold the line for glory", "inferno", "High", "ember_legion", 83, 9),
+    ("frostline_fortune", "Frostline Fortune", "Break through the frozen front", "military", "Medium", "frozen_front", 82, 8),
+    ("ghost_protocol", "Ghost Protocol", "Disappear with the jackpot", "heist", "High", "phantom_strike", 81, 10),
+    ("golden_watch", "Golden Watch", "Time the perfect strike", "military", "Medium", "midas_command", 80, 9),
+    ("ironclad_raiders", "Ironclad Raiders", "Board the armored reserve", "naval", "High", "ironclad_jackpots", 79, 10),
     ("jade_fireteam", "Jade Fireteam", "Deploy the jade unit", "military", "Medium", "jade_dynasty", 78, 8),
-    ("lunar_lancers", "Phantom Platoon", "Charge beneath the silver moon", "olympus", "High", "solar_vanguard", 77, 9),
-    ("midnight_armory", "Midnight Marauders", "Unlock the night arsenal", "heist", "High", "midnight_vanguard", 76, 10),
-    ("neon_brigade", "Neon Kraken", "Light up the winning grid", "heist", "Medium", "neon_reserve", 75, 8),
-    ("obsidian_raiders", "Blackout Battalion", "Raid the black-glass vault", "heist", "High", "obsidian_empire", 74, 10),
-    ("redline_recon", "Reaper Reels", "Cross the danger zone", "military", "High", "redline_reign", 73, 9),
-    ("stormguard_elite", "Stormbreaker Slots", "Strike through the static", "military", "Medium", "stormbreaker", 72, 8),
-    ("tactical_titans", "Trident Tactical", "Mobilize the heavy hitters", "military", "High", "thunder_titans", 71, 10),
-    ("vault_of_victory", "Oceanic Overlord", "Crack the winner's reserve", "heist", "Medium", "money_train_convoy", 70, 9),
+    ("lunar_lancers", "Lunar Lancers", "Charge beneath the silver moon", "olympus", "High", "solar_vanguard", 77, 9),
+    ("midnight_armory", "Midnight Armory", "Unlock the night arsenal", "heist", "High", "midnight_vanguard", 76, 10),
+    ("neon_brigade", "Neon Brigade", "Light up the winning grid", "heist", "Medium", "neon_reserve", 75, 8),
+    ("obsidian_raiders", "Obsidian Raiders", "Raid the black-glass vault", "heist", "High", "obsidian_empire", 74, 10),
+    ("redline_recon", "Redline Recon", "Cross the danger zone", "military", "High", "redline_reign", 73, 9),
+    ("stormguard_elite", "Stormguard Elite", "Strike through the static", "military", "Medium", "stormbreaker", 72, 8),
+    ("tactical_titans", "Tactical Titans", "Mobilize the heavy hitters", "military", "High", "thunder_titans", 71, 10),
+    ("vault_of_victory", "Vault of Victory", "Crack the winner's reserve", "heist", "Medium", "money_train_convoy", 70, 9),
     ("wildline_warriors", "Wildline Warriors", "Take the frontier by force", "western", "High", "wild_west_recon", 69, 10),
 ]
 
@@ -4438,74 +4341,8 @@ def _weighted_pick(symbols):
     return list(symbols.keys())[-1]
 
 
-def _spin_fixed_strip_slot(machine, total_bet):
-    reel_strips = machine["reel_strips"]
-    wild = machine["wild"]
-    scatter = machine["scatter"]
-    line_bet = total_bet / len(PAYLINES)
-    stops = [secrets.randbelow(len(strip)) for strip in reel_strips]
-    grid = [
-        [strip[(stop + row) % len(strip)] for row in range(3)]
-        for strip, stop in zip(reel_strips, stops)
-    ]
-
-    line_wins = []
-    total_win = 0.0
-    for idx, pl in enumerate(PAYLINES):
-        line_syms = [grid[reel][pl[reel]] for reel in range(5)]
-        base = next((sym for sym in line_syms if sym not in (wild, scatter)), wild)
-        if base == scatter:
-            continue
-        count = 0
-        for sym in line_syms:
-            if sym in (base, wild):
-                count += 1
-            else:
-                break
-        multiplier = machine["paytable"].get(base, {}).get(str(count))
-        if multiplier is None:
-            continue
-        win = multiplier * line_bet
-        total_win += win
-        line_wins.append({
-            "line": idx,
-            "symbol": base,
-            "count": count,
-            "win": round(win, 2),
-            "positions": [[reel, pl[reel]] for reel in range(count)],
-        })
-
-    scatter_positions = [
-        [reel, row]
-        for reel in range(5)
-        for row in range(3)
-        if grid[reel][row] == scatter
-    ]
-    scatter_count = len(scatter_positions)
-    scatter_win = 0.0
-    if scatter_count >= 3:
-        multiplier = machine["scatter_pay"].get(str(min(scatter_count, 5)))
-        if multiplier is not None:
-            scatter_win = multiplier * total_bet
-            total_win += scatter_win
-
-    return {
-        "stop_positions": stops,
-        "grid": grid,
-        "line_wins": line_wins,
-        "scatter_positions": scatter_positions,
-        "scatter_count": scatter_count,
-        "scatter_win": round(scatter_win, 2),
-        "free_spins_awarded": machine["free_spins"] if scatter_count >= 3 else 0,
-        "total_win": round(total_win, 2),
-        "total_bet": round(total_bet, 2),
-    }
-
-
 def spin_slot(machine_id, total_bet, free=False):
     m = SLOT_MACHINES[machine_id]
-    if "reel_strips" in m:
-        return _spin_fixed_strip_slot(m, total_bet)
     symbols = m["symbols"]
     wild = m["wild"]
     scatter = m["scatter"]
@@ -4586,12 +4423,12 @@ def spin_slot(machine_id, total_bet, free=False):
 
 
 # ---------------------------------------------------------------------------
-# Public catalog contract: the backend exposes the canonical public slot roster.
-# Extra engine machines remain available internally, but the public endpoints are
-# intentionally limited to the product contract used by the regression suite.
+# Public catalog contract: the backend exposes the original six-slot roster.
+# Additional machines remain in the engine for internal/experimental use, but they
+# are intentionally hidden from the public /games/slots endpoints to match the
+# canonical product contract and the regression suite.
 # ---------------------------------------------------------------------------
 PUBLIC_SLOT_IDS = [
-    "golden_dragon",
     "desert_fury",
     "steel_leviathan",
     "crimson_dynasty",
@@ -4628,8 +4465,6 @@ PUBLIC_SLOT_IDS = [
     "samurai_strike",
     "voodoo_vengeance",
     "corsair_cannons",
-    "frigate",
-    "destroyer",
     "warpath_legends",
     "bull_rush",
     "buffalo_blast",
@@ -4735,8 +4570,10 @@ PUBLIC_SLOT_IDS = [
     "titanium_tundra",
     "jungle_guerrilla",
     "urban_sniper",
-    "iron_infantry",
+    "stealth_bomber",
+    "panzer_plunder",
     "black_hawk_bounty",
+    "iron_infantry",
     "auric_bastion",
     "blacksite_bounty",
     "cinder_convoy",
@@ -4760,6 +4597,28 @@ PUBLIC_SLOT_IDS = [
 ]
 
 FLAGSHIP_IDS = {
+    "desert_fury",
+    "steel_leviathan",
+    "crimson_dynasty",
+    "venom_squadron",
+    "platinum_siege",
+    "ember_legion",
+    "sapphire_command",
+    "golden_griffin",
+    "cobalt_siege",
+    "royal_ordnance",
+    "jade_dynasty",
+    "inferno_warlord",
+    "arctic_recon",
+    "midas_command",
+    "phantom_strike",
+    "thunder_baron",
+    "solar_vanguard",
+    "obsidian_empire",
+    "neon_pharaoh",
+    "crimson_vanguard",
+    "golden_atlas",
+    "emerald_guardian",
     "pharaohs_arsenal",
     "inferno_airstrike",
     "golden_dynasty",
@@ -4796,6 +4655,35 @@ FLAGSHIP_IDS = {
     "crimson_circuit",
     "warpath_legends",
     "bull_rush",
+    "buffalo_gold_rush",
+    "dragon_lightning_link",
+    "dollar_storm",
+    "five_dragons_ultra_grand",
+    "queen_of_the_nile",
+    "game_of_thrones",
+    "triple_gold_twister",
+    "five_kings",
+    "aurora_strike",
+    "nebula_fortune",
+    "titan_city",
+    "valley_of_echoes",
+    "neon_reserve",
+    "celestial_forge",
+    "forge_of_the_lost",
+    "oasis_relics",
+    "stormbreaker",
+    "midnight_harvest",
+    "sovereign_strike",
+    "aces_high",
+    "gold_convoy",
+    "night_raid",
+    "titanium_tundra",
+    "jungle_guerrilla",
+    "urban_sniper",
+    "stealth_bomber",
+    "panzer_plunder",
+    "black_hawk_bounty",
+    "iron_infantry",
 }
 
 # jackpot name -> multiplier of the total bet

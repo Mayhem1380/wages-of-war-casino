@@ -4,14 +4,11 @@ import { useParams, useNavigate } from "react-router-dom";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { SymbolTile } from "@/components/SymbolTile";
-import { PixiReelFX } from "@/components/PixiReelFX";
 import { FLAGSHIP_ART, fmt } from "@/data/gameMeta";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { sfx } from "@/lib/sounds";
 import { BigWinOverlay } from "@/components/BigWinOverlay";
-import { LiveWinnersTicker } from "@/components/LiveWinnersTicker";
-import { WinLossFlash } from "@/components/WinLossFlash";
 import {
   Lightning,
   Minus,
@@ -19,15 +16,7 @@ import {
   ArrowLeft,
   Coins,
   Info,
-  Sparkle,
 } from "@phosphor-icons/react";
-
-const COIN_DENOMS = [
-  { c: "1¢", v: 20 },
-  { c: "2¢", v: 40 },
-  { c: "5¢", v: 100 },
-  { c: "10¢", v: 200 },
-];
 
 const MIN_BET = 20;
 const MAX_BET = 100000;
@@ -109,8 +98,6 @@ export default function FlagshipSlot() {
   const [intro, setIntro] = useState(true);
   const [hold, setHold] = useState(null); // {coins:{}, respins, total, jackpots, done, filled}
   const [wheel, setWheel] = useState(null); // {segments, index, result, award, angle, revealed}
-  const [flash, setFlash] = useState(null); // {type:'win'|'lose', label}
-  const [buying, setBuying] = useState(false);
   const spinRef = useRef();
   const machineRef = useRef(null);
 
@@ -223,11 +210,6 @@ export default function FlagshipSlot() {
       setBigWin({ win: data.total_win, multiplier: 1 });
     if (data.total_win > 0)
       toast.success(`WIN +${fmt(data.total_win)} credits`);
-
-    const bonusIncoming = !!(data.holdwin_session || data.free_session);
-    if (data.total_win > 0)
-      setFlash({ type: "win", label: `+${fmt(data.total_win)}` });
-    else if (!bonusIncoming) setFlash({ type: "lose" });
 
     if (data.holdwin_session) {
       sfx.scatter();
@@ -377,45 +359,6 @@ export default function FlagshipSlot() {
   const changeBet = (d) =>
     setBet((b) => Math.max(MIN_BET, Math.min(MAX_BET, b + d)));
 
-  const buyFeature = async () => {
-    if (!user) {
-      openAuth("register");
-      return;
-    }
-    if (busy || buying || !machine) return;
-    const cost = bet * 100;
-    if ((user.balance || 0) < cost) {
-      toast.error(`Need ${fmt(cost)} credits to buy the feature`);
-      return;
-    }
-    setBuying(true);
-    sfx.prime();
-    try {
-      const { data } = await api.post("/games/slots/buy-bonus", {
-        machine_id: id,
-        bet,
-      });
-      await refreshUser();
-      sfx.scatter();
-      toast.success(
-        `FEATURE BOUGHT — ${data.free_session.spins_left} FREE SPINS!`,
-      );
-      setFree({
-        active: true,
-        spinsLeft: data.free_session.spins_left,
-        multiplier: 1,
-        total: 0,
-        done: false,
-        sessionId: data.free_session.session_id,
-      });
-      setTimeout(() => runFree(data.free_session.session_id), 1200);
-    } catch (e) {
-      toast.error(e.response?.data?.detail || "Buy feature failed");
-    } finally {
-      setBuying(false);
-    }
-  };
-
   if (!machine)
     return (
       <div className="max-w-6xl mx-auto p-16 font-mono text-nvg/70">
@@ -444,13 +387,6 @@ export default function FlagshipSlot() {
           onDone={() => setBigWin(null)}
         />
       )}
-
-      <WinLossFlash
-        show={!!flash}
-        type={flash?.type}
-        label={flash?.label}
-        onDone={() => setFlash(null)}
-      />
 
       {/* BONUS POWER WHEEL */}
       {wheel && (
@@ -596,10 +532,10 @@ export default function FlagshipSlot() {
         </div>
       )}
 
-      <div className="max-w-5xl mx-auto px-3 sm:px-6 pt-3 sm:pt-6 pb-28 lg:pb-6">
+      <div className="max-w-5xl mx-auto px-3 sm:px-6 pt-6 pb-28 lg:pb-6">
         <button
           onClick={() => navigate("/lobby")}
-          className="flex items-center gap-2 text-white/60 hover:text-white font-mono text-sm mb-2 sm:mb-4"
+          className="flex items-center gap-2 text-white/60 hover:text-white font-mono text-sm mb-4"
         >
           <ArrowLeft size={16} /> RETURN TO LOBBY
         </button>
@@ -607,7 +543,7 @@ export default function FlagshipSlot() {
         {/* JACKPOT LADDER */}
         <div
           data-testid="flagship-jackpots"
-          className="grid grid-cols-6 gap-1.5 sm:gap-2 mb-2 sm:mb-4"
+          className="grid grid-cols-6 gap-1.5 sm:gap-2 mb-4"
         >
           {JP_ORDER.map((jp) => (
             <div
@@ -628,10 +564,6 @@ export default function FlagshipSlot() {
           ))}
         </div>
 
-        <div className="hidden sm:block">
-          <LiveWinnersTicker game={machine.name} />
-        </div>
-
         <div className="grid lg:grid-cols-[1fr_260px] gap-4">
           {/* REELS */}
           <div className="relative">
@@ -645,13 +577,8 @@ export default function FlagshipSlot() {
             >
               <div
                 data-testid="flagship-grid"
-                className="relative grid grid-cols-5 gap-1.5 sm:gap-2"
+                className="grid grid-cols-5 gap-1.5 sm:gap-2"
               >
-                <PixiReelFX
-                  accent={art.accent}
-                  spinning={busy}
-                  winCount={winCells.size}
-                />
                 {grid.map((col, reel) => (
                   <div key={reel} className="flex flex-col gap-1.5 sm:gap-2">
                     {col.map((sym, row) => (
@@ -858,39 +785,7 @@ export default function FlagshipSlot() {
                   </button>
                 ))}
               </div>
-              <p className="font-mono text-[10px] tracking-widest text-nvg/70 mt-4 mb-2">
-                COIN DENOMINATION
-              </p>
-              <div className="grid grid-cols-4 gap-2">
-                {COIN_DENOMS.map(({ c, v }) => (
-                  <button
-                    key={c}
-                    data-testid={`flagship-denom-${c}`}
-                    onClick={() => setBet(v)}
-                    disabled={busy}
-                    className={`font-display text-sm py-2 border transition-colors disabled:opacity-40 ${
-                      bet === v
-                        ? "border-gold text-gold bg-gold/10 glow-gold"
-                        : "border-white/15 text-white/60 hover:border-gold hover:text-gold"
-                    }`}
-                  >
-                    {c}
-                  </button>
-                ))}
-              </div>
             </div>
-
-            {machine?.free_spins > 0 && (
-              <button
-                data-testid="flagship-buy-feature-btn"
-                onClick={buyFeature}
-                disabled={busy || buying}
-                className="w-full h-14 border-2 border-nvg text-nvg font-display text-lg tracking-widest hover:bg-nvg hover:text-black transition-colors flex items-center justify-center gap-2 disabled:opacity-40"
-              >
-                <Sparkle size={20} weight="fill" />
-                {buying ? "BUYING…" : `BUY NOW · ${fmt(bet * 100)}`}
-              </button>
-            )}
 
             <div className="hidden lg:block">
             {free && free.done ? (

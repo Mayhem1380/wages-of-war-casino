@@ -1,17 +1,12 @@
 import React, { useEffect, useState } from "react";
 
-// Rotating promo banner "digital screen" built from the campaign artwork set.
+// Rotating promo banner "digital screen" built from user-uploaded artwork.
 const BANNERS = [
-  "/assets/promo/warkino-special-forces.png",
-  "/assets/promo/signup-get-10.png",
-  "/assets/promo/giveaway-35k.jpg",
-  "/assets/promo/casino-lobby-full.png",
-  "/assets/promo/features-banner.png",
-  "/assets/promo/slot-cards-3.png",
-  "/assets/promo/warkino-hud.png",
-  "/assets/promo/crypto-currency-promo.png",
-  "/assets/promo/140-slots-promo.png",
-  "/assets/promo/second-chance-bonus.png",
+  "/brand/promo_1.png",
+  "/brand/promo_2.png",
+  "/brand/promo_3.png",
+  "/brand/promo_4.png",
+  "/brand/promo_5.png",
 ];
 
 export function PromoScreen() {
@@ -49,8 +44,6 @@ export function PromoScreen() {
               key={src}
               src={src}
               alt=""
-              loading={idx === 0 ? "eager" : "lazy"}
-              decoding="async"
               className="absolute inset-0 w-full h-full object-cover"
               style={{
                 opacity: idx === i ? 1 : 0,
