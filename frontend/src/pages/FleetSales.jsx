@@ -136,21 +136,25 @@ export default function FleetSales() {
       name: "10-Slot Pack",
       note: "10 custom slot machines + gaming · deploy-ready",
       price: "$5,000",
+      img: "/brand/fleet_frigate.jpg",
     },
     {
       name: "Startup Build",
       note: "Full platform + gaming · front + backend",
       price: "$6,800",
+      img: "/brand/fleet_destroyer.jpg",
     },
     {
       name: "Turnkey Platform",
       note: "Turnkey casino with gaming · real-money & compliance · outright",
       price: "$35,000",
+      img: "/brand/fleet_carrier.jpg",
     },
     {
       name: "Enterprise Fleet",
       note: "Multi-brand · custom deployment",
       price: "P.O.A.",
+      img: "/brand/fleet_carrier.jpg",
     },
   ];
 
@@ -347,7 +351,13 @@ export default function FleetSales() {
                 key={p.name}
                 className="flex items-center justify-between gap-4 border border-gold/25 bg-black/50 backdrop-blur-sm px-4 py-3 hover:border-gold/70 transition-colors"
               >
-                <div className="min-w-0">
+                <img
+                  src={p.img}
+                  alt={p.name}
+                  className="w-20 h-14 object-cover rounded-sm border border-gold/30 shrink-0 shadow-[0_2px_10px_rgba(0,0,0,0.6)]"
+                  data-testid={`fleet-ship-${p.name.toLowerCase().replace(/\s+/g, '-')}`}
+                />
+                <div className="min-w-0 flex-1">
                   <div className="font-stencil tracking-wide text-foreground uppercase text-sm truncate">
                     {p.name}
                   </div>
