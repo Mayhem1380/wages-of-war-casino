@@ -102,9 +102,15 @@ def build_rom() -> bytes:
     return bytes(rom)
 
 
-def main() -> None:
-    output = Path(__file__).with_name("rainbow.bin")
+def generate_atari_rom(filename="my_first_game.bin") -> Path:
+    """Write a 4KB ROM to *filename* and return its resolved path."""
+    output = Path(filename).expanduser().resolve()
     output.write_bytes(build_rom())
+    return output
+
+
+def main() -> None:
+    output = generate_atari_rom(Path(__file__).with_name("rainbow.bin"))
     print(f"Created {output} ({output.stat().st_size} bytes)")
 
 
