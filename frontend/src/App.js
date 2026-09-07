@@ -17,7 +17,6 @@ import SlotGame from "@/pages/SlotGame";
 import FlagshipSlot from "@/pages/FlagshipSlot";
 import KenoGame from "@/pages/KenoGame";
 import CoinFlipGame from "@/pages/CoinFlipGame";
-import SharkSplitters from "@/pages/SharkSplitters";
 import Wallet from "@/pages/Wallet";
 import Cashier from "@/pages/Cashier";
 import Profile from "@/pages/Profile";
@@ -32,6 +31,7 @@ import AuthCallback from "@/pages/AuthCallback";
 import KycPage from "@/pages/Kyc";
 import DailyWheel from "@/pages/DailyWheel";
 import Tournament from "@/pages/Tournament";
+import Carnival3DSlot from "@/pages/Carnival3DSlot";
 import { useParams } from "react-router-dom";
 import { FLAGSHIP_IDS } from "@/data/gameMeta";
 import { getAppBasePath } from "@/lib/runtime";
@@ -71,9 +71,9 @@ function AppRouter() {
         <Route path="/" element={<Landing />} />
         <Route path="/lobby" element={<Lobby />} />
         <Route path="/slots/:id" element={<SlotRoute />} />
+        <Route path="/carnival-3d/:id?" element={<Carnival3DSlot />} />
         <Route path="/keno" element={<KenoGame />} />
         <Route path="/coinflip" element={<CoinFlipGame />} />
-        <Route path="/shark" element={<SharkSplitters />} />
         <Route path="/wheel" element={<DailyWheel />} />
         <Route path="/tournament" element={<Tournament />} />
         <Route path="/leaderboard" element={<Leaderboard />} />

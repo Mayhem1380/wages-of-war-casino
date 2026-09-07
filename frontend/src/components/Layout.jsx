@@ -4,7 +4,6 @@ import { useAuth } from "@/context/AuthContext";
 import { useSound } from "@/context/SoundContext";
 import { BrandLogo } from "@/components/BrandLogo";
 import CombatBackground from "@/components/CombatBackground";
-import SharkBite from "@/components/SharkBite";
 import { AuthDialog } from "@/components/AuthDialog";
 import { RankUpBanner } from "@/components/RankUpBanner";
 import ChatWidget from "@/components/ChatWidget";
@@ -205,9 +204,25 @@ export function Layout({ children }) {
         className="fixed inset-0 z-0 pointer-events-none bg-cover bg-center opacity-[0.18]"
         style={{ backgroundImage: "url(/brand/warmap_bg.jpg)" }}
       />
+      <div aria-hidden="true" className="tactical-targets">
+        <span className="target-point target-one" />
+        <span className="target-point target-two" />
+        <span className="target-point target-three" />
+        <span className="target-point target-four" />
+        <span className="target-point target-five" />
+      </div>
       {/* War-zone combat scene (muzzle flashes) — shown on entry for everyone */}
       <CombatBackground />
-      <header className="sticky top-0 z-50 border-b-2 border-gold/25 bg-black/85 backdrop-blur-md">
+      <a
+        href="https://gaming-fleet-hq.preview.emergentagent.com"
+        target="_blank"
+        rel="noopener noreferrer"
+        data-testid="nexus-top-banner"
+        className="relative z-50 block w-full bg-gradient-to-r from-[#11130d] via-[#0c1b10] to-[#11130d] border-b border-gold/40 py-1.5 text-center font-mono text-[11px] tracking-[0.32em] text-gold hover:text-nvg transition-colors"
+      >
+        ⚡ NEXUS · EXPLORE THE FULL GAMING FLEET HQ →
+      </a>
+      <header className="sticky top-0 z-50 border-b border-gold/20 bg-[#070a07]/90 backdrop-blur-xl shadow-[0_12px_50px_rgba(0,0,0,0.32)]">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-8 h-16 flex items-center justify-between gap-4">
           <Link to="/" data-testid={NAV.logo}>
             <BrandLogo size={38} subtitle={false} />
@@ -232,19 +247,19 @@ export function Layout({ children }) {
                 <Link
                   to="/wallet"
                   data-testid={NAV.balance}
-                  className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 hud hud-gold text-gold font-mono text-xs sm:text-sm glow-gold"
+                  className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 border border-gold/40 bg-gradient-to-r from-[#120f07] to-[#090b09] text-gold font-mono text-xs sm:text-sm shadow-[0_0_20px_rgba(212,175,55,0.08)]"
                 >
                   <Coins size={16} weight="fill" />
                   <span data-testid="balance-value">{fmt(user.balance)}</span>
                 </Link>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild data-testid={NAV.userMenu}>
-                    <button className="flex items-center gap-2 outline-none">
+                    <button className="flex items-center gap-2 outline-none rounded-full border border-gold/20 bg-black/30 p-1.5 hover:border-gold/40 transition-colors">
                       {user.picture ? (
                         <img
                           src={user.picture}
                           alt="me"
-                          className="w-9 h-9 rounded-full ring-1 ring-nvg/50 object-cover"
+                          className="w-9 h-9 rounded-full ring-1 ring-gold/30 object-cover"
                         />
                       ) : (
                         <UserCircle
@@ -373,7 +388,6 @@ export function Layout({ children }) {
                 </Button>
                 <Button
                   data-testid={NAV.enlistBtn}
-                  onClick={() => openAuth("register")}
                   className="bg-gold hover:bg-gold/90 text-black font-display text-sm sm:text-base tracking-widest px-4 sm:px-5 glow-gold"
                 >
                   ENLIST
@@ -409,7 +423,7 @@ export function Layout({ children }) {
 
       <footer className="relative z-10 border-t-2 border-gold/20 bg-black/70 overflow-hidden">
         <div
-          className="absolute inset-0 pointer-events-none opacity-[0.6]"
+          className="absolute inset-0 pointer-events-none opacity-90"
           style={{
             backgroundImage: `url(${BRAND.footerUnderwater})`,
             backgroundSize: "cover",
@@ -417,69 +431,14 @@ export function Layout({ children }) {
           }}
           aria-hidden="true"
         />
-        <SharkBite />
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
             background:
-              "linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0.8))",
+              "linear-gradient(180deg, rgba(1,8,12,0.35), rgba(0,0,0,0.85) 80%)",
           }}
           aria-hidden="true"
         />
-
-        {/* Blue glowing casino emblem faded between the diver & shark + rising bubbles */}
-        <style>{`
-          @keyframes wowBubble { 0%{ transform:translateY(0) scale(1); opacity:0; } 12%{ opacity:.55; } 100%{ transform:translateY(-210px) scale(1.5); opacity:0; } }
-          /* SHARK STRIKE: the ROUND blue logo is chomped away (bitten) as the shark
-             lunges, then regrows/heals — looped on the shark's 5s cycle. Stays a
-             perfect circle at every frame (container is rounded-full + overflow-hidden). */
-          .footer-emblem-heal { animation: wowBiteHeal 5s ease-in-out infinite; will-change: clip-path, opacity; }
-          @keyframes wowBiteHeal {
-            0%   { clip-path: inset(0 0 0 0); opacity:.55; }
-            44%  { clip-path: inset(0 0 0 0); opacity:.66; }
-            54%  { clip-path: inset(0 0 0 0); opacity:.66; }
-            62%  { clip-path: inset(0 47% 0 0); opacity:.5; }
-            70%  { clip-path: inset(0 100% 0 0); opacity:.12; }
-            73%  { clip-path: inset(0 100% 0 0); opacity:0; }
-            86%  { clip-path: inset(0 38% 0 0); opacity:.4; }
-            100% { clip-path: inset(0 0 0 0); opacity:.55; }
-          }
-          @media (prefers-reduced-motion: reduce) {
-            .footer-emblem-heal { animation: none !important; opacity:.55 !important; clip-path: none !important; }
-          }
-        `}</style>
-        {/* Round blue emblem — forced circular so it NEVER renders square; shark chomps it then it heals. */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute left-1/2 top-1/2 z-[1] w-56 sm:w-80 aspect-square rounded-full overflow-hidden"
-          style={{
-            transform: "translate(-50%,-50%)",
-            boxShadow:
-              "0 0 22px rgba(56,189,248,0.85), 0 0 48px rgba(56,189,248,0.5), 0 0 70px rgba(255,60,60,0.45)",
-          }}
-        >
-          <img
-            src="/brand/footer_logo_blue.png"
-            alt=""
-            className="footer-emblem-heal w-full h-full object-cover"
-          />
-        </div>
-        {[...Array(7)].map((_, i) => (
-          <span
-            key={i}
-            aria-hidden="true"
-            className="pointer-events-none absolute rounded-full bg-cyan-300/40 z-[1]"
-            style={{
-              left: `${13 + i * 11}%`,
-              bottom: "6%",
-              width: `${6 + (i % 3) * 4}px`,
-              height: `${6 + (i % 3) * 4}px`,
-              filter: "blur(0.5px)",
-              boxShadow: "0 0 8px rgba(56,189,248,0.7)",
-              animation: `wowBubble ${5 + i * 0.8}s ease-in ${i * 0.7}s infinite`,
-            }}
-          />
-        ))}
 
         <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-8 py-16">
           <div className="grid md:grid-cols-4 gap-10">

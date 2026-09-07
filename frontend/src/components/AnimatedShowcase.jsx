@@ -259,6 +259,8 @@ export function AnimatedShowcase({ variant = "promo", testId }) {
           <img
             src={s.img}
             alt={s.title}
+            loading={i === 0 ? "eager" : "lazy"}
+            decoding="async"
             className="w-full h-full object-cover"
           />
         </motion.div>

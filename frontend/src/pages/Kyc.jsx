@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import api from "@/lib/api";
-import { getAppOriginUrl } from "@/lib/runtime";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -19,33 +18,34 @@ const initialBanking = {
 export default function KycPage() {
   const [banking, setBanking] = useState(initialBanking);
   const [busy, setBusy] = useState(false);
+  const [bankingBusy, setBankingBusy] = useState(false);
 
-  const submit = async () => {
+  const startVerification = async () => {
     setBusy(true);
     try {
-      await api.post("/kyc/banking", banking);
-      toast.success("Banking details saved for verification.");
-    } catch (e) {
-      toast.error(e.response?.data?.detail || "Banking details validation failed");
-      setBusy(false);
-      return;
-    }
-    try {
       const { data } = await api.post("/kyc/session", {
-        origin_url: getAppOriginUrl(),
+        origin_url: window.location.origin,
       });
       if (data.already_approved) {
         toast.success("Identity already verified.");
       } else {
         window.location.href = data.url;
-        return;
       }
     } catch (e) {
-      toast.error(e.response?.data?.detail || "Could not start identity verification");
-      setBusy(false);
-      return;
+      toast.error(e.response?.data?.detail || "Could not start verification");
     }
     setBusy(false);
+  };
+
+  const saveBanking = async () => {
+    setBankingBusy(true);
+    try {
+      await api.post("/kyc/banking", banking);
+      toast.success("Banking details saved and matched to KYC profile.");
+    } catch (e) {
+      toast.error(e.response?.data?.detail || "Banking details validation failed");
+    }
+    setBankingBusy(false);
   };
 
   const handleBankingChange = (e) => {
@@ -64,11 +64,12 @@ export default function KycPage() {
       </p>
 
       <div className="mt-6 space-y-6">
-        <div className="grid md:grid-cols-2 gap-4">
-          <div className="md:col-span-2 rounded border border-nvg/30 bg-nvg/5 p-4 text-sm text-muted-foreground">
-            Identity documents are collected securely by Stripe Identity. This
-            page never uploads or stores raw ID images in the casino database.
-          </div>
+        <div className="rounded border border-nvg/30 bg-nvg/5 p-4">
+          <p className="font-stencil text-xs tracking-[0.3em] text-nvg uppercase">Identity verification</p>
+          <p className="text-sm text-muted-foreground mt-2">Verification is handled securely by the connected identity provider. No identity documents are uploaded through this page.</p>
+          <Button onClick={startVerification} disabled={busy} className="mt-4 bg-nvg text-black">
+            {busy ? "Opening secure verification..." : "Start secure identity verification"}
+          </Button>
         </div>
 
         <div className="rounded border border-gold/30 bg-gold/5 p-4 space-y-4">
@@ -88,11 +89,11 @@ export default function KycPage() {
 
         <div>
           <Button
-            onClick={submit}
-            disabled={busy}
+            onClick={saveBanking}
+            disabled={bankingBusy}
             className="bg-gold text-black"
           >
-            {busy ? "Submitting..." : "Submit Verification & Banking Details"}
+            {bankingBusy ? "Saving..." : "Save banking details"}
           </Button>
         </div>
       </div>

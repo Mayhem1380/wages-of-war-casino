@@ -2,12 +2,13 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
-import { MACHINE_ART, FLAGSHIP_ART, resolveMachineArt, fmt } from "@/data/gameMeta";
+import { FLAGSHIP_ART, FLAGSHIP_IDS, MACHINE_ART, resolveMachineArt, fmt } from "@/data/gameMeta";
 import { LOBBY } from "@/constants/testIds";
 import { SymbolTile } from "@/components/SymbolTile";
 import { AnimatedShowcase } from "@/components/AnimatedShowcase";
 import { LobbyHype } from "@/components/LobbyHype";
 import { LiveDrawBoard } from "@/components/LiveDrawBoard";
+import { FeatureIcon } from "@/components/FeatureIcon";
 import { WinnersSection } from "@/components/WinnersSection";
 import {
   Target,
@@ -22,6 +23,27 @@ import {
   Crown,
   Flame,
 } from "@phosphor-icons/react";
+
+const FALLBACK_DETAILS = {
+  warpath_legends: ["Warpath Legends", "Command the frontier and chase the grand jackpot.", "western"],
+  golden_dynasty: ["Golden Dynasty", "Enter the imperial vault for Hold & Win prizes.", "dynasty"],
+  money_train_convoy: ["Money Train Convoy", "Board the armored convoy and collect cash-on-reels.", "heist"],
+};
+const LOBBY_FALLBACK_SLOTS = FLAGSHIP_IDS.map((id, index) => {
+  const [name, tagline, theme] = FALLBACK_DETAILS[id] || [
+    id.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase()),
+    "Premium reels, live jackpot prizes, and feature-rich bonus play.",
+    "military",
+  ];
+  return {
+  id,
+  name,
+  tagline,
+  theme,
+  popularity: FLAGSHIP_IDS.length - index,
+  is_flagship: true,
+  };
+});
 
 // Map each slot theme to a player-facing category tab.
 const THEME_CATEGORY = {
@@ -61,7 +83,7 @@ function CornerCard({
     <button
       data-testid={testId}
       onClick={onClick}
-      className={`relative text-left bg-[#0a0d0a] border border-border overflow-hidden group hover:-translate-y-1 transition-transform duration-300 ${className}`}
+          className={`slot-catalog-card relative text-left bg-[#0a0d0a] border border-border overflow-hidden group hover:-translate-y-1 transition-transform duration-300 ${className}`}
       style={{ boxShadow: "inset 0 0 60px rgba(0,0,0,0.6)" }}
     >
       <span
@@ -88,7 +110,7 @@ function CornerCard({
 export default function Lobby() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [slots, setSlots] = useState([]);
+  const [slots, setSlots] = useState(LOBBY_FALLBACK_SLOTS);
   const [query, setQuery] = useState("");
   const [cat, setCat] = useState("All");
   const [champions, setChampions] = useState([]);
@@ -104,7 +126,7 @@ export default function Lobby() {
             return (b.is_flagship ? 1 : 0) - (a.is_flagship ? 1 : 0);
           return (b.popularity || 0) - (a.popularity || 0);
         });
-        setSlots(sorted);
+        setSlots(sorted.length ? sorted : LOBBY_FALLBACK_SLOTS);
       })
       .catch(() => {});
     api
@@ -201,6 +223,34 @@ export default function Lobby() {
       <LiveDrawBoard />
       <WinnersSection compact />
 
+      <div className="mb-10 lobby-elite-panel">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-2xl">
+            <div className="lobby-elite-tag">// ELITE COMMAND DECK</div>
+            <h2 className="font-display text-4xl sm:text-5xl tracking-wide text-foreground mt-3">
+              HIGH-STAKES ROYALTY, BUILT FOR BIG REWARDS
+            </h2>
+          </div>
+          <div className="font-mono text-[10px] sm:text-xs tracking-[0.3em] text-nvg/80 uppercase">
+            Curated VIP missions • premium jackpots • live ops
+          </div>
+        </div>
+
+        <div className="mt-6 grid gap-4 md:grid-cols-4">
+          {[
+            { label: "Jackpots Live", value: "$4.8M+" },
+            { label: "Elite Titles", value: "145" },
+            { label: "Daily Drops", value: "12" },
+            { label: "VIP Rate", value: "98%" },
+          ].map((item) => (
+            <div key={item.label} className="lobby-stat-card">
+              <div className="lobby-stat-value">{item.value}</div>
+              <div className="lobby-stat-label">{item.label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* PLAYER QUICK-DEPLOY LAUNCHPAD */}
       <div className="mb-10" data-testid="player-command-hub">
         <p className="font-mono text-xs tracking-[0.35em] text-nvg/70 mb-3">
@@ -224,9 +274,11 @@ export default function Lobby() {
                 onClick={() => navigate(q.to)}
                 className="group flex flex-col items-center gap-2 border border-border bg-black/40 backdrop-blur-sm py-4 px-2 hover:border-gold/70 hover:bg-gold/[0.06] transition-colors"
               >
-                <Icon
+                <FeatureIcon
+                  img={q.img}
+                  icon={Icon}
+                  alt={q.name}
                   size={26}
-                  weight="fill"
                   className="text-nvg group-hover:text-gold transition-colors"
                 />
                 <span className="font-stencil tracking-widest uppercase text-[11px] sm:text-xs text-foreground text-center leading-tight">
@@ -371,15 +423,17 @@ export default function Lobby() {
         <button
           data-testid={LOBBY.wheelCard}
           onClick={() => navigate("/wheel")}
-          className="relative text-left overflow-hidden group border border-gold/40 hover:-translate-y-1 transition-transform duration-300"
+          className="ops-tile relative text-left overflow-hidden group border border-gold/40 hover:-translate-y-1 transition-transform duration-300"
           style={{
-            background:
-              "radial-gradient(130% 130% at 0% 0%, #2a1e05 0%, #0a0d0a 68%)",
+            backgroundImage:
+              "linear-gradient(120deg, rgba(42,30,5,0.82), rgba(10,13,10,0.94)), url(/brand/warmap_bg.jpg)",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
           }}
         >
           <div className="p-6 min-h-[140px] flex items-center gap-5">
             <div className="shrink-0 w-16 h-16 rounded-full border-2 border-gold/60 flex items-center justify-center glow-gold animate-spin-slow">
-              <Sparkle size={32} weight="fill" className="text-gold" />
+              <FeatureIcon icon={Sparkle} alt="Streak Wheel" size={32} className="text-gold" />
             </div>
             <div>
               <p className="font-mono text-[10px] tracking-[0.3em] text-gold/70">
@@ -403,15 +457,17 @@ export default function Lobby() {
         <button
           data-testid={LOBBY.tournamentCard}
           onClick={() => navigate("/tournament")}
-          className="relative text-left overflow-hidden group border border-nvg/40 hover:-translate-y-1 transition-transform duration-300"
+          className="ops-tile relative text-left overflow-hidden group border border-nvg/40 hover:-translate-y-1 transition-transform duration-300"
           style={{
-            background:
-              "radial-gradient(130% 130% at 100% 0%, #05231a 0%, #0a0d0a 68%)",
+            backgroundImage:
+              "linear-gradient(120deg, rgba(5,35,26,0.82), rgba(10,13,10,0.94)), url(/brand/award_poster_real.png)",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
           }}
         >
           <div className="p-6 min-h-[140px] flex items-center gap-5">
             <div className="shrink-0 w-16 h-16 rounded-full border-2 border-nvg/60 flex items-center justify-center glow-nvg">
-              <Trophy size={32} weight="fill" className="text-nvg" />
+              <FeatureIcon icon={Trophy} alt="Tournament" size={32} className="text-nvg" />
             </div>
             <div>
               <p className="font-mono text-[10px] tracking-[0.3em] text-nvg/70">
@@ -681,14 +737,15 @@ export default function Lobby() {
           onClick={() => navigate("/keno")}
         >
           <div
-            className="p-6 min-h-[160px] flex items-center gap-5"
+            className="ops-tile relative p-6 min-h-[200px] flex items-center gap-5"
             style={{
-              background:
-                "radial-gradient(120% 120% at 0% 0%, #0a1f0a 0%, #0a0d0a 70%)",
+              backgroundImage:
+                "linear-gradient(90deg, rgba(6,14,6,0.94) 0%, rgba(6,14,6,0.70) 44%, rgba(6,14,6,0.10) 100%), url(/slots/warkino_tile.jpg)",
+              backgroundSize: "cover",
+              backgroundPosition: "center",
             }}
           >
-            <Target size={64} weight="duotone" className="text-nvg shrink-0" />
-            <div>
+            <div className="relative z-[1] max-w-[62%]">
               <h3 className="font-display text-4xl tracking-wide text-foreground group-hover:text-nvg">
                 WARHEAD KENO
               </h3>
@@ -709,14 +766,15 @@ export default function Lobby() {
           onClick={() => navigate("/coinflip")}
         >
           <div
-            className="p-6 min-h-[160px] flex items-center gap-5"
+            className="ops-tile relative p-6 min-h-[200px] flex items-center gap-5"
             style={{
-              background:
-                "radial-gradient(120% 120% at 100% 0%, #231a06 0%, #0a0d0a 70%)",
+              backgroundImage:
+                "linear-gradient(90deg, rgba(20,15,4,0.94) 0%, rgba(20,15,4,0.70) 44%, rgba(20,15,4,0.08) 100%), url(/slots/sharkflip_tile.png)",
+              backgroundSize: "cover",
+              backgroundPosition: "center",
             }}
           >
-            <Coins size={64} weight="duotone" className="text-gold shrink-0" />
-            <div>
+            <div className="relative z-[1] max-w-[62%]">
               <h3 className="font-display text-4xl tracking-wide text-foreground group-hover:gold-gradient">
                 DOG-TAG FLIP
               </h3>

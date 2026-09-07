@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { sfx } from "@/lib/sounds";
 import { WinCelebration } from "@/components/WinCelebration";
+import { LiveWinnersTicker } from "@/components/LiveWinnersTicker";
 import { Coins, ArrowLeft, Lightning, TrendUp } from "@phosphor-icons/react";
 
 export default function CoinFlipGame() {
@@ -117,28 +118,78 @@ export default function CoinFlipGame() {
           </h1>
         </div>
 
+        <LiveWinnersTicker game="Dog-Tag Flip" />
+
         <div
           className="hud hud-gold p-8 flex flex-col items-center gap-6"
           style={{ perspective: "900px" }}
         >
-          <motion.div
-            className="w-32 h-32 sm:w-44 sm:h-44 lg:w-48 lg:h-48 flex items-center justify-center"
-            animate={
-              flip
-                ? { rotateY: [0, 2160], scale: [1, 1.12, 1] }
-                : { rotateY: 0, scale: 1 }
-            }
-            transition={
-              flip ? { duration: 0.9, ease: "easeInOut" } : { duration: 0.3 }
-            }
-            style={{ transformStyle: "preserve-3d" }}
+          <div
+            data-testid="coinflip-stage"
+            className="relative w-48 h-48 sm:w-60 sm:h-60 flex items-center justify-center"
           >
-            <img
-              src={faceImg}
-              alt={face}
-              className={`w-full h-full object-contain drop-shadow-[0_0_24px_rgba(246,198,74,0.5)] ${result && !flip && result.win > 0 ? "animate-pop" : ""}`}
+            {/* decorative glow ring behind the coin */}
+            <motion.div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 rounded-full"
+              style={{
+                background:
+                  "conic-gradient(from 0deg, rgba(246,198,74,0), rgba(246,198,74,0.55), rgba(78,228,78,0.45), rgba(246,198,74,0))",
+                filter: "blur(14px)",
+              }}
+              animate={
+                flip
+                  ? { rotate: 360, opacity: 0.95, scale: [1, 1.08, 1] }
+                  : { rotate: 0, opacity: 0.35, scale: 1 }
+              }
+              transition={
+                flip
+                  ? { duration: 0.9, ease: "linear", repeat: Infinity }
+                  : { duration: 0.4 }
+              }
             />
-          </motion.div>
+            {/* orbiting shark coins during the flip */}
+            {[0, 1, 2, 3].map((i) => (
+              <motion.img
+                key={i}
+                aria-hidden="true"
+                src={i % 2 === 0 ? "/brand/shark_coin_heads.png" : "/brand/shark_coin_tails.png"}
+                alt=""
+                className="pointer-events-none absolute w-10 h-10 sm:w-12 sm:h-12 object-contain drop-shadow-[0_0_10px_rgba(246,198,74,0.7)]"
+                style={{ top: "50%", left: "50%", marginTop: -24, marginLeft: -24 }}
+                animate={
+                  flip
+                    ? {
+                        opacity: [0, 1, 1, 0],
+                        rotate: 360,
+                        x: [0, Math.cos((i * Math.PI) / 2) * 96],
+                        y: [0, Math.sin((i * Math.PI) / 2) * 96],
+                        scale: [0.4, 1, 1, 0.6],
+                      }
+                    : { opacity: 0, x: 0, y: 0, scale: 0.4 }
+                }
+                transition={{ duration: 0.9, ease: "easeOut" }}
+              />
+            ))}
+            <motion.div
+              className="relative z-[1] w-32 h-32 sm:w-44 sm:h-44 lg:w-48 lg:h-48 flex items-center justify-center"
+              animate={
+                flip
+                  ? { rotateY: [0, 2160], scale: [1, 1.12, 1] }
+                  : { rotateY: 0, scale: 1 }
+              }
+              transition={
+                flip ? { duration: 0.9, ease: "easeInOut" } : { duration: 0.3 }
+              }
+              style={{ transformStyle: "preserve-3d" }}
+            >
+              <img
+                src={faceImg}
+                alt={face}
+                className={`w-full h-full object-contain drop-shadow-[0_0_24px_rgba(246,198,74,0.5)] ${result && !flip && result.win > 0 ? "animate-pop" : ""}`}
+              />
+            </motion.div>
+          </div>
           <div data-testid={COINFLIP.result} className="h-10 text-center">
             {result && !flip && (
               <p

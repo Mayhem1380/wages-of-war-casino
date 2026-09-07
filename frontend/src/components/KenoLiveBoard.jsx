@@ -116,16 +116,20 @@ export function KenoLiveBoard({ picks = [] }) {
         <div
           className={`shrink-0 w-16 h-16 rounded-full flex items-center justify-center font-display text-3xl border-2 ${
             phase === "drawing"
-              ? "border-nvg text-nvg glow-nvg animate-pop"
+              ? "border-nvg text-nvg keno-ball-neon animate-pop"
               : "border-gold/40 text-gold/60"
           }`}
           style={{
             background:
-              "radial-gradient(circle at 35% 30%, rgba(78,228,78,0.25), rgba(0,0,0,0.6))",
+              phase === "drawing"
+                ? "radial-gradient(circle at 35% 30%, rgba(140,255,130,0.55), rgba(20,120,20,0.5) 60%, rgba(0,0,0,0.6))"
+                : "radial-gradient(circle at 35% 30%, rgba(78,228,78,0.25), rgba(0,0,0,0.6))",
             boxShadow:
               phase === "drawing"
-                ? "0 0 26px rgba(78,228,78,0.6)"
+                ? "0 0 30px rgba(124,255,107,0.9), 0 0 60px rgba(78,228,78,0.55)"
                 : "inset 0 0 18px rgba(0,0,0,0.7)",
+            textShadow:
+              phase === "drawing" ? "0 0 12px rgba(180,255,170,0.9)" : "none",
           }}
         >
           {currentBall ?? "—"}
@@ -168,9 +172,18 @@ export function KenoLiveBoard({ picks = [] }) {
                 !shown
                   ? "border-border/40 bg-black/40 text-transparent"
                   : isMatch
-                    ? "border-gold bg-gold/25 text-gold glow-gold animate-pop"
-                    : "border-nvg/50 bg-nvg/10 text-nvg animate-pop"
+                    ? "border-gold bg-gold/25 text-gold keno-ball-neon-gold animate-pop"
+                    : "border-nvg/70 text-white keno-ball-neon animate-pop"
               }`}
+              style={
+                shown && !isMatch
+                  ? {
+                      background:
+                        "radial-gradient(circle at 35% 30%, rgba(140,255,130,0.5), rgba(20,120,20,0.35))",
+                      textShadow: "0 0 8px rgba(180,255,170,0.9)",
+                    }
+                  : undefined
+              }
             >
               {shown ? n : "•"}
             </div>

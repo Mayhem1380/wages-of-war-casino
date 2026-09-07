@@ -3,7 +3,7 @@ import { Rocket, Check, ArrowUpRight } from "@phosphor-icons/react";
 
 // Nexus Studio design/build service packages advertisement.
 // EDIT the prices + URL below with your real values (or ask the agent to set them).
-const NEXUS_URL = "https://nexusstudiomaster.com";
+const NEXUS_URL = "/fleet-sales";
 const PACKAGES = [
   {
     name: "10-SLOT PACK",
@@ -36,10 +36,10 @@ export function NexusStudioPromo() {
         <Rocket size={24} weight="fill" className="text-gold" />
         <div>
           <p className="font-mono text-[10px] tracking-[0.35em] text-gold/70">
-            // BUILT BY NEXUS STUDIO
+            // NEXUS STUDIO MASTER GLOBAL FLEET GAMING
           </p>
           <h3 className="font-display text-2xl tracking-widest gold-gradient">
-            WANT ONE BUILT LIKE THIS?
+            BUILD YOUR OWN GLOBAL GAMING FLEET
           </h3>
         </div>
         <a
@@ -108,7 +108,7 @@ export function NexusStudioPromo() {
         ))}
       </div>
       <p className="font-mono text-[10px] text-muted-foreground text-center mt-4">
-        Nexus Studio — cinematic web apps, games &amp; platforms. Enquire at{" "}
+        Nexus Studio Master — cinematic web apps, games &amp; global fleet platforms. Enquire at{" "}
         <a href={NEXUS_URL} className="text-nvg underline">
           {NEXUS_URL.replace("https://", "")}
         </a>

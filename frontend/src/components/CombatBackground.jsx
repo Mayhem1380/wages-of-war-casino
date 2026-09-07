@@ -6,7 +6,7 @@ import React, { useRef, useEffect } from "react";
  * flashes, recoil, tracer rounds, distant artillery explosions and
  * drifting gun-smoke. Sits behind all content (z-0).
  */
-export default function CombatBackground() {
+const CombatBackground = React.memo(function CombatBackground() {
   const ref = useRef(null);
 
   useEffect(() => {
@@ -259,15 +259,18 @@ export default function CombatBackground() {
       <canvas ref={ref} className="w-full h-full block" />
       {/* tactical mood lights */}
       <div className="absolute inset-0 pointer-events-none mix-blend-screen">
-        <div className="absolute -left-40 top-20 w-96 h-96 rounded-full bg-red-500/5 animate-pulse-slow" />
-        <div className="absolute right-4 top-40 w-72 h-72 rounded-full bg-amber-400/5 animate-pulse-slower" />
+        <div className="absolute -left-40 top-20 w-96 h-96 rounded-full bg-red-600/10 animate-pulse-slow" />
+        <div className="absolute right-4 top-40 w-72 h-72 rounded-full bg-red-500/8 animate-pulse-slower" />
+        <div className="absolute left-1/3 top-16 w-[28rem] h-[28rem] rounded-full bg-red-900/10 blur-3xl animate-pulse-slow" />
       </div>
       <style>{`
-        @keyframes pulse-slow { 0%{opacity:0.05}50%{opacity:0.16}100%{opacity:0.05} }
-        @keyframes pulse-slower { 0%{opacity:0.04}50%{opacity:0.12}100%{opacity:0.04} }
-        .animate-pulse-slow { animation: pulse-slow 3.6s ease-in-out infinite; }
-        .animate-pulse-slower { animation: pulse-slower 6.4s ease-in-out infinite; }
+        @keyframes pulse-slow { 0%{opacity:0.08}50%{opacity:0.22}100%{opacity:0.08} }
+        @keyframes pulse-slower { 0%{opacity:0.06}50%{opacity:0.16}100%{opacity:0.06} }
+        .animate-pulse-slow { animation: pulse-slow 3.2s ease-in-out infinite; }
+        .animate-pulse-slower { animation: pulse-slower 5.8s ease-in-out infinite; }
       `}</style>
     </div>
   );
-}
+});
+
+export default CombatBackground;

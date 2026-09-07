@@ -20,6 +20,8 @@ export function SymbolTile({
           src={meta.img}
           alt={id}
           draggable={false}
+          loading="lazy"
+          decoding="async"
           style={{
             width: size * 1.15,
             height: size * 1.15,
