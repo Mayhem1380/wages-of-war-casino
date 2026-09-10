@@ -28,6 +28,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Detect Docker Hub credentials
+        id: dockerhub
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -n "$DOCKERHUB_USERNAME" ] && [ -n "$DOCKERHUB_TOKEN" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Build backend image
         run: |
           docker build -t ${{ github.repository }}/backend:latest -f backend/Dockerfile backend
@@ -35,13 +47,13 @@ jobs:
         run: |
           docker build -t ${{ github.repository }}/frontend:latest -f frontend/Dockerfile frontend
       - name: Login to DockerHub
-        if: secrets.DOCKERHUB_USERNAME != ''
+        if: steps.dockerhub.outputs.enabled == 'true'
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Push images to Docker Hub
-        if: secrets.DOCKERHUB_USERNAME != ''
+        if: steps.dockerhub.outputs.enabled == 'true'
         run: |
           docker tag ${{ github.repository }}/backend:latest ${{ secrets.DOCKERHUB_USERNAME }}/wages-of-war-backend:latest
           docker tag ${{ github.repository }}/frontend:latest ${{ secrets.DOCKERHUB_USERNAME }}/wages-of-war-frontend:latest
