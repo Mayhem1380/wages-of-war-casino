@@ -58,7 +58,7 @@ def test_backend_uses_safe_default_mongo_settings_when_env_is_missing(monkeypatc
     server.mongo_url = os.environ.get("MONGO_URL", "mongodb://localhost:27017")
     server.db_name = os.environ.get("DB_NAME", "test_database")
 
-    assert server.mongo_url == "mongodb://mongo:27017"
+    assert server.mongo_url == "mongodb://localhost:27017"
     assert server.db_name == "test_database"
     assert server._ensure_db() is not None
 

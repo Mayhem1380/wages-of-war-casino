@@ -8,10 +8,14 @@ import pytest
 import requests
 from dotenv import dotenv_values
 
-frontend_env = dotenv_values("/app/frontend/.env")
+pytestmark = pytest.mark.live
+
+
+frontend_env_path = Path("/app/frontend/.env")
+frontend_env = dotenv_values(frontend_env_path) if frontend_env_path.exists() else {}
 base_url = os.environ.get("REACT_APP_BACKEND_URL") or frontend_env.get("REACT_APP_BACKEND_URL")
 if not base_url:
-    raise RuntimeError("REACT_APP_BACKEND_URL missing")
+    pytest.skip("live backend URL not configured", allow_module_level=True)
 BASE_URL = base_url.rstrip("/")
 API = f"{BASE_URL}/api"
 
@@ -19,6 +23,8 @@ API = f"{BASE_URL}/api"
 @pytest.fixture(scope="session")
 def creds():
     p = Path("/app/memory/test_credentials.md")
+    if not p.exists():
+        pytest.skip("no creds")
     c = p.read_text(encoding="utf-8")
     e = re.search(r"Email:\s*`([^`]+)`", c)
     pw = re.search(r"Password:\s*`([^`]+)`", c)

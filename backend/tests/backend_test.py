@@ -3,16 +3,28 @@
 import os
 import uuid
 import time
+from pathlib import Path
 import pytest
 import requests
 
-BASE_URL = (
-    os.environ.get("REACT_APP_BACKEND_URL")
-    or open("/app/frontend/.env")
-    .read()
-    .split("REACT_APP_BACKEND_URL=")[1]
-    .splitlines()[0]
-)
+pytestmark = pytest.mark.live
+
+
+def _load_base_url():
+    base_url = os.environ.get("REACT_APP_BACKEND_URL")
+    if base_url:
+        return base_url
+
+    frontend_env = Path("/app/frontend/.env")
+    if frontend_env.exists():
+        env_text = frontend_env.read_text()
+        if "REACT_APP_BACKEND_URL=" in env_text:
+            return env_text.split("REACT_APP_BACKEND_URL=")[1].splitlines()[0]
+
+    pytest.skip("live backend URL not configured", allow_module_level=True)
+
+
+BASE_URL = _load_base_url()
 BASE_URL = BASE_URL.rstrip("/")
 API = f"{BASE_URL}/api"
 
