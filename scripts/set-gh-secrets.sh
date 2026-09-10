@@ -9,10 +9,11 @@ Required env vars:
   GITHUB_REPO   owner/repo (e.g. Mayhem1380/wages-of-war-casino)
   DEPLOY_HOST
   DEPLOY_USER
-  DEPLOY_KEY    (path to private key file or the key content)
   DEPLOY_PATH
 
 Optional env vars:
+  DEPLOY_KEY         (path to private key file or the key content)
+  DEPLOY_PASSWORD    (plaintext password for password-based SSH/SCP)
   DEPLOY_PORT
   DEPLOY_AFTER_CMD
 
@@ -30,8 +31,8 @@ EOF
 [ -n "${GITHUB_REPO:-}" ] || usage
 [ -n "${DEPLOY_HOST:-}" ] || usage
 [ -n "${DEPLOY_USER:-}" ] || usage
-[ -n "${DEPLOY_KEY:-}" ] || usage
 [ -n "${DEPLOY_PATH:-}" ] || usage
+[ -n "${DEPLOY_KEY:-}${DEPLOY_PASSWORD:-}" ] || usage
 
 echo "Setting secrets for $GITHUB_REPO (requires gh CLI authenticated)"
 
@@ -47,14 +48,20 @@ if [ -n "${DEPLOY_AFTER_CMD:-}" ]; then
   gh secret set DEPLOY_AFTER_CMD --repo "$GITHUB_REPO" --body "$DEPLOY_AFTER_CMD"
 fi
 
-# DEPLOY_KEY may be a path to a file or the raw key content
-if [ -f "$DEPLOY_KEY" ]; then
-  KEY_CONTENT=$(cat "$DEPLOY_KEY")
-else
-  KEY_CONTENT="$DEPLOY_KEY"
+if [ -n "${DEPLOY_KEY:-}" ]; then
+  # DEPLOY_KEY may be a path to a file or the raw key content
+  if [ -f "$DEPLOY_KEY" ]; then
+    KEY_CONTENT=$(cat "$DEPLOY_KEY")
+  else
+    KEY_CONTENT="$DEPLOY_KEY"
+  fi
+
+  gh secret set DEPLOY_KEY --repo "$GITHUB_REPO" --body "$KEY_CONTENT"
 fi
 
-gh secret set DEPLOY_KEY --repo "$GITHUB_REPO" --body "$KEY_CONTENT"
+if [ -n "${DEPLOY_PASSWORD:-}" ]; then
+  gh secret set DEPLOY_PASSWORD --repo "$GITHUB_REPO" --body "$DEPLOY_PASSWORD"
+fi
 
 echo "Secrets set. Trigger the workflow via GitHub Actions or run:"
 echo "  gh workflow run 'Build and Deploy Frontend via SCP' --repo $GITHUB_REPO --ref main"
