@@ -8,7 +8,7 @@ These scripts are the canonical Builder / Minuteman release path for the fronten
 ./agent/build.sh --no-install
 ```
 
-Without `--no-install`, the builder uses `npm ci --legacy-peer-deps` when `frontend/package-lock.json` exists and otherwise uses `npm install --legacy-peer-deps`. It always runs the production build with `--no-sourcemap` and requires `frontend/build/index.html` afterward.
+Without `--no-install`, the builder uses `npm ci --legacy-peer-deps --omit=optional` when `frontend/package-lock.json` exists and otherwise uses `npm install --legacy-peer-deps`. It always runs the production build with `--no-sourcemap` and requires `frontend/build/index.html` afterward.
 
 ## Deploy
 

@@ -35,7 +35,7 @@ if ! command -v npm >/dev/null 2>&1; then
 fi
 (
   cd "$FRONTEND_DIR"
-  npm ci --legacy-peer-deps
+  npm ci --legacy-peer-deps --omit=optional
   npm run build -- --no-sourcemap
 )
 
