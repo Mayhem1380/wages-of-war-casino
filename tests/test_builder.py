@@ -185,7 +185,8 @@ exit 0
 set -e
 shift
 shift
-printf '%s\n' "$@" > "$PWD/sshpass-args.txt"
+printf '%s\n' "$@" >> "$PWD/sshpass-args.txt"
+printf -- '--\n' >> "$PWD/sshpass-args.txt"
 exit 0
 """
         )
@@ -219,4 +220,5 @@ exit 0
 
     assert result.returncode == 0, result.stdout + result.stderr
     sshpass_command = (repo_root / "sshpass-args.txt").read_text()
-    assert "scp" in sshpass_command or "ssh" in sshpass_command
+    assert "scp" in sshpass_command
+    assert "\nssh\n" in f"\n{sshpass_command}"
