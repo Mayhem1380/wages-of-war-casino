@@ -36,6 +36,13 @@ function normalizePath(path) {
   return clean === "/" ? "" : clean;
 }
 
+function isPreviewHost(hostname) {
+  return (
+    hostname.endsWith(".preview.emergentagent.com") ||
+    hostname.endsWith(".emergent.host")
+  );
+}
+
 function inferBasePathFromLocation(pathname) {
   const cleanPath = trimTrailingSlash(pathname || "") || "/";
   if (cleanPath === "/") return "";
@@ -97,14 +104,14 @@ export function getBackendOriginUrl() {
       }
       if (
         typeof window !== "undefined" &&
-        explicitUrl.hostname.endsWith(".preview.emergentagent.com") &&
-        !window.location.hostname.endsWith(".preview.emergentagent.com")
+        isPreviewHost(explicitUrl.hostname) &&
+        !isPreviewHost(window.location.hostname)
       ) {
         return window.location.origin;
       }
       if (
         typeof window !== "undefined" &&
-        window.location.hostname.endsWith(".preview.emergentagent.com") &&
+        isPreviewHost(window.location.hostname) &&
         explicitOrigin !== window.location.origin
       ) {
         return window.location.origin;
