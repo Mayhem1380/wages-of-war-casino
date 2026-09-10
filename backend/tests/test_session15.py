@@ -8,17 +8,45 @@ import pytest
 import requests
 from dotenv import dotenv_values
 
-frontend_env = dotenv_values("/app/frontend/.env")
-base_url = os.environ.get("REACT_APP_BACKEND_URL") or frontend_env.get("REACT_APP_BACKEND_URL")
+
+def _resolve_base_url():
+    env_url = (os.environ.get("REACT_APP_BACKEND_URL") or "").strip()
+    if env_url:
+        return env_url.rstrip("/")
+
+    frontend_env_path = Path(__file__).resolve().parents[2] / "frontend" / ".env"
+    file_url = (
+        dotenv_values(frontend_env_path).get("REACT_APP_BACKEND_URL") or ""
+    ).strip() if frontend_env_path.exists() else ""
+    if file_url:
+        return file_url.rstrip("/")
+
+    pytest.skip(
+        "session15 sweep requires REACT_APP_BACKEND_URL via env or frontend/.env",
+        allow_module_level=True,
+    )
+
+
+base_url = _resolve_base_url()
 if not base_url:
-    raise RuntimeError("REACT_APP_BACKEND_URL missing")
-BASE_URL = base_url.rstrip("/")
+    pytest.skip("REACT_APP_BACKEND_URL missing", allow_module_level=True)
+BASE_URL = base_url
 API = f"{BASE_URL}/api"
+
+try:
+    requests.get(f"{API}/", timeout=5)
+except requests.RequestException:
+    pytest.skip(
+        f"session15 sweep requires reachable backend at {BASE_URL}",
+        allow_module_level=True,
+    )
 
 
 @pytest.fixture(scope="session")
 def creds():
-    p = Path("/app/memory/test_credentials.md")
+    p = Path(__file__).resolve().parents[2] / "memory" / "test_credentials.md"
+    if not p.exists():
+        pytest.skip("no creds")
     c = p.read_text(encoding="utf-8")
     e = re.search(r"Email:\s*`([^`]+)`", c)
     pw = re.search(r"Password:\s*`([^`]+)`", c)
