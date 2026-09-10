@@ -3,7 +3,7 @@ import { getBackendOriginUrl } from "@/lib/runtime";
 
 const BACKEND_URL = getBackendOriginUrl();
 
-const api = axios.create({
+const client = axios.create({
   baseURL: BACKEND_URL ? `${BACKEND_URL}/api` : "/api",
   withCredentials: true,
 });
@@ -26,36 +26,74 @@ function normalizeDedupeValue(value) {
 }
 
 function canDedupeGet(config = {}) {
-  return Object.keys(config).every((key) => ["params", "baseURL"].includes(key));
+  return Object.keys(config).every((key) =>
+    ["url", "method", "params", "baseURL"].includes(key),
+  );
 }
 
-function getInflightRequestKey(url, config = {}) {
-  return api.getUri({
-    method: "get",
-    url,
+function normalizeRequestConfig(config = {}) {
+  return {
     ...config,
+    method: (config.method || "get").toLowerCase(),
     params: normalizeDedupeValue(config.params),
-  });
+  };
 }
 
-const baseGet = api.get.bind(api);
+function getInflightRequestKey(config = {}) {
+  return client.getUri(normalizeRequestConfig(config));
+}
 
-api.get = (url, config = {}) => {
-  if (!canDedupeGet(config)) {
-    return baseGet(url, config);
+const baseRequest = client.request.bind(client);
+
+function request(configOrUrl, config) {
+  const requestConfig =
+    typeof configOrUrl === "string"
+      ? { ...(config || {}), url: configOrUrl }
+      : { ...(configOrUrl || {}) };
+
+  const normalizedConfig = normalizeRequestConfig(requestConfig);
+  if (
+    normalizedConfig.method !== "get" ||
+    !canDedupeGet(normalizedConfig)
+  ) {
+    return typeof configOrUrl === "string"
+      ? baseRequest({ ...(config || {}), url: configOrUrl })
+      : baseRequest(configOrUrl);
   }
 
-  const key = getInflightRequestKey(url, config);
+  const key = getInflightRequestKey(normalizedConfig);
   const inFlight = inflightGetRequests.get(key);
   if (inFlight) {
     return inFlight;
   }
 
-  const request = baseGet(url, config).finally(() => {
+  const inFlightRequest = baseRequest(normalizedConfig).finally(() => {
     inflightGetRequests.delete(key);
   });
-  inflightGetRequests.set(key, request);
-  return request;
+  inflightGetRequests.set(key, inFlightRequest);
+  return inFlightRequest;
+}
+
+const api = {
+  ...client,
+  defaults: client.defaults,
+  interceptors: client.interceptors,
+  getUri: client.getUri.bind(client),
+  request,
+  get(url, config = {}) {
+    return request({ ...(config || {}), method: "get", url });
+  },
+  delete: client.delete.bind(client),
+  head(url, config) {
+    return request({ ...(config || {}), method: "head", url });
+  },
+  options: client.options.bind(client),
+  post: client.post.bind(client),
+  put: client.put.bind(client),
+  patch: client.patch.bind(client),
+  postForm: client.postForm?.bind(client),
+  putForm: client.putForm?.bind(client),
+  patchForm: client.patchForm?.bind(client),
 };
 
 export function apiError(detail, fallback = "Operation failed. Try again.") {
