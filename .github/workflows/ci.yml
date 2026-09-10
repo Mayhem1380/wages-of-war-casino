@@ -20,10 +20,15 @@ jobs:
           python -m venv .venv
           . .venv/bin/activate
           pip install -r backend/requirements.txt
-      - name: Run backend smoke checks
+      - name: Install dev tooling
         run: |
           . .venv/bin/activate
-          python -m compileall backend
+          pip install black flake8
+      - name: Check formatting and lint
+        run: |
+          . .venv/bin/activate
+          black --check backend
+          flake8 backend
       - name: Run backend tests
         run: |
           . .venv/bin/activate
@@ -43,6 +48,10 @@ jobs:
         run: npm ci --prefix frontend --legacy-peer-deps --omit=optional
       - name: Build frontend
         run: npm --prefix frontend run build -- --no-sourcemap
+      - name: Run frontend format & lint checks
+        run: |
+          npx --prefix frontend prettier --check "frontend/src/**/*.{js,jsx,ts,tsx}"
+          ESLINT_USE_FLAT_CONFIG=false npx --prefix frontend eslint -c frontend/eslint.config.cjs "frontend/src/**/*.{js,jsx,ts,tsx}" --ext .js,.jsx,.ts,.tsx --max-warnings=0
       - name: Verify frontend build output
         run: |
           test -f frontend/build/index.html
