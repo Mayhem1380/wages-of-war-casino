@@ -10,17 +10,41 @@ const api = axios.create({
 
 const inflightGetRequests = new Map();
 
+function normalizeDedupeValue(value) {
+  if (Array.isArray(value)) {
+    return value.map(normalizeDedupeValue);
+  }
+  if (value && typeof value === "object" && value.constructor === Object) {
+    return Object.keys(value)
+      .sort()
+      .reduce((acc, key) => {
+        acc[key] = normalizeDedupeValue(value[key]);
+        return acc;
+      }, {});
+  }
+  return value;
+}
+
+function canDedupeGet(config = {}) {
+  return Object.keys(config).every((key) => ["params", "baseURL"].includes(key));
+}
+
 function getInflightRequestKey(url, config = {}) {
-  return JSON.stringify({
+  return api.getUri({
+    method: "get",
     url,
-    baseURL: config.baseURL ?? api.defaults.baseURL ?? "",
-    params: config.params ?? null,
+    ...config,
+    params: normalizeDedupeValue(config.params),
   });
 }
 
 const baseGet = api.get.bind(api);
 
 api.get = (url, config = {}) => {
+  if (!canDedupeGet(config)) {
+    return baseGet(url, config);
+  }
+
   const key = getInflightRequestKey(url, config);
   const inFlight = inflightGetRequests.get(key);
   if (inFlight) {
