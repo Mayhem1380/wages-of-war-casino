@@ -14,6 +14,8 @@ Without `--no-install`, the builder uses `npm ci --legacy-peer-deps` when `front
 
 Set the host values in the private runner environment. Do not commit credentials or put secrets in source files.
 
+For the GitHub Actions SCP workflow, repository secrets may use either `DEPLOY_KEY` or `DEPLOY_PASSWORD`. The local shell deploy path below still expects `DEPLOY_KEY`.
+
 ```bash
 DEPLOY_HOST=host DEPLOY_USER=user DEPLOY_PATH=/var/www/site \
 	DEPLOY_KEY=/path/to/key ./agent/build.sh --deploy
