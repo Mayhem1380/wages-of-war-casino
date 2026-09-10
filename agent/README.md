@@ -19,7 +19,14 @@ DEPLOY_HOST=host DEPLOY_USER=user DEPLOY_PATH=/var/www/site \
 	DEPLOY_KEY=/path/to/key ./agent/build.sh --deploy
 ```
 
-`--deploy` refuses to run unless all three target values are present. The remote host must provide `ssh`, `scp`, `sha256sum`, `tar`, and permissions to create `$DEPLOY_PATH/.releases` and update `$DEPLOY_PATH/current`.
+You can use either `DEPLOY_KEY` or `DEPLOY_PASSWORD` for the remote credential.
+
+```bash
+DEPLOY_HOST=host DEPLOY_USER=user DEPLOY_PATH=/var/www/site \
+	DEPLOY_PASSWORD=secret ./agent/build.sh --deploy
+```
+
+`--deploy` refuses to run unless the host, user, path, and one supported credential are present. The remote host must provide `ssh`, `scp`, `sha256sum`, `tar`, and permissions to create `$DEPLOY_PATH/.releases` and update `$DEPLOY_PATH/current`.
 
 ## Release verification
 

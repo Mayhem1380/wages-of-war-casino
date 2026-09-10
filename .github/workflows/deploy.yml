@@ -25,7 +25,7 @@ jobs:
       - name: Build frontend
         working-directory: frontend
         run: |
-          npm run build
+          npm run build -- --no-sourcemap
 
       - name: Package build
         id: package
@@ -34,22 +34,42 @@ jobs:
           tar -czf "$TARFILE" -C frontend build
           echo "tarfile=$TARFILE" >> "$GITHUB_OUTPUT"
 
+      - name: Check deploy credentials
+        id: deploy_ready
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+          DEPLOY_PASSWORD: ${{ secrets.DEPLOY_PASSWORD }}
+        run: |
+          if [ -n "$DEPLOY_HOST" ] && [ -n "$DEPLOY_USER" ] && [ -n "$DEPLOY_PATH" ] && { [ -n "$DEPLOY_KEY" ] || [ -n "$DEPLOY_PASSWORD" ]; }; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "ready=false" >> "$GITHUB_OUTPUT"
+          echo "::warning::Skipping deploy upload because DEPLOY_HOST, DEPLOY_USER, DEPLOY_PATH, and either DEPLOY_KEY or DEPLOY_PASSWORD are not fully configured."
+
       - name: Upload tarball via SCP
+        if: steps.deploy_ready.outputs.ready == 'true'
         uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_KEY }}
+          password: ${{ secrets.DEPLOY_PASSWORD }}
           port: ${{ secrets.DEPLOY_PORT }}
           source: "${{ steps.package.outputs.tarfile }}"
           target: "/tmp"
 
       - name: Extract on remote and run post-deploy command
-        uses: appleboy/ssh-action@master
+        if: steps.deploy_ready.outputs.ready == 'true'
+        uses: appleboy/ssh-action@v1.2.5
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_KEY }}
+          password: ${{ secrets.DEPLOY_PASSWORD }}
           port: ${{ secrets.DEPLOY_PORT }}
           script: |
             set -e
