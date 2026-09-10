@@ -32,7 +32,11 @@ jobs:
           else
             BASE_SHA="${{ github.event.before }}"
           fi
-          mapfile -t backend_files < <(git diff --name-only "$BASE_SHA" "${{ github.sha }}" | grep -E '^backend/.*\.py$' || true)
+          if [ -z "$BASE_SHA" ] || printf '%s' "$BASE_SHA" | grep -Eq '^0+$'; then
+            mapfile -t backend_files < <(git diff-tree --no-commit-id --name-only -r "${{ github.sha }}" | grep -E '^backend/.*\.py$' || true)
+          else
+            mapfile -t backend_files < <(git diff --name-only "$BASE_SHA" "${{ github.sha }}" | grep -E '^backend/.*\.py$' || true)
+          fi
           if [ "${#backend_files[@]}" -eq 0 ]; then
             echo "No backend Python changes to lint"
             exit 0
@@ -65,7 +69,11 @@ jobs:
           else
             BASE_SHA="${{ github.event.before }}"
           fi
-          mapfile -t frontend_files < <(git diff --name-only "$BASE_SHA" "${{ github.sha }}" | grep -E '^frontend/src/.*\.(js|jsx|ts|tsx)$' || true)
+          if [ -z "$BASE_SHA" ] || printf '%s' "$BASE_SHA" | grep -Eq '^0+$'; then
+            mapfile -t frontend_files < <(git diff-tree --no-commit-id --name-only -r "${{ github.sha }}" | grep -E '^frontend/.*\.(js|jsx|ts|tsx)$' || true)
+          else
+            mapfile -t frontend_files < <(git diff --name-only "$BASE_SHA" "${{ github.sha }}" | grep -E '^frontend/.*\.(js|jsx|ts|tsx)$' || true)
+          fi
           if [ "${#frontend_files[@]}" -eq 0 ]; then
             echo "No frontend source changes to lint"
             exit 0
