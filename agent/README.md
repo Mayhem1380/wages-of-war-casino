@@ -8,11 +8,13 @@ These scripts are the canonical Builder / Minuteman release path for the fronten
 ./agent/build.sh --no-install
 ```
 
-Without `--no-install`, the builder uses `npm ci --legacy-peer-deps` when `frontend/package-lock.json` exists and otherwise uses `npm install --legacy-peer-deps`. It always runs the production build with `--no-sourcemap` and requires `frontend/build/index.html` afterward.
+Without `--no-install`, the builder uses `npm ci --legacy-peer-deps --omit=optional` when `frontend/package-lock.json` exists and otherwise uses `npm install --legacy-peer-deps`. It always runs the production build with `--no-sourcemap` and requires `frontend/build/index.html` afterward.
 
 ## Deploy
 
 Set the host values in the private runner environment. Do not commit credentials or put secrets in source files.
+
+For the GitHub Actions SCP workflow, repository secrets may use either `DEPLOY_KEY` or `DEPLOY_PASSWORD`. The local shell deploy path below still expects `DEPLOY_KEY`.
 
 ```bash
 DEPLOY_HOST=host DEPLOY_USER=user DEPLOY_PATH=/var/www/site \
