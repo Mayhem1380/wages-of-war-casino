@@ -74,27 +74,28 @@ function request(configOrUrl, config) {
   return inFlightRequest;
 }
 
-const api = {
-  ...client,
-  defaults: client.defaults,
-  interceptors: client.interceptors,
-  getUri: client.getUri.bind(client),
-  request,
-  get(url, config = {}) {
-    return request({ ...(config || {}), method: "get", url });
-  },
-  delete: client.delete.bind(client),
-  head(url, config) {
-    return request({ ...(config || {}), method: "head", url });
-  },
-  options: client.options.bind(client),
-  post: client.post.bind(client),
-  put: client.put.bind(client),
-  patch: client.patch.bind(client),
-  postForm: client.postForm?.bind(client),
-  putForm: client.putForm?.bind(client),
-  patchForm: client.patchForm?.bind(client),
-};
+function api(configOrUrl, config) {
+  return request(configOrUrl, config);
+}
+
+Object.assign(api, client);
+
+api.defaults = client.defaults;
+api.interceptors = client.interceptors;
+api.getUri = client.getUri.bind(client);
+api.request = request;
+api.get = (url, config = {}) =>
+  request({ ...(config || {}), method: "get", url });
+api.delete = client.delete.bind(client);
+api.head = (url, config = {}) =>
+  request({ ...(config || {}), method: "head", url });
+api.options = client.options.bind(client);
+api.post = client.post.bind(client);
+api.put = client.put.bind(client);
+api.patch = client.patch.bind(client);
+api.postForm = client.postForm?.bind(client);
+api.putForm = client.putForm?.bind(client);
+api.patchForm = client.patchForm?.bind(client);
 
 export function apiError(detail, fallback = "Operation failed. Try again.") {
   if (detail == null) return fallback;
