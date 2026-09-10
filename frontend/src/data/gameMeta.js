@@ -940,6 +940,17 @@ const BASE_MACHINE_ART = {
   tactical_titans: { bg: "/slots/tile_thunder_titans.jpg", thumb: "/slots/tile_thunder_titans.jpg", panel: "#F6E27A" },
   vault_of_victory: { bg: "/slots/tile_money_train_convoy.png", thumb: "/slots/tile_money_train_convoy.png", panel: "#4EE44E" },
   wildline_warriors: { bg: "/slots/tile_wild_west_recon.jpg", thumb: "/slots/tile_wild_west_recon.jpg", panel: "#C9A06A" },
+  carrier_command: { bg: "/slots/tile_steel_leviathan.jpg", thumb: "/slots/tile_steel_leviathan.jpg", panel: "#C0D0E0" },
+  sky_raiders: { bg: "/slots/tile_stealth_bomber.jpg", thumb: "/slots/tile_stealth_bomber.jpg", panel: "#7FB4FF" },
+  submarine_siege: { bg: "/slots/bg_kraken.jpg", thumb: "/slots/thumb_kraken.jpg", panel: "#57E6C6" },
+  desert_arsenal: { bg: "/slots/tile_desert_fury.jpg", thumb: "/slots/tile_desert_fury.jpg", panel: "#E0A24A" },
+  goldwing_ops: { bg: "/slots/bg_gold.jpg", thumb: "/slots/thumb_gold.jpg", panel: "#FFD84E" },
+  cobalt_command: { bg: "/slots/tile_cobalt_siege.jpg", thumb: "/slots/tile_cobalt_siege.jpg", panel: "#4EA6FF" },
+  red_squadron: { bg: "/slots/tile_crimson_vanguard.jpg", thumb: "/slots/tile_crimson_vanguard.jpg", panel: "#FF5A4A" },
+  deepstrike_vault: { bg: "/slots/tile_night_raid.jpg", thumb: "/slots/tile_night_raid.jpg", panel: "#57E6C6" },
+  warbird_reserve: { bg: "/slots/tile_black_hawk_bounty.jpg", thumb: "/slots/tile_black_hawk_bounty.jpg", panel: "#FFCD4A" },
+  shadow_carrier: { bg: "/slots/tile_night_raid.jpg", thumb: "/slots/tile_night_raid.jpg", panel: "#6EE84A" },
+  airborne_gold: { bg: "/slots/tile_gold_convoy.jpg", thumb: "/slots/tile_gold_convoy.jpg", panel: "#FFC04A" },
 };
 
 // Slots upgraded to their own dedicated AAA banner tile (/slots/tile_<id>.jpg).

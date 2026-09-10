@@ -4306,6 +4306,17 @@ _ADDITIONAL_SLOTS = [
     ("tactical_titans", "Tactical Titans", "Mobilize the heavy hitters", "military", "High", "thunder_titans", 71, 10),
     ("vault_of_victory", "Vault of Victory", "Crack the winner's reserve", "heist", "Medium", "money_train_convoy", 70, 9),
     ("wildline_warriors", "Wildline Warriors", "Take the frontier by force", "western", "High", "wild_west_recon", 69, 10),
+    ("carrier_command", "Carrier Command", "Launch the fleet into fortune", "naval", "High", "steel_leviathan", 68, 10),
+    ("sky_raiders", "Sky Raiders", "Own the airspace and the vault", "military", "High", "stealth_bomber", 67, 9),
+    ("submarine_siege", "Submarine Siege", "Dive deep for the reserve", "naval", "Medium", "kraken_depths", 66, 8),
+    ("desert_arsenal", "Desert Arsenal", "Secure the sunline stronghold", "military", "High", "desert_fury", 65, 10),
+    ("goldwing_ops", "Goldwing Ops", "Escort the golden payload", "military", "Medium", "gold_bonanza", 64, 9),
+    ("cobalt_command", "Cobalt Command", "Break through the blue line", "military", "High", "cobalt_siege", 63, 10),
+    ("red_squadron", "Red Squadron", "Strike first, extract richer", "military", "High", "crimson_vanguard", 62, 9),
+    ("deepstrike_vault", "Deepstrike Vault", "Penetrate the fortified reserve", "heist", "High", "blacksite_bounty", 61, 10),
+    ("warbird_reserve", "Warbird Reserve", "Claim the airborne jackpot", "military", "Medium", "black_hawk_bounty", 60, 8),
+    ("shadow_carrier", "Shadow Carrier", "Move unseen beneath the waves", "naval", "High", "night_raid", 59, 10),
+    ("airborne_gold", "Airborne Gold", "Drop into a live payout", "military", "Medium", "gold_convoy", 58, 9),
 ]
 
 # Use audited definitions as templates, then vary the reel weights and free
@@ -4594,6 +4605,17 @@ PUBLIC_SLOT_IDS = [
     "tactical_titans",
     "vault_of_victory",
     "wildline_warriors",
+    "carrier_command",
+    "sky_raiders",
+    "submarine_siege",
+    "desert_arsenal",
+    "goldwing_ops",
+    "cobalt_command",
+    "red_squadron",
+    "deepstrike_vault",
+    "warbird_reserve",
+    "shadow_carrier",
+    "airborne_gold",
 ]
 
 FLAGSHIP_IDS = {

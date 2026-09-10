@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
@@ -44,6 +44,11 @@ export default function SlotGame() {
   const machineRef = useRef(null);
 
   const art = resolveMachineArt(id);
+
+  useLayoutEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [id]);
+
   const randSym = useCallback(
     (syms) => syms[Math.floor(Math.random() * syms.length)],
     [],
@@ -336,18 +341,31 @@ export default function SlotGame() {
       </button>
 
       <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
-        <div>
+        <div
+          className="relative min-w-0 flex-1 overflow-hidden border border-border/70 bg-black/50 px-4 py-3"
+          style={{
+            backgroundImage: art.thumb
+              ? `linear-gradient(90deg, rgba(4, 8, 5, 0.96) 0%, rgba(4, 8, 5, 0.82) 58%, rgba(4, 8, 5, 0.38) 100%), url(${art.thumb})`
+              : undefined,
+            backgroundPosition: "center",
+            backgroundSize: "cover",
+          }}
+        >
+          <div
+            className="pointer-events-none absolute inset-y-0 left-0 w-1"
+            style={{ backgroundColor: art.accent }}
+          />
           <p
-            className="font-mono text-xs tracking-[0.4em]"
+            className="relative font-mono text-xs tracking-[0.4em]"
             style={{ color: art.accent }}
           >
             // {machine.volatility.toUpperCase()} VOLATILITY •{" "}
             {machine.paylines} LINES
           </p>
-          <h1 className="font-display text-5xl tracking-wide gold-gradient">
+          <h1 className="relative font-display text-4xl tracking-wide gold-gradient sm:text-5xl">
             {machine.name}
           </h1>
-          <p className="text-muted-foreground">{machine.tagline}</p>
+          <p className="relative text-muted-foreground">{machine.tagline}</p>
         </div>
         <div className="flex items-center gap-2 px-4 py-2 hud hud-gold">
           <Coins size={18} weight="fill" className="text-gold" />
