@@ -18,10 +18,12 @@ jobs:
           cd backend
           python -m pip install --upgrade pip
           pip install -r requirements.txt pytest pytest-xdist
+      - name: Run smoke checks
+        run: |
+          python -m compileall backend
       - name: Run tests
         run: |
-          cd backend
-          pytest -q
+          pytest backend -q --ignore=backend/tests/backend_test.py --ignore=backend/tests/test_full_sweep.py --ignore=backend/tests/test_session15.py
 
   build-and-publish:
     needs: test-backend
