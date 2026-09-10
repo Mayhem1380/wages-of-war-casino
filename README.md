@@ -25,6 +25,17 @@ This repo now enforces safer backend startup config. Complete these steps in you
 
 3. Redeploy after any secret changes.
 
+## Controlled Render deployment
+
+If you no longer control the current SSH/SCP target, use the existing Render blueprint in `/render.yaml` instead of the GitHub SCP workflow.
+
+1. Create the backend and frontend services in a Render account you control from the blueprint.
+2. Set the backend environment values in Render before go-live: `MONGO_URL`, `CORS_ORIGINS`, `FRONTEND_URL`, `JWT_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_ACCOUNT_ID`, `NOWPAYMENTS_API_KEY`, `NOWPAYMENTS_IPN_SECRET`, `NOWPAYMENTS_BASE_URL`, `VAULT_API_URL`, and `VAULT_API_KEY`.
+3. Set frontend `REACT_APP_BACKEND_URL` to the backend Render URL first, then update it to your final API domain after the backend custom domain is live.
+4. Verify the backend Render service passes `/health` and the frontend Render URL serves the latest app before moving DNS.
+5. Point `wagesofwarcasin0.online` at the frontend service you control, and point your chosen API hostname at the backend service you control.
+6. After DNS cutover, update Render `FRONTEND_URL` and `CORS_ORIGINS` to the live domain if they still reference a temporary Render hostname, then redeploy both services.
+
 ## Local Development
 
 - Copy `backend/.env.example` to `backend/.env` and fill values.
