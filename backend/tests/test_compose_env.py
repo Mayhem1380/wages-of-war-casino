@@ -9,12 +9,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from games import PUBLIC_SLOT_IDS, SLOT_MACHINES
 
 
-def test_backend_service_loads_runtime_env_file():
+def test_backend_service_keeps_runtime_env_in_explicit_overrides():
     compose_path = Path(__file__).resolve().parents[2] / "docker-compose.yml"
     compose_text = compose_path.read_text()
 
-    assert "env_file:" in compose_text
-    assert "./backend/.env" in compose_text
+    assert "env_file:" not in compose_text
+    assert "MONGO_URL: ${MONGO_URL:-mongodb://mongo:27017}" in compose_text
 
 
 def test_backend_service_allows_runtime_secret_overrides():
@@ -58,7 +58,7 @@ def test_backend_uses_safe_default_mongo_settings_when_env_is_missing(monkeypatc
     server.mongo_url = os.environ.get("MONGO_URL", "mongodb://mongo:27017")
     server.db_name = os.environ.get("DB_NAME", "test_database")
 
-    assert server.mongo_url == "mongodb://localhost:27017"
+    assert server.mongo_url == "mongodb://mongo:27017"
     assert server.db_name == "test_database"
     assert server._ensure_db() is not None
 

@@ -3,9 +3,6 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    env_file:
-      - path: ./backend/.env
-        required: false
     environment:
       PORT: 8000
       MONGO_URL: ${MONGO_URL:-mongodb://mongo:27017}
