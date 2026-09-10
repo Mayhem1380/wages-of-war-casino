@@ -5,7 +5,11 @@ services:
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
     plan: free
+    autoDeploy: true
+    healthCheckPath: /health
     envVars:
+      - key: ENVIRONMENT
+        value: production
       - key: PORT
         value: 8000
       - key: MONGO_URL
@@ -32,12 +36,26 @@ services:
         sync: false
       - key: STRIPE_MODE
         value: test
+      - key: NOWPAYMENTS_API_KEY
+        sync: false
+      - key: NOWPAYMENTS_IPN_SECRET
+        sync: false
+      - key: NOWPAYMENTS_BASE_URL
+        sync: false
+      - key: VAULT_API_URL
+        sync: false
+      - key: VAULT_API_KEY
+        sync: false
+      - key: VAULT_PLATFORM
+        value: wages_of_war
   - type: web
     name: wages-of-war-frontend
     runtime: docker
     dockerfilePath: ./frontend/Dockerfile
     dockerContext: ./frontend
     plan: free
+    autoDeploy: true
+    healthCheckPath: /
     envVars:
       - key: REACT_APP_BACKEND_URL
         sync: false
