@@ -56,7 +56,7 @@ logger = logging.getLogger("wagesofwar")
 # ---------------------------------------------------------------------------
 # Setup
 # ---------------------------------------------------------------------------
-mongo_url = os.environ.get("MONGO_URL", "mongodb://localhost:27017")
+mongo_url = os.environ.get("MONGO_URL", "mongodb://mongo:27017")
 db_name = os.environ.get("DB_NAME", "test_database")
 client = None
 db = None

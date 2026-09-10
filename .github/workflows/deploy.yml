@@ -20,12 +20,12 @@ jobs:
       - name: Install frontend dependencies
         working-directory: frontend
         run: |
-          npm ci --legacy-peer-deps
+          npm ci --legacy-peer-deps --omit=optional
 
       - name: Build frontend
         working-directory: frontend
         run: |
-          npm run build
+          npm run build -- --no-sourcemap
 
       - name: Package build
         id: package
@@ -35,6 +35,7 @@ jobs:
           echo "tarfile=$TARFILE" >> "$GITHUB_OUTPUT"
 
       - name: Upload tarball via SCP
+        if: ${{ secrets.DEPLOY_HOST != '' && secrets.DEPLOY_USER != '' && secrets.DEPLOY_KEY != '' && secrets.DEPLOY_PATH != '' }}
         uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.DEPLOY_HOST }}
@@ -45,7 +46,8 @@ jobs:
           target: "/tmp"
 
       - name: Extract on remote and run post-deploy command
-        uses: appleboy/ssh-action@master
+        if: ${{ secrets.DEPLOY_HOST != '' && secrets.DEPLOY_USER != '' && secrets.DEPLOY_KEY != '' && secrets.DEPLOY_PATH != '' }}
+        uses: appleboy/ssh-action@v1.2.5
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
