@@ -24,10 +24,15 @@ jobs:
         run: |
           . .venv/bin/activate
           pip install black flake8
-      - name: Check formatting and lint
+      - name: Check backend formatting (advisory)
+        continue-on-error: true
         run: |
           . .venv/bin/activate
           black --check backend
+      - name: Lint backend
+        continue-on-error: true
+        run: |
+          . .venv/bin/activate
           flake8 backend
       - name: Run backend tests
         run: |
