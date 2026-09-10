@@ -4,14 +4,14 @@
   "description": "Night Ops casino gaming with cinematic slots, Keno, Coin Flip, rewards, and live operations.",
   "icons": [
     {
-      "src": "/brand/emblem.jpeg",
+      "src": "/brand/coin-nightops.png",
       "sizes": "192x192",
-      "type": "image/jpeg"
+      "type": "image/png"
     },
     {
-      "src": "/brand/hero.jpeg",
+      "src": "/brand/coin-nightops.png",
       "sizes": "512x512",
-      "type": "image/jpeg"
+      "type": "image/png"
     }
   ],
   "start_url": "/",
@@ -24,7 +24,7 @@
       "name": "Open Lobby",
       "short_name": "Lobby",
       "url": "/lobby",
-      "icons": [{ "src": "/brand/emblem.jpeg", "sizes": "192x192" }]
+      "icons": [{ "src": "/brand/coin-nightops.png", "sizes": "192x192" }]
     },
     {
       "name": "Launch Warhead Keno",
@@ -42,7 +42,7 @@
       "name": "Spin Daily Wheel",
       "short_name": "Daily Wheel",
       "url": "/wheel",
-      "icons": [{ "src": "/brand/emblem.jpeg", "sizes": "192x192" }]
+      "icons": [{ "src": "/brand/coin-nightops.png", "sizes": "192x192" }]
     }
   ]
 }

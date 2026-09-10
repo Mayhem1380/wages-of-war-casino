@@ -12,18 +12,18 @@ import {
 // with a slow Ken-Burns move + fade, timed to build a ~28s marketing sequence.
 const SCENES = [
   {
-    img: "/brand/coin-nightops.png",
-    kicker: "// NIGHT OPS EDITION",
+    img: "/brand/cine_carrier.jpg",
+    kicker: "// NIGHT OPS COMMAND",
     title: "WAGES OF WAR",
-    sub: "A cinematic casino operation beneath the surface",
+    sub: "Aircraft carrier launch sequence — the mission begins",
     anim: "kb-zoom-in",
     gold: true,
   },
   {
-    img: "/brand/cine_carrier.jpg",
-    kicker: "// NIGHT OPS COMMAND",
+    img: "/brand/coin-nightops.png",
+    kicker: "// NIGHT OPS EDITION",
     title: "WAGES OF WAR",
-    sub: "The world's most elite military casino",
+    sub: "A cinematic casino operation beneath the surface",
     anim: "kb-zoom-in",
   },
   {
@@ -36,7 +36,7 @@ const SCENES = [
   {
     img: "/brand/cine_apache.jpg",
     kicker: "// FULL ARSENAL",
-    title: "145+ AAA SLOTS",
+    title: "165 AAA SLOTS",
     sub: "WARKINO · SHARK FLIP · WHEEL OF WEALTH",
     anim: "kb-zoom-out",
   },
