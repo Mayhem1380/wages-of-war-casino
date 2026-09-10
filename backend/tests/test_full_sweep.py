@@ -13,8 +13,24 @@ import pytest
 import requests
 from dotenv import dotenv_values
 
-_env = dotenv_values("/app/frontend/.env")
-BASE_URL = (os.environ.get("REACT_APP_BACKEND_URL") or _env.get("REACT_APP_BACKEND_URL")).rstrip("/")
+if os.environ.get("RUN_LIVE_SWEEP", "").lower() != "true":
+    pytest.skip("set RUN_LIVE_SWEEP=true to run live full sweep tests", allow_module_level=True)
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+
+
+def _load_frontend_env():
+    for candidate in (Path("/app/frontend/.env"), REPO_ROOT / "frontend" / ".env"):
+        if candidate.exists():
+            return dotenv_values(candidate)
+    return {}
+
+
+_env = _load_frontend_env()
+base_url = os.environ.get("REACT_APP_BACKEND_URL") or _env.get("REACT_APP_BACKEND_URL")
+if not base_url:
+    pytest.skip("live full sweep requires REACT_APP_BACKEND_URL", allow_module_level=True)
+BASE_URL = base_url.rstrip("/")
 API = f"{BASE_URL}/api"
 
 NEW22 = [
@@ -27,7 +43,12 @@ NEW22 = [
 
 
 def _creds():
-    txt = Path("/app/memory/test_credentials.md").read_text()
+    for candidate in (Path("/app/memory/test_credentials.md"), REPO_ROOT / "memory" / "test_credentials.md"):
+        if candidate.exists():
+            txt = candidate.read_text()
+            break
+    else:
+        pytest.skip("live full sweep requires memory/test_credentials.md", allow_module_level=True)
     email = re.search(r"Email:\s*`([^`]+)`", txt).group(1)
     pwd = re.search(r"Password:\s*`([^`]+)`", txt).group(1)
     pin = re.search(r"PIN:\s*`([^`]+)`", txt).group(1)

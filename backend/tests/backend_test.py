@@ -3,16 +3,29 @@
 import os
 import uuid
 import time
+from pathlib import Path
 import pytest
 import requests
+from dotenv import dotenv_values
 
-BASE_URL = (
-    os.environ.get("REACT_APP_BACKEND_URL")
-    or open("/app/frontend/.env")
-    .read()
-    .split("REACT_APP_BACKEND_URL=")[1]
-    .splitlines()[0]
-)
+if os.environ.get("RUN_LIVE_SWEEP", "").lower() != "true":
+    pytest.skip("set RUN_LIVE_SWEEP=true to run live backend regression tests", allow_module_level=True)
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+
+
+def _resolve_base_url():
+    if os.environ.get("REACT_APP_BACKEND_URL"):
+        return os.environ["REACT_APP_BACKEND_URL"]
+    for candidate in (Path("/app/frontend/.env"), REPO_ROOT / "frontend" / ".env"):
+        if candidate.exists():
+            value = dotenv_values(candidate).get("REACT_APP_BACKEND_URL")
+            if value:
+                return value
+    pytest.skip("live backend regression tests require REACT_APP_BACKEND_URL", allow_module_level=True)
+
+
+BASE_URL = _resolve_base_url()
 BASE_URL = BASE_URL.rstrip("/")
 API = f"{BASE_URL}/api"
 
