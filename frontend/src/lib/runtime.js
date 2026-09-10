@@ -87,7 +87,21 @@ export function getBackendOriginUrl() {
   const explicit = (process.env.REACT_APP_BACKEND_URL || "").trim();
   if (explicit) {
     try {
-      const explicitOrigin = new URL(explicit).origin;
+      const explicitUrl = new URL(explicit);
+      const explicitOrigin = explicitUrl.origin;
+      if (
+        typeof window !== "undefined" &&
+        explicitUrl.hostname === "your-backend-host.example.com"
+      ) {
+        return window.location.origin;
+      }
+      if (
+        typeof window !== "undefined" &&
+        explicitUrl.hostname.endsWith(".preview.emergentagent.com") &&
+        !window.location.hostname.endsWith(".preview.emergentagent.com")
+      ) {
+        return window.location.origin;
+      }
       if (
         typeof window !== "undefined" &&
         window.location.hostname.endsWith(".preview.emergentagent.com") &&

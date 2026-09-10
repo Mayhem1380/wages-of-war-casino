@@ -82,6 +82,7 @@ HOST="${DEPLOY_HOST:-}"
 USER="${DEPLOY_USER:-}"
 DEST="${DEPLOY_PATH:-}"
 KEY="${DEPLOY_KEY:-}"
+PASSWORD="${DEPLOY_PASSWORD:-}"
 
 if [ "$FORCE_DEPLOY" = "true" ] && { [ -z "$HOST" ] || [ -z "$USER" ] || [ -z "$DEST" ]; }; then
   echo "--deploy requires DEPLOY_HOST, DEPLOY_USER, and DEPLOY_PATH." >&2
@@ -93,13 +94,22 @@ deploy_once() {
   checksum="$(sha256sum "$TARFILE" | awk '{print $1}')"
   remote_dir="$DEST/.releases/$(basename "$TARFILE" .tar.gz)"
 
+  if [ -z "$KEY" ] && [ -z "$PASSWORD" ]; then
+    echo "Deployment requires either DEPLOY_KEY or DEPLOY_PASSWORD." >&2
+    exit 2
+  fi
+
   echo "Uploading $(basename "$TARFILE") to $USER@$HOST:$DEST"
   if [ -n "$KEY" ]; then
     scp -i "$KEY" "$TARFILE" "$USER@$HOST:$DEST/"
     ssh -i "$KEY" "$USER@$HOST" "mkdir -p '$remote_dir' && sha256sum '$DEST/$(basename "$TARFILE")' | grep -q '$checksum' && tar -xzf '$DEST/$(basename "$TARFILE")' -C '$remote_dir' && ln -sfn '$remote_dir/build' '$DEST/current' && rm '$DEST/$(basename "$TARFILE")'"
   else
-    scp "$TARFILE" "$USER@$HOST:$DEST/"
-    ssh "$USER@$HOST" "mkdir -p '$remote_dir' && sha256sum '$DEST/$(basename "$TARFILE")' | grep -q '$checksum' && tar -xzf '$DEST/$(basename "$TARFILE")' -C '$remote_dir' && ln -sfn '$remote_dir/build' '$DEST/current' && rm '$DEST/$(basename "$TARFILE")'"
+    if ! command -v sshpass >/dev/null 2>&1; then
+      echo "sshpass is required when using DEPLOY_PASSWORD." >&2
+      exit 2
+    fi
+    sshpass -p "$PASSWORD" scp -o StrictHostKeyChecking=accept-new "$TARFILE" "$USER@$HOST:$DEST/"
+    sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=accept-new "$USER@$HOST" "mkdir -p '$remote_dir' && sha256sum '$DEST/$(basename "$TARFILE")' | grep -q '$checksum' && tar -xzf '$DEST/$(basename "$TARFILE")' -C '$remote_dir' && ln -sfn '$remote_dir/build' '$DEST/current' && rm '$DEST/$(basename "$TARFILE")'"
   fi
   rm -f "$TARFILE"
   echo "Deployment verified and activated at $DEST/current"

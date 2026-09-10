@@ -2,7 +2,7 @@
 set -euo pipefail
 
 usage() {
-  echo "Usage: DEPLOY_HOST=host DEPLOY_USER=user DEPLOY_PATH=/path [DEPLOY_KEY=/path/to/key] ./deploy.sh"
+  echo "Usage: DEPLOY_HOST=host DEPLOY_USER=user DEPLOY_PATH=/path [DEPLOY_KEY=/path/to/key|DEPLOY_PASSWORD=secret] ./deploy.sh"
   exit 1
 }
 
@@ -19,6 +19,7 @@ HOST=${DEPLOY_HOST:-}
 USER=${DEPLOY_USER:-}
 DEST=${DEPLOY_PATH:-}
 KEY=${DEPLOY_KEY:-}
+PASSWORD="${DEPLOY_PASSWORD:-}"
 
 [ -n "$HOST" ] || usage
 [ -n "$USER" ] || usage
@@ -55,12 +56,20 @@ REMOTE_TAR="$DEST/$(basename "$TARFILE")"
 REMOTE_RELEASE="$DEST/.releases/$RELEASE_NAME"
 
 echo "Uploading $TARFILE to $USER@$HOST:$DEST"
+if [ -z "$KEY" ] && [ -z "$PASSWORD" ]; then
+  echo "Either DEPLOY_KEY or DEPLOY_PASSWORD is required." >&2
+  exit 2
+fi
 if [ -n "$KEY" ]; then
   scp -i "$KEY" "$TARFILE" "$USER@$HOST:$DEST/"
   ssh -i "$KEY" "$USER@$HOST" "set -eu; mkdir -p '$REMOTE_RELEASE'; printf '%s  %s\\n' '$CHECKSUM' '$REMOTE_TAR' | sha256sum -c -; tar -xzf '$REMOTE_TAR' -C '$REMOTE_RELEASE'; ln -sfn '$REMOTE_RELEASE/build' '$DEST/current'; rm -f '$REMOTE_TAR'"
 else
-  scp "$TARFILE" "$USER@$HOST:$DEST/"
-  ssh "$USER@$HOST" "set -eu; mkdir -p '$REMOTE_RELEASE'; printf '%s  %s\\n' '$CHECKSUM' '$REMOTE_TAR' | sha256sum -c -; tar -xzf '$REMOTE_TAR' -C '$REMOTE_RELEASE'; ln -sfn '$REMOTE_RELEASE/build' '$DEST/current'; rm -f '$REMOTE_TAR'"
+  if ! command -v sshpass >/dev/null 2>&1; then
+    echo "sshpass is required when using DEPLOY_PASSWORD." >&2
+    exit 2
+  fi
+  sshpass -p "$PASSWORD" scp -o StrictHostKeyChecking=accept-new "$TARFILE" "$USER@$HOST:$DEST/"
+  sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=accept-new "$USER@$HOST" "set -eu; mkdir -p '$REMOTE_RELEASE'; printf '%s  %s\\n' '$CHECKSUM' '$REMOTE_TAR' | sha256sum -c -; tar -xzf '$REMOTE_TAR' -C '$REMOTE_RELEASE'; ln -sfn '$REMOTE_RELEASE/build' '$DEST/current'; rm -f '$REMOTE_TAR'"
 fi
 
 echo "Upload complete. Connect to host and extract:"
