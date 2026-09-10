@@ -27,7 +27,7 @@ jobs:
       - name: Run backend tests
         run: |
           . .venv/bin/activate
-          pytest backend -q --ignore=backend/tests/backend_test.py --ignore=backend/tests/test_full_sweep.py --ignore=backend/tests/test_session15.py
+          pytest backend -q -m "not live"
 
   frontend:
     runs-on: ubuntu-latest

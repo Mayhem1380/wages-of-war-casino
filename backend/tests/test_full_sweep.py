@@ -13,8 +13,25 @@ import pytest
 import requests
 from dotenv import dotenv_values
 
-_env = dotenv_values("/app/frontend/.env")
-BASE_URL = (os.environ.get("REACT_APP_BACKEND_URL") or _env.get("REACT_APP_BACKEND_URL")).rstrip("/")
+pytestmark = pytest.mark.live
+
+
+def _load_base_url():
+    base_url = os.environ.get("REACT_APP_BACKEND_URL")
+    if base_url:
+        return base_url
+
+    frontend_env = Path("/app/frontend/.env")
+    if frontend_env.exists():
+        return dotenv_values(frontend_env).get("REACT_APP_BACKEND_URL")
+
+    pytest.skip("live backend URL not configured", allow_module_level=True)
+
+
+BASE_URL = _load_base_url()
+if not BASE_URL:
+    pytest.skip("live backend URL not configured", allow_module_level=True)
+BASE_URL = BASE_URL.rstrip("/")
 API = f"{BASE_URL}/api"
 
 NEW22 = [
@@ -27,7 +44,10 @@ NEW22 = [
 
 
 def _creds():
-    txt = Path("/app/memory/test_credentials.md").read_text()
+    creds_path = Path("/app/memory/test_credentials.md")
+    if not creds_path.exists():
+        pytest.skip("live test credentials not configured")
+    txt = creds_path.read_text()
     email = re.search(r"Email:\s*`([^`]+)`", txt).group(1)
     pwd = re.search(r"Password:\s*`([^`]+)`", txt).group(1)
     pin = re.search(r"PIN:\s*`([^`]+)`", txt).group(1)

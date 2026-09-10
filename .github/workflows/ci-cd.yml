@@ -23,7 +23,7 @@ jobs:
           python -m compileall backend
       - name: Run tests
         run: |
-          pytest backend -q --ignore=backend/tests/backend_test.py --ignore=backend/tests/test_full_sweep.py --ignore=backend/tests/test_session15.py
+          pytest backend -q -m "not live"
 
   build-and-publish:
     needs: test-backend
