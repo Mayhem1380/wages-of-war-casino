@@ -8,6 +8,32 @@ const api = axios.create({
   withCredentials: true,
 });
 
+const inflightGetRequests = new Map();
+
+function getInflightRequestKey(url, config = {}) {
+  return JSON.stringify({
+    url,
+    baseURL: config.baseURL ?? api.defaults.baseURL ?? "",
+    params: config.params ?? null,
+  });
+}
+
+const baseGet = api.get.bind(api);
+
+api.get = (url, config = {}) => {
+  const key = getInflightRequestKey(url, config);
+  const inFlight = inflightGetRequests.get(key);
+  if (inFlight) {
+    return inFlight;
+  }
+
+  const request = baseGet(url, config).finally(() => {
+    inflightGetRequests.delete(key);
+  });
+  inflightGetRequests.set(key, request);
+  return request;
+};
+
 export function apiError(detail, fallback = "Operation failed. Try again.") {
   if (detail == null) return fallback;
   if (typeof detail === "string") return detail;
