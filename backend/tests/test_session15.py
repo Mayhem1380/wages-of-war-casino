@@ -27,10 +27,7 @@ def _resolve_base_url():
     )
 
 
-base_url = _resolve_base_url()
-if not base_url:
-    pytest.skip("REACT_APP_BACKEND_URL missing", allow_module_level=True)
-BASE_URL = base_url
+BASE_URL = _resolve_base_url()
 API = f"{BASE_URL}/api"
 
 try:
