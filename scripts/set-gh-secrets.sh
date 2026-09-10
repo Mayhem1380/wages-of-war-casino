@@ -2,7 +2,7 @@
 set -euo pipefail
 
 usage() {
-  cat <<EOF
+  cat <<'EOF'
 Usage: export values then run this script to set GitHub Actions secrets via gh CLI.
 
 Required env vars:
