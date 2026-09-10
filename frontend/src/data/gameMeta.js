@@ -1341,12 +1341,42 @@ export const MACHINE_ART = {
   },
 };
 
+const proceduralMachineArt = (id = "unknown") => {
+  let hash = 2166136261;
+  for (const char of String(id)) {
+    hash ^= char.charCodeAt(0);
+    hash = Math.imul(hash, 16777619);
+  }
+  const hue = Math.abs(hash) % 360;
+  const accent = `hsl(${hue} 78% 64%)`;
+  const deep = `hsl(${hue} 48% 9%)`;
+  const light = `hsl(${(hue + 42) % 360} 72% 24%)`;
+  const label = String(id).replace(/_/g, " ").toUpperCase();
+  const svg = encodeURIComponent(`
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1200">
+      <defs>
+        <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+          <stop stop-color="${deep}"/><stop offset=".55" stop-color="#050805"/>
+          <stop offset="1" stop-color="${light}"/>
+        </linearGradient>
+        <pattern id="p" width="54" height="54" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
+          <path d="M0 0V54M27 0V54" stroke="${accent}" stroke-opacity=".12" stroke-width="2"/>
+        </pattern>
+      </defs>
+      <rect width="900" height="1200" fill="url(#g)"/>
+      <rect width="900" height="1200" fill="url(#p)"/>
+      <circle cx="450" cy="470" r="250" fill="none" stroke="${accent}" stroke-opacity=".32" stroke-width="4"/>
+      <path d="M140 820 Q450 430 760 820" fill="none" stroke="${accent}" stroke-opacity=".6" stroke-width="8"/>
+      <text x="450" y="545" fill="${accent}" font-family="monospace" font-size="34" text-anchor="middle" letter-spacing="6">${label}</text>
+      <text x="450" y="600" fill="#f6e27a" font-family="monospace" font-size="18" text-anchor="middle" letter-spacing="4">NIGHT OPS // GENERATED CLASS</text>
+    </svg>
+  `);
+  const src = `data:image/svg+xml,${svg}`;
+  return { bg: src, thumb: src, panel: accent };
+};
+
 export const resolveMachineArt = (id, fallback = {}) => {
-  const base = BASE_MACHINE_ART[id] || {
-    bg: "",
-    thumb: "",
-    panel: "#4EE44E",
-  };
+  const base = BASE_MACHINE_ART[id] || proceduralMachineArt(id);
   const current = MACHINE_ART[id] || {};
   return {
     ...base,
@@ -1354,8 +1384,8 @@ export const resolveMachineArt = (id, fallback = {}) => {
     ...fallback,
     accent: fallback.accent || current.accent || base.panel || "#4EE44E",
     panel: fallback.panel || current.panel || base.panel || current.accent || "#4EE44E",
-    bg: fallback.bg || current.bg || base.bg || "/slots/bg_gold.jpg",
-    thumb: fallback.thumb || current.thumb || base.thumb || "/slots/thumb_gold.jpg",
+    bg: fallback.bg || current.bg || base.bg,
+    thumb: fallback.thumb || current.thumb || base.thumb,
   };
 };
 
