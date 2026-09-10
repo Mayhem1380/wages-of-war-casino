@@ -26,6 +26,7 @@ import AdScreen from "@/components/AdScreen";
 import UpgradesPanel from "@/components/UpgradesPanel";
 import PublishPanel from "@/components/PublishPanel";
 import CommandHub from "@/components/CommandHub";
+import QualityControlPanel from "@/components/QualityControlPanel";
 
 export default function AdminDashboard() {
   const { user } = useAuth();
@@ -219,6 +220,7 @@ export default function AdminDashboard() {
       <div className="mb-8">
         <UpgradesPanel />
         <PublishPanel />
+        <QualityControlPanel />
       </div>
 
       <div className="flex flex-wrap gap-2 mb-8">

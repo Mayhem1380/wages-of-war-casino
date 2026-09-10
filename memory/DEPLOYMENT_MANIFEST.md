@@ -14,7 +14,7 @@ This is the release inventory for production (https://wagesofwarcasin0.online) a
   /cookie-policy, /aml-policy, /bonus-terms, /responsible-gaming
 
 ## Games / Content
-- 145 public slot machines (87 AAA flagships) with Hold & Win, jackpots, and free spins
+- 176 public slot machines (87 AAA flagships) with Hold & Win, jackpots, and free spins
 - Keno — war-room background + warhead/blast number graphics
 - Coin Flip — grenade (heads) / knife (tails) coins over armory-vault background
 
