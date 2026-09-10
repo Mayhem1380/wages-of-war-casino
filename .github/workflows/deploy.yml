@@ -55,7 +55,7 @@ jobs:
           target: "/tmp"
 
       - name: Extract on remote and run post-deploy command
-        uses: appleboy/ssh-action@c4f70287fc37c43b14b30b407224bbbc8e8c6327 # master at 2026-09-10 deploy fix
+        uses: appleboy/ssh-action@c4f70287fc37c43b14b30b407224bbbc8e8c6327 # pinned commit from the previously used master ref
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
