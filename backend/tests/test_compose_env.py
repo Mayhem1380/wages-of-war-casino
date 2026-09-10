@@ -6,7 +6,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from games import PUBLIC_SLOT_IDS, SLOT_MACHINES
+from games import PUBLIC_SLOT_IDS, SLOT_MACHINES  # noqa: E402
 
 
 def test_backend_service_loads_runtime_env_file():
@@ -174,7 +174,9 @@ def test_house_bankroll_ledger_and_coverage_are_defined():
     try:
         import server  # noqa: F401
     except ImportError as exc:
-        raise AssertionError("backend server module must expose bankroll ledger helpers") from exc
+        raise AssertionError(
+            "backend server module must expose bankroll ledger helpers"
+        ) from exc
 
     assert hasattr(server, "record_house_cashflow")
     assert hasattr(server, "get_house_bankroll_summary")
@@ -184,7 +186,9 @@ def test_cashier_limits_and_kyc_banking_requirements_are_defined():
     try:
         import server  # noqa: F401
     except ImportError as exc:
-        raise AssertionError("backend server module must expose cashier limit and KYC banking config") from exc
+        raise AssertionError(
+            "backend server module must expose cashier limit and KYC banking config"
+        ) from exc
 
     assert hasattr(server, "MAX_DEPOSIT_AUD")
     assert hasattr(server, "MAX_WITHDRAW_AUD")
@@ -205,8 +209,17 @@ def test_support_bot_blocks_machine_performance_leaks_and_payout_bias_queries():
     for text in blocked:
         reply = server.safe_support_reply(text)
         lowered = reply.lower()
-        assert "deposit" in lowered or "wallet" in lowered or "verification" in lowered or "account" in lowered
-        assert "can’t provide" in lowered or "cannot provide" in lowered or "can not provide" in lowered
+        assert (
+            "deposit" in lowered
+            or "wallet" in lowered
+            or "verification" in lowered
+            or "account" in lowered
+        )
+        assert (
+            "can’t provide" in lowered
+            or "cannot provide" in lowered
+            or "can not provide" in lowered
+        )
         assert "which machine" not in lowered
         assert "hot" not in lowered
         assert "winning bet" not in lowered

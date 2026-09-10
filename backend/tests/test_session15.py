@@ -1,4 +1,5 @@
 """Iteration 15 targeted sweep: new slots (145), WARKINO modes, Shark Splitters streak."""
+
 import os
 import re
 import uuid
@@ -13,7 +14,9 @@ pytestmark = pytest.mark.live
 
 frontend_env_path = Path("/app/frontend/.env")
 frontend_env = dotenv_values(frontend_env_path) if frontend_env_path.exists() else {}
-base_url = os.environ.get("REACT_APP_BACKEND_URL") or frontend_env.get("REACT_APP_BACKEND_URL")
+base_url = os.environ.get("REACT_APP_BACKEND_URL") or frontend_env.get(
+    "REACT_APP_BACKEND_URL"
+)
 if not base_url:
     pytest.skip("live backend URL not configured", allow_module_level=True)
 BASE_URL = base_url.rstrip("/")
@@ -60,7 +63,9 @@ class TestCatalogue:
         machines = data["machines"] if isinstance(data, dict) else data
         assert len(machines) == 146, f"expected 146 slots, got {len(machines)}"
 
-    @pytest.mark.parametrize("mid", ["jungle_guerrilla", "gold_convoy", "iron_infantry", "crimson_circuit"])
+    @pytest.mark.parametrize(
+        "mid", ["jungle_guerrilla", "gold_convoy", "iron_infantry", "crimson_circuit"]
+    )
     def test_new_slot_present(self, mid):
         r = requests.get(f"{API}/games/slots", timeout=30)
         data = r.json()
@@ -74,7 +79,11 @@ class TestAuth:
     def test_register_and_me(self):
         email = f"TEST_it15_{uuid.uuid4().hex[:8]}@example.com"
         s = requests.Session()
-        r = s.post(f"{API}/auth/register", json={"email": email, "password": "secret123", "name": "TEST_it15"}, timeout=30)
+        r = s.post(
+            f"{API}/auth/register",
+            json={"email": email, "password": "secret123", "name": "TEST_it15"},
+            timeout=30,
+        )
         assert r.status_code in (200, 201), r.text[:300]
         body = r.json()
         tok = body.get("access_token") or body.get("token")
@@ -87,7 +96,9 @@ class TestAuth:
     def test_bcrypt_hash_and_cookie(self, creds):
         r = requests.post(f"{API}/auth/login", json=creds, timeout=30)
         assert r.status_code == 200
-        assert "access_token" in r.cookies or any("access_token" in c for c in r.cookies.keys()), r.cookies.keys()
+        assert "access_token" in r.cookies or any(
+            "access_token" in c for c in r.cookies.keys()
+        ), r.cookies.keys()
 
     def test_protected_requires_auth(self):
         r = requests.get(f"{API}/auth/me", timeout=30)
@@ -96,29 +107,47 @@ class TestAuth:
     def test_brute_force_lockout(self, creds):
         codes = []
         for _ in range(7):
-            rr = requests.post(f"{API}/auth/login", json={"email": creds["email"], "password": "wrongwrong"}, timeout=30)
+            rr = requests.post(
+                f"{API}/auth/login",
+                json={"email": creds["email"], "password": "wrongwrong"},
+                timeout=30,
+            )
             codes.append(rr.status_code)
         assert any(c in (423, 429) for c in codes), f"no lockout, codes={codes}"
 
 
 # --- slots spin -------------------------------------------------------------
 class TestSlots:
-    @pytest.mark.parametrize("mid", ["jungle_guerrilla", "gold_convoy", "iron_infantry", "crimson_circuit"])
+    @pytest.mark.parametrize(
+        "mid", ["jungle_guerrilla", "gold_convoy", "iron_infantry", "crimson_circuit"]
+    )
     def test_spin_new_slots(self, client, mid):
         before = client.get(f"{API}/auth/me", timeout=30).json()["balance"]
-        r = client.post(f"{API}/games/slots/spin", json={"machine_id": mid, "bet": 100}, timeout=45)
+        r = client.post(
+            f"{API}/games/slots/spin", json={"machine_id": mid, "bet": 100}, timeout=45
+        )
         assert r.status_code == 200, r.text[:400]
         d = r.json()
         assert "balance" in d
         expected = round(before - 100 + float(d.get("total_win", d.get("win", 0))), 2)
-        assert abs(d["balance"] - expected) < 1.0, f"balance mismatch: before={before} resp={d['balance']} win={d.get('total_win')}"
+        assert (
+            abs(d["balance"] - expected) < 1.0
+        ), f"balance mismatch: before={before} resp={d['balance']} win={d.get('total_win')}"
 
     def test_spin_invalid_machine(self, client):
-        r = client.post(f"{API}/games/slots/spin", json={"machine_id": "does_not_exist", "bet": 100}, timeout=30)
+        r = client.post(
+            f"{API}/games/slots/spin",
+            json={"machine_id": "does_not_exist", "bet": 100},
+            timeout=30,
+        )
         assert r.status_code in (400, 404), r.status_code
 
     def test_spin_below_min_bet(self, client):
-        r = client.post(f"{API}/games/slots/spin", json={"machine_id": "crimson_circuit", "bet": 0}, timeout=30)
+        r = client.post(
+            f"{API}/games/slots/spin",
+            json={"machine_id": "crimson_circuit", "bet": 0},
+            timeout=30,
+        )
         assert r.status_code in (400, 422)
 
 
@@ -130,7 +159,11 @@ class TestKeno:
         assert len(r.json()["paytable"]) > 0
 
     def test_warhead_play(self, client):
-        r = client.post(f"{API}/games/keno/play", json={"picks": [1, 2, 3, 4, 5], "stake": 50}, timeout=30)
+        r = client.post(
+            f"{API}/games/keno/play",
+            json={"picks": [1, 2, 3, 4, 5], "stake": 50},
+            timeout=30,
+        )
         assert r.status_code == 200, r.text[:300]
         d = r.json()
         assert len(d["drawn"]) == 20
@@ -138,14 +171,25 @@ class TestKeno:
         assert "win" in d and "balance" in d
 
     def test_wow_play(self, client):
-        r = client.post(f"{API}/games/keno/wow", json={"picks": [7, 14, 21, 28], "stake": 50}, timeout=30)
+        r = client.post(
+            f"{API}/games/keno/wow",
+            json={"picks": [7, 14, 21, 28], "stake": 50},
+            timeout=30,
+        )
         assert r.status_code == 200, r.text[:300]
         d = r.json()
         assert "win" in d and "balance" in d
         assert len(d.get("drawn", [])) > 0
 
     def test_side_play_all_markets(self, client):
-        r = client.post(f"{API}/games/keno/side", json={"bets": {"sum": "over", "parity": "odd", "zone": "high"}, "stake": 50}, timeout=30)
+        r = client.post(
+            f"{API}/games/keno/side",
+            json={
+                "bets": {"sum": "over", "parity": "odd", "zone": "high"},
+                "stake": 50,
+            },
+            timeout=30,
+        )
         assert r.status_code == 200, r.text[:300]
         d = r.json()
         assert len(d["legs"]) == 3
@@ -162,11 +206,15 @@ class TestKeno:
                 assert leg["outcome"] == ("high" if d["high_count"] > 10 else "low")
 
     def test_side_no_bets_rejected(self, client):
-        r = client.post(f"{API}/games/keno/side", json={"bets": {}, "stake": 50}, timeout=30)
+        r = client.post(
+            f"{API}/games/keno/side", json={"bets": {}, "stake": 50}, timeout=30
+        )
         assert r.status_code == 400
 
     def test_keno_min_stake(self, client):
-        r = client.post(f"{API}/games/keno/play", json={"picks": [1, 2, 3], "stake": 1}, timeout=30)
+        r = client.post(
+            f"{API}/games/keno/play", json={"picks": [1, 2, 3], "stake": 1}, timeout=30
+        )
         assert r.status_code == 400
 
 
@@ -202,7 +250,9 @@ class TestShark:
 # --- other games ------------------------------------------------------------
 class TestOtherGames:
     def test_coinflip(self, client):
-        r = client.post(f"{API}/games/coinflip", json={"side": "heads", "bet": 50}, timeout=30)
+        r = client.post(
+            f"{API}/games/coinflip", json={"side": "heads", "bet": 50}, timeout=30
+        )
         assert r.status_code == 200, r.text[:300]
         d = r.json()
         assert d["outcome"] in ("heads", "tails")
@@ -248,4 +298,6 @@ def test_cors_not_wildcard_with_credentials():
     )
     allow = r.headers.get("access-control-allow-origin")
     cred = r.headers.get("access-control-allow-credentials")
-    assert not (allow in ("*", "https://evil.example.com") and cred == "true"), f"origin={allow} creds={cred}"
+    assert not (
+        allow in ("*", "https://evil.example.com") and cred == "true"
+    ), f"origin={allow} creds={cred}"

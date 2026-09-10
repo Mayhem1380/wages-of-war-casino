@@ -137,14 +137,6 @@ class TestSlots:
 
     def test_list_slots_flagship_count(self):
         arr = requests.get(f"{API}/games/slots").json()
-        flagships = [
-            m
-            for m in arr
-            if m.get("flagship")
-            or m.get("is_flagship")
-            or m.get("aaa")
-            or m.get("tier") == "flagship"
-        ]
         # Fallback: infer from expected set if flag not exposed
         expected_flagship_ids = {
             "pharaohs_arsenal",
@@ -862,7 +854,11 @@ class TestAdmin:
         assert all("id" in p and "name" in p for p in packages)
 
         updated = [
-            {**packages[0], "active": not packages[0].get("active", False), "published": True}
+            {
+                **packages[0],
+                "active": not packages[0].get("active", False),
+                "published": True,
+            }
         ]
         r2 = requests.post(
             f"{API}/admin/upgrades",
@@ -1199,7 +1195,6 @@ class TestCashierWithdrawalAndAdmin:
         assert r.status_code == 400
 
 
-
 # ---------------- KYC / IDENTITY VERIFICATION (Stripe Identity) ----------------
 class TestKyc:
     """Verify Stripe Identity session creation, status endpoint, and the
@@ -1302,9 +1297,7 @@ class TestKyc:
         assert r.status_code == 403, r.text
         # Message should mention identity/verification/kyc
         body = r.text.lower()
-        assert (
-            "identity" in body or "verification" in body or "kyc" in body
-        ), body
+        assert "identity" in body or "verification" in body or "kyc" in body, body
 
 
 # ---------------- WHEEL (Daily Streak Wheel) ----------------
@@ -1367,7 +1360,15 @@ class TestTournament:
         r = requests.get(f"{API}/tournament/current")
         assert r.status_code == 200, r.text
         d = r.json()
-        for k in ("id", "name", "prize_pool", "ends_at", "seconds_left", "leaderboard", "me"):
+        for k in (
+            "id",
+            "name",
+            "prize_pool",
+            "ends_at",
+            "seconds_left",
+            "leaderboard",
+            "me",
+        ):
             assert k in d, f"missing {k}"
         assert d["prize_pool"] == 5_000_000
         assert d["name"] == "OPERATION HIGH ROLLER"
