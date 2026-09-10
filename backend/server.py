@@ -316,6 +316,15 @@ def _mask_financial_value(value: Optional[str]) -> Optional[str]:
 app = FastAPI(title="Wages of War Casino API")
 api = APIRouter(prefix="/api")
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=CORS_ORIGINS,
+    allow_origin_regex=CORS_ALLOW_ORIGIN_REGEX,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["*"],
+)
+
 
 async def record_house_cashflow(
     amount_usd: float,
@@ -3922,25 +3931,6 @@ app.include_router(api)
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
-
-
-@app.middleware("http")
-async def trusted_cors_middleware(request: Request, call_next):
-    origin = request.headers.get("origin")
-    if origin and _is_trusted_cors_origin(origin):
-        response = await call_next(request)
-        response.headers["Access-Control-Allow-Origin"] = origin
-        response.headers["Access-Control-Allow-Credentials"] = "true"
-        response.headers["Vary"] = "Origin"
-        if request.method == "OPTIONS":
-            response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, PATCH, DELETE, OPTIONS"
-            response.headers["Access-Control-Allow-Headers"] = request.headers.get(
-                "access-control-request-headers", "authorization, content-type"
-            )
-        return response
-    if request.method == "OPTIONS":
-        return Response(status_code=204)
-    return await call_next(request)
 
 
 async def _safe_create_index(collection, field_name, **kwargs):
