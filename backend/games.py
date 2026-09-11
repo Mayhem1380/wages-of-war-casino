@@ -3,7 +3,6 @@ Server-authoritative RNG for slots and keno.
 """
 
 import secrets
-from copy import deepcopy
 
 # ---------------------------------------------------------------------------
 # SLOT ENGINE
@@ -4379,52 +4378,6 @@ SLOT_MACHINES["golden_dragon"] = _machine(
     101,
 )
 SLOT_MACHINES["golden_dragon"]["reel_strips"] = GOLDEN_DRAGON_REEL_STRIPS
-# Expansion roster.  These are deliberately built from the same audited
-# five-reel engine definitions as the existing catalog: no alternate spin
-# implementation or untracked asset contract is introduced.
-_ADDITIONAL_SLOTS = [
-    ("auric_bastion", "Auric Bastion", "Fortify the golden frontier", "fortune", "Medium", "gold_bonanza", 88, 9),
-    ("blacksite_bounty", "Blacksite Bounty", "Extract the classified haul", "heist", "High", "night_raid", 87, 10),
-    ("cinder_convoy", "Hellfire Harpoon", "Escort the burning payload", "inferno", "High", "inferno_airstrike", 86, 10),
-    ("crystal_sentinel", "Abyssal Ambush", "Guard the vault of light", "olympus", "Medium", "sapphire_command", 85, 8),
-    ("dreadnought_gold", "Depth Charge Riches", "Command the bullion fleet", "naval", "High", "steel_leviathan", 84, 10),
-    ("ember_outpost", "Silent Strike", "Hold the line for glory", "inferno", "High", "ember_legion", 83, 9),
-    ("frostline_fortune", "Sapphire Siege", "Break through the frozen front", "military", "Medium", "frozen_front", 82, 8),
-    ("ghost_protocol", "Ghost Squadron", "Disappear with the jackpot", "heist", "High", "phantom_strike", 81, 10),
-    ("golden_watch", "Golden Grunt", "Time the perfect strike", "military", "Medium", "midas_command", 80, 9),
-    ("ironclad_raiders", "Ironclad Infantry", "Board the armored reserve", "naval", "High", "ironclad_jackpots", 79, 10),
-    ("jade_fireteam", "Jade Fireteam", "Deploy the jade unit", "military", "Medium", "jade_dynasty", 78, 8),
-    ("lunar_lancers", "Phantom Platoon", "Charge beneath the silver moon", "olympus", "High", "solar_vanguard", 77, 9),
-    ("midnight_armory", "Midnight Marauders", "Unlock the night arsenal", "heist", "High", "midnight_vanguard", 76, 10),
-    ("neon_brigade", "Neon Kraken", "Light up the winning grid", "heist", "Medium", "neon_reserve", 75, 8),
-    ("obsidian_raiders", "Blackout Battalion", "Raid the black-glass vault", "heist", "High", "obsidian_empire", 74, 10),
-    ("redline_recon", "Reaper Reels", "Cross the danger zone", "military", "High", "redline_reign", 73, 9),
-    ("stormguard_elite", "Stormbreaker Slots", "Strike through the static", "military", "Medium", "stormbreaker", 72, 8),
-    ("tactical_titans", "Trident Tactical", "Mobilize the heavy hitters", "military", "High", "thunder_titans", 71, 10),
-    ("vault_of_victory", "Oceanic Overlord", "Crack the winner's reserve", "heist", "Medium", "money_train_convoy", 70, 9),
-    ("wildline_warriors", "Wildline Warriors", "Take the frontier by force", "western", "High", "wild_west_recon", 69, 10),
-]
-
-# Use audited definitions as templates, then vary the reel weights and free
-# spin cadence so every new machine has real, inspectable spin metadata.
-for _index, (_id, _name, _tagline, _theme, _volatility, _template, _popularity, _free_spins) in enumerate(_ADDITIONAL_SLOTS):
-    _machine = deepcopy(SLOT_MACHINES[_template])
-    _machine.update({
-        "id": _id,
-        "name": _name,
-        "tagline": _tagline,
-        "theme": _theme,
-        "volatility": _volatility,
-        "free_spins": _free_spins,
-        "popularity": _popularity,
-    })
-    # Deterministic per-machine weight variation keeps the catalog diverse
-    # without changing the server-authoritative payout algorithm.
-    _machine["symbols"] = {
-        symbol: max(2, weight + ((_index + position) % 3) - 1)
-        for position, (symbol, weight) in enumerate(_machine["symbols"].items())
-    }
-    SLOT_MACHINES[_id] = _machine
 
 
 def _weighted_pick(symbols):
@@ -4736,27 +4689,6 @@ PUBLIC_SLOT_IDS = [
     "jungle_guerrilla",
     "urban_sniper",
     "iron_infantry",
-    "black_hawk_bounty",
-    "auric_bastion",
-    "blacksite_bounty",
-    "cinder_convoy",
-    "crystal_sentinel",
-    "dreadnought_gold",
-    "ember_outpost",
-    "frostline_fortune",
-    "ghost_protocol",
-    "golden_watch",
-    "ironclad_raiders",
-    "jade_fireteam",
-    "lunar_lancers",
-    "midnight_armory",
-    "neon_brigade",
-    "obsidian_raiders",
-    "redline_recon",
-    "stormguard_elite",
-    "tactical_titans",
-    "vault_of_victory",
-    "wildline_warriors",
 ]
 
 FLAGSHIP_IDS = {
