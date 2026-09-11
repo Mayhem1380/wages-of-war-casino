@@ -1392,6 +1392,24 @@ Object.entries(NEW_SLOT_TEMPLATE_ART).forEach(([id, tpl], i) => {
   BASE_MACHINE_ART[id] = { bg, thumb, panel: src.panel || src.accent || "#4EE44E" };
 });
 
+const hashId = (id = "") =>
+  [...id].reduce((acc, ch) => ((acc * 31 + ch.charCodeAt(0)) >>> 0), 2166136261);
+
+const proceduralMachineArt = (id) => {
+  const seed = hashId(id);
+  const hueA = seed % 360;
+  const hueB = (hueA + 90 + ((seed >>> 7) % 120)) % 360;
+  const hueC = (hueA + 180 + ((seed >>> 13) % 80)) % 360;
+  const angle = seed % 360;
+  const pulseA = 20 + (seed % 60);
+  const pulseB = 15 + ((seed >>> 5) % 55);
+  const scanY = 20 + ((seed >>> 9) % 60);
+  const accent = `hsl(${hueA}, 86%, 65%)`;
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 700' preserveAspectRatio='xMidYMid slice'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1' gradientTransform='rotate(${angle})'><stop offset='0%' stop-color='hsl(${hueA},85%,14%)'/><stop offset='55%' stop-color='hsl(${hueB},88%,10%)'/><stop offset='100%' stop-color='hsl(${hueC},92%,6%)'/></linearGradient><radialGradient id='r' cx='50%' cy='${scanY}%' r='70%'><stop offset='0%' stop-color='hsla(${hueA},98%,72%,.35)'/><stop offset='100%' stop-color='rgba(0,0,0,0)'/></radialGradient><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/><feComponentTransfer><feFuncA type='table' tableValues='0 0 .12 .18 .22'/></feComponentTransfer></filter></defs><rect width='1200' height='700' fill='url(#g)'/><rect width='1200' height='700' fill='url(#r)'/><g stroke='hsla(${hueA},95%,78%,.42)' stroke-width='2' fill='none'><path d='M-120 ${430 + pulseA} Q 320 ${220 - pulseB} 640 ${400 + pulseA} T 1320 ${420 + pulseB}'/><path d='M-140 ${520 + pulseB} Q 420 ${320 + pulseA} 860 ${500 + pulseB} T 1320 ${500 + pulseA}'/></g><g fill='hsla(${hueB},96%,70%,.34)'><circle cx='${220 + (seed % 500)}' cy='${150 + ((seed >>> 3) % 260)}' r='${80 + ((seed >>> 1) % 90)}'/><circle cx='${820 + ((seed >>> 4) % 230)}' cy='${120 + ((seed >>> 8) % 280)}' r='${56 + ((seed >>> 2) % 70)}'/></g><rect width='1200' height='700' filter='url(#n)' opacity='.28'/><rect width='1200' height='700' fill='none' stroke='hsla(${hueA},95%,72%,.5)' stroke-width='7'/></svg>`;
+  const uri = `data:image/svg+xml,${encodeURIComponent(svg)}`;
+  return { bg: uri, thumb: uri, panel: accent };
+};
+
 
 export const resolveMachineArt = (id, fallback = {}) => {
   const base = BASE_MACHINE_ART[id] || {
@@ -1400,14 +1418,36 @@ export const resolveMachineArt = (id, fallback = {}) => {
     panel: "#4EE44E",
   };
   const current = MACHINE_ART[id] || {};
+  const generated = !(fallback.bg || current.bg || base.bg)
+    ? proceduralMachineArt(id)
+    : null;
   return {
     ...base,
     ...current,
+    ...(generated || {}),
     ...fallback,
-    accent: fallback.accent || current.accent || base.panel || "#4EE44E",
-    panel: fallback.panel || current.panel || base.panel || current.accent || "#4EE44E",
-    bg: fallback.bg || current.bg || base.bg || "/slots/bg_gold.jpg",
-    thumb: fallback.thumb || current.thumb || base.thumb || "/slots/thumb_gold.jpg",
+    accent:
+      fallback.accent ||
+      current.accent ||
+      fallback.panel ||
+      current.panel ||
+      base.panel ||
+      generated?.panel ||
+      "#4EE44E",
+    panel:
+      fallback.panel ||
+      current.panel ||
+      base.panel ||
+      current.accent ||
+      generated?.panel ||
+      "#4EE44E",
+    bg: fallback.bg || current.bg || base.bg || generated?.bg || "/slots/bg_gold.jpg",
+    thumb:
+      fallback.thumb ||
+      current.thumb ||
+      base.thumb ||
+      generated?.thumb ||
+      "/slots/thumb_gold.jpg",
   };
 };
 

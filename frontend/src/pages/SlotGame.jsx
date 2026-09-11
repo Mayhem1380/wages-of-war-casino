@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  useLayoutEffect,
+} from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
@@ -53,6 +59,21 @@ export default function SlotGame() {
     (syms) => syms[Math.floor(Math.random() * syms.length)],
     [],
   );
+
+  useLayoutEffect(() => {
+    const resetScroll = () => {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    };
+    resetScroll();
+    const raf = window.requestAnimationFrame(resetScroll);
+    const timeout = window.setTimeout(resetScroll, 120);
+    return () => {
+      window.cancelAnimationFrame(raf);
+      window.clearTimeout(timeout);
+    };
+  }, [id]);
 
   useEffect(() => {
     let alive = true;
