@@ -35,3 +35,11 @@ def test_readme_documents_render_cutover_flow():
     assert "## Controlled Render deployment" in readme
     assert "Verify the backend Render service passes `/health`" in readme
     assert "Point `wagesofwarcasin0.online` at the frontend service you control" in readme
+
+
+def test_frontend_metadata_matches_wages_of_war_branding():
+    index_html = (Path(__file__).resolve().parents[1] / "frontend" / "public" / "index.html").read_text()
+
+    assert '<title>Wages of War Casino | Night Ops Edition</title>' in index_html
+    assert 'content="Wages of War Casino — premium night-ops slots, flagship casino worlds, and operator-ready gaming from Wages of War."' in index_html
+    assert "Nexus Studio Master Global Fleet Gaming" not in index_html
