@@ -1,4 +1,6 @@
-<svg width="1229" height="848" viewBox="0 0 1229 848" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="1229" height="848" viewBox="0 0 1229 848" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Wages of War Casino — Night Ops Edition</title>
+  <desc id="desc">A gold porthole scope with a green night-vision soldier silhouette and Night Ops Edition script.</desc>
   <defs>
     <radialGradient id="scopeCore" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(611 424) rotate(90) scale(219)">
       <stop stop-color="#6DFF7C"/>
