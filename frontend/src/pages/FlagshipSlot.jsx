@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { SymbolTile } from "@/components/SymbolTile";
 import { PixiReelFX } from "@/components/PixiReelFX";
 import { FLAGSHIP_ART, fmt } from "@/data/gameMeta";
+import { getPremiumGameMedia } from "@/data/premiumMedia";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { sfx } from "@/lib/sounds";
@@ -95,7 +96,6 @@ export default function FlagshipSlot() {
     frame: "#8a6a1e",
     panel: "#141008",
   };
-
   const [machine, setMachine] = useState(null);
   const [grid, setGrid] = useState([[], [], [], [], []]);
   const [coins, setCoins] = useState({}); // key -> coin (base spin coins)
@@ -113,6 +113,14 @@ export default function FlagshipSlot() {
   const [buying, setBuying] = useState(false);
   const spinRef = useRef();
   const machineRef = useRef(null);
+  const media = getPremiumGameMedia(
+    machine || {
+      id,
+      name: "Loading Flagship",
+      tagline: "AAA flagship media package is arming the reels.",
+      theme: "military",
+    },
+  );
 
   const randSym = useCallback(
     (syms) => syms[Math.floor(Math.random() * syms.length)],
@@ -161,7 +169,7 @@ export default function FlagshipSlot() {
     setWinCells(new Set());
     setCoins({});
     setReelStop([false, false, false, false, false]);
-    sfx.spin();
+    sfx.spin(media.soundProfile);
     clearInterval(spinRef.current);
     spinRef.current = setInterval(() => {
       setGrid((prev) => prev.map((col) => col.map(() => randSym(m.symbols))));
@@ -172,7 +180,7 @@ export default function FlagshipSlot() {
         setTimeout(() => {
           setGrid((prev) => prev.map((c, r) => (r === reel ? col : c)));
           setReelStop((prev) => prev.map((v, r) => (r === reel ? true : v)));
-          sfx.reelStop();
+          sfx.reelStop(media.soundProfile);
           if (reel === 4) setTimeout(onDone, 160);
         }, reel * 150);
       });
@@ -217,8 +225,8 @@ export default function FlagshipSlot() {
     setLastWin(data.total_win);
     setSpinning(false);
     refreshUser();
-    if (data.total_win >= bet * 15) sfx.bigWin();
-    else if (data.total_win > 0) sfx.win();
+    if (data.total_win >= bet * 15) sfx.bigWin(media.soundProfile);
+    else if (data.total_win > 0) sfx.win(media.soundProfile);
     if (data.total_win >= bet * 50)
       setBigWin({ win: data.total_win, multiplier: 1 });
     if (data.total_win > 0)
@@ -230,10 +238,10 @@ export default function FlagshipSlot() {
     else if (!bonusIncoming) setFlash({ type: "lose" });
 
     if (data.holdwin_session) {
-      sfx.scatter();
+      sfx.scatter(media.soundProfile);
       startHoldWin(data.holdwin_session, cmap);
     } else if (data.free_session) {
-      sfx.scatter();
+      sfx.scatter(media.soundProfile);
       toast.success(`★ SCATTER! ${data.free_session.spins_left} FREE SPINS`);
       setFree({
         active: true,
@@ -289,7 +297,7 @@ export default function FlagshipSlot() {
   const playSequence = async (locked, data) => {
     let live = { ...locked };
     for (const step of data.sequence) {
-      sfx.spin();
+      sfx.spin(media.soundProfile);
       await sleep(650);
       step.new_coins.forEach((c, i) => {
         live[key(c.pos[0], c.pos[1])] = c;
@@ -307,8 +315,9 @@ export default function FlagshipSlot() {
     }
     await sleep(400);
     if (data.wheel) await runWheel(data.wheel);
-    if (data.full_grid || (data.jackpots_won || []).length) sfx.jackpot();
-    else sfx.bigWin();
+    if (data.full_grid || (data.jackpots_won || []).length)
+      sfx.jackpot(media.soundProfile);
+    else sfx.bigWin(media.soundProfile);
     if (data.total_win >= bet * 40)
       setBigWin({ win: data.total_win, multiplier: 1 });
     refreshUser();
@@ -323,7 +332,7 @@ export default function FlagshipSlot() {
 
   const collectHold = () => {
     const total = hold?.total || 0;
-    sfx.coin();
+    sfx.coin(media.soundProfile);
     setHold(null);
     setCoins({});
     setLastWin(total);
@@ -347,12 +356,12 @@ export default function FlagshipSlot() {
           total: data.total_session_win,
           done: !data.active,
         }));
-        if (data.win >= bet * 15) sfx.bigWin();
-        else if (data.win > 0) sfx.win();
+        if (data.win >= bet * 15) sfx.bigWin(media.soundProfile);
+        else if (data.win > 0) sfx.win(media.soundProfile);
         if (data.win >= bet * 50)
           setBigWin({ win: data.win, multiplier: data.multiplier });
         if (data.retrigger) {
-          sfx.scatter();
+          sfx.scatter(media.soundProfile);
           toast.success("★ RETRIGGER +5 SPINS");
         }
         refreshUser();
@@ -366,7 +375,7 @@ export default function FlagshipSlot() {
 
   const collectFree = () => {
     const total = free?.total || 0;
-    sfx.coin();
+    sfx.coin(media.soundProfile);
     setFree(null);
     setLastWin(0);
     setWinCells(new Set());
@@ -396,7 +405,7 @@ export default function FlagshipSlot() {
         bet,
       });
       await refreshUser();
-      sfx.scatter();
+      sfx.scatter(media.soundProfile);
       toast.success(
         `FEATURE BOUGHT — ${data.free_session.spins_left} FREE SPINS!`,
       );
@@ -556,13 +565,13 @@ export default function FlagshipSlot() {
           tabIndex={0}
           className="fixed inset-0 z-50 flex flex-col items-center justify-center cursor-pointer overflow-y-auto p-4"
           style={{
-            backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.85)), url(${art.bg})`,
+            backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.85)), url(${media.heroPoster})`,
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
         >
           <img
-            src={art.thumb}
+            src={media.titleArt}
             alt={machine.name}
             className="w-32 h-32 sm:w-52 sm:h-52 object-cover rounded-lg border-2 mb-4 sm:mb-6 animate-pop"
             style={{
@@ -574,21 +583,21 @@ export default function FlagshipSlot() {
             className="font-mono text-[10px] sm:text-xs tracking-[0.4em] sm:tracking-[0.5em] mb-2"
             style={{ color: art.accent }}
           >
-            ★ AAA FLAGSHIP OPERATION
+            ★ {media.videoKicker}
           </p>
           <h1 className="font-display text-4xl sm:text-6xl lg:text-7xl tracking-wide text-white text-center px-4 drop-shadow-[0_3px_12px_rgba(0,0,0,0.9)]">
             {machine.name}
           </h1>
           <div className="flex items-center gap-2 sm:gap-3 mt-3 mb-6 sm:mb-8">
             <span className="font-display text-xl sm:text-3xl gold-gradient">
-              HOLD &amp; WIN
+              {media.quality} GRAPHICS
             </span>
             <span className="text-white/40">·</span>
             <span
               className="font-display text-xl sm:text-3xl"
               style={{ color: art.accent }}
             >
-              ROYAL 10,000×
+              {media.soundtrack}
             </span>
           </div>
           <button

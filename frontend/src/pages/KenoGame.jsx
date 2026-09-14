@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { fmt } from "@/data/gameMeta";
+import { getPremiumGameMedia } from "@/data/premiumMedia";
 import { AnimatedShowcase } from "@/components/AnimatedShowcase";
 import { KenoLiveBoard } from "@/components/KenoLiveBoard";
 import { KenoMosaicTiles } from "@/components/KenoMosaicTiles";
@@ -78,6 +79,7 @@ export default function KenoGame() {
   const [autoPlay, setAutoPlay] = useState(false);
   const [mode, setMode] = useState("warhead");
   const [sideBets, setSideBets] = useState({});
+  const media = getPremiumGameMedia({ id: "warkino", kind: "special" });
 
   const toggleSideBet = (key, v) =>
     setSideBets((prev) => {
@@ -131,7 +133,7 @@ export default function KenoGame() {
       setBusy(true);
       setResult(null);
       sfx.prime();
-      sfx.spin();
+      sfx.spin(media.soundProfile);
       try {
         let data;
         if (mode === "side") {
@@ -175,14 +177,14 @@ export default function KenoGame() {
         setResult(data);
         refreshUser();
         if (data.win > 0) {
-          sfx.bigWin();
+          sfx.bigWin(media.soundProfile);
           setCelebrate({
             intensity: (data.multiplier || 2) >= 10 ? "big" : "small",
           });
           setFlash({ type: "win", label: `+${fmt(data.win)}` });
           toast.success(`WIN +${fmt(data.win)}`);
         } else {
-          sfx.lose();
+          sfx.lose(media.soundProfile);
           setFlash({ type: "lose" });
           toast(
             mode === "side"
@@ -246,17 +248,31 @@ export default function KenoGame() {
           className="relative mb-6 overflow-hidden border border-gold/30 rounded-sm"
         >
           <img
-            src="/brand/warkino_hero.jpg"
-            alt="WARKINO — Special Forces Night Ops Edition"
+            src={media.heroPoster}
+            alt={`${media.name} premium poster`}
             className="w-full h-40 sm:h-56 object-cover object-top"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
+          <div className="absolute left-4 top-4 z-10 flex flex-wrap gap-2 font-mono text-[10px] tracking-[0.25em] text-white/85">
+            <span
+              className="border px-2 py-1"
+              style={{ borderColor: `${media.accent}66`, color: media.accent }}
+            >
+              {media.quality} GRAPHICS
+            </span>
+            <span className="border border-border bg-black/45 px-2 py-1">
+              VIDEO PLAY
+            </span>
+            <span className="border border-nvg/30 bg-black/45 px-2 py-1 text-nvg">
+              {media.soundtrack}
+            </span>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
           <div>
             <p className="font-mono text-xs tracking-[0.4em] text-nvg/70">
-              // WARKINO · SPECIAL FORCES ·{" "}
+              {`// ${media.videoKicker} · `}
               {mode === "wow"
                 ? "WARHEAD MULTIPLIERS UP TO 8×"
                 : mode === "side"
@@ -305,7 +321,11 @@ export default function KenoGame() {
         <LiveWinnersTicker game="Warhead Keno" />
 
         <div className="mb-6">
-          <AnimatedShowcase variant="keno" testId="keno-video" />
+          <AnimatedShowcase
+            variant="keno"
+            testId="keno-video"
+            slides={media.showcaseSlides}
+          />
         </div>
 
         <div className="grid lg:grid-cols-[1fr_260px] gap-6">

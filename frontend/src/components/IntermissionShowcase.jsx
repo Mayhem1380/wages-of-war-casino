@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowUpRight, Broadcast, Play } from "@phosphor-icons/react";
 import { AnimatedShowcase } from "@/components/AnimatedShowcase";
 
-export function IntermissionShowcase() {
+export function IntermissionShowcase({ slides }) {
   return (
     <section
       data-testid="intermission-showcase"
@@ -19,7 +19,7 @@ export function IntermissionShowcase() {
         </span>
       </div>
       <div className="relative aspect-video">
-        <AnimatedShowcase testId="intermission-reel" variant="promo" />
+        <AnimatedShowcase testId="intermission-reel" variant="promo" slides={slides} />
         <div className="pointer-events-none absolute inset-0 bg-black/10" />
       </div>
       <div className="flex items-center justify-between gap-3 p-3">

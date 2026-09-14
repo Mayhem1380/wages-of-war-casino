@@ -4,11 +4,17 @@ import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import {
   FLAGSHIP_ART,
-  FLAGSHIP_IDS,
   MACHINE_ART,
   resolveMachineArt,
   fmt,
 } from "@/data/gameMeta";
+import {
+  SLOT_CATALOG,
+  SLOT_INVENTORY_COUNT,
+  buildPremiumLobbySlides,
+  countReadyPremiumGames,
+  getPremiumGameMedia,
+} from "@/data/premiumMedia";
 import { LOBBY } from "@/constants/testIds";
 import { AnimatedShowcase } from "@/components/AnimatedShowcase";
 import { LobbyHype } from "@/components/LobbyHype";
@@ -44,19 +50,20 @@ const FALLBACK_DETAILS = {
     "heist",
   ],
 };
-const LOBBY_FALLBACK_SLOTS = FLAGSHIP_IDS.map((id, index) => {
-  const [name, tagline, theme] = FALLBACK_DETAILS[id] || [
-    id.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase()),
-    "Premium reels, live jackpot prizes, and feature-rich bonus play.",
-    "military",
+const LOBBY_FALLBACK_SLOTS = SLOT_CATALOG.map((slot, index) => {
+  const [name, tagline, theme] = FALLBACK_DETAILS[slot.id] || [
+    slot.name ||
+      slot.id.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase()),
+    slot.tagline || "Premium reels, live jackpot prizes, and feature-rich bonus play.",
+    slot.theme || "military",
   ];
   return {
-    id,
+    ...slot,
+    id: slot.id,
     name,
     tagline,
     theme,
-    popularity: FLAGSHIP_IDS.length - index,
-    is_flagship: true,
+    popularity: slot.popularity || SLOT_CATALOG.length - index,
   };
 });
 
@@ -197,6 +204,8 @@ export default function Lobby() {
         .slice(0, 6),
     [slots],
   );
+  const premiumReadyCount = useMemo(() => countReadyPremiumGames(slots), [slots]);
+  const lobbySlides = useMemo(() => buildPremiumLobbySlides(slots), [slots]);
 
   const catCount = (c) =>
     c === "All" ? slots.length : slots.filter((s) => catOf(s) === c).length;
@@ -237,10 +246,10 @@ export default function Lobby() {
 
         <div className="mt-6 grid gap-4 md:grid-cols-4">
           {[
-            { label: "Jackpots Live", value: "$4.8M+" },
-            { label: "Elite Titles", value: "145" },
-            { label: "Daily Drops", value: "12" },
-            { label: "VIP Rate", value: "98%" },
+            { label: "Slot Floor", value: String(SLOT_INVENTORY_COUNT) },
+            { label: "Premium Ready", value: String(premiumReadyCount) },
+            { label: "Special Games", value: "2" },
+            { label: "Platform Links", value: "16" },
           ].map((item) => (
             <div key={item.label} className="lobby-stat-card">
               <div className="lobby-stat-value">{item.value}</div>
@@ -291,7 +300,11 @@ export default function Lobby() {
 
       {/* GAME PREVIEW VIDEO */}
       <div className="mb-10">
-        <AnimatedShowcase testId="lobby-preview-video" variant="game-preview" />
+        <AnimatedShowcase
+          testId="lobby-preview-video"
+          variant="game-preview"
+          slides={lobbySlides}
+        />
       </div>
 
       {/* VERIFIED HOUSE RANKING — based on the backend catalogue popularity score */}
@@ -318,6 +331,7 @@ export default function Lobby() {
             {featuredSlots.map((slot, rank) => {
               const featuredArt =
                 FLAGSHIP_ART[slot.id] || resolveMachineArt(slot.id);
+              const media = getPremiumGameMedia(slot);
               return (
                 <button
                   key={slot.id}
@@ -342,6 +356,9 @@ export default function Lobby() {
                     <p className="font-mono text-[9px] tracking-widest text-gold/80 mt-1">
                       {slot.is_flagship ? "AAA FLAGSHIP" : "FLEET FAVORITE"} ·
                       DEPLOY →
+                    </p>
+                    <p className="font-mono text-[9px] tracking-[0.2em] text-white/65 mt-1">
+                      {media.soundtrack} · VIDEO PLAY
                     </p>
                   </div>
                 </button>
@@ -585,6 +602,7 @@ export default function Lobby() {
             tag: "",
           };
           const flag = s.is_flagship ? FLAGSHIP_ART[s.id] : null;
+          const media = getPremiumGameMedia(s);
           const feature = i === 0;
           const hot = i < 3 || (s.popularity || 0) > 80;
           if (flag) {
@@ -648,7 +666,7 @@ export default function Lobby() {
                     <p className="text-sm text-white/70 mt-1">{s.tagline}</p>
                     <div className="mt-3 flex items-center justify-between">
                       <span className="font-mono text-[11px] text-gold">
-                        HOLD &amp; WIN · ROYAL 10,000×
+                        {media.soundtrack} · VIDEO PLAY GRAPHICS
                       </span>
                       <span
                         className="flex items-center gap-1 font-stencil tracking-widest uppercase text-sm px-3 py-1 rounded-sm"
@@ -714,12 +732,15 @@ export default function Lobby() {
                     {s.name}
                   </h3>
                   <p className="text-sm text-white/70 mt-1">{s.tagline}</p>
+                  <p className="mt-2 font-mono text-[10px] tracking-[0.25em] text-white/65">
+                    {media.soundtrack} · {media.videoKicker}
+                  </p>
                   <div className="mt-3 flex items-center justify-between">
                     <span
                       className="font-mono text-[11px]"
                       style={{ color: rart.accent }}
                     >
-                      {art.tag}
+                      {art.tag || media.highlightLines[2]}
                     </span>
                     <span
                       className="flex items-center gap-1 font-stencil tracking-widest uppercase text-sm px-3 py-1 rounded-sm"

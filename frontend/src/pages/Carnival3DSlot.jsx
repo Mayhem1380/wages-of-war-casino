@@ -5,6 +5,7 @@ import * as TWEEN from "@tweenjs/tween.js";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { SYMBOL_META, fmt } from "@/data/gameMeta";
+import { getPremiumGameMedia } from "@/data/premiumMedia";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { sfx } from "@/lib/sounds";
@@ -60,6 +61,14 @@ export default function Carnival3DSlot() {
   const [spinning, setSpinning] = useState(false);
   const [lastWin, setLastWin] = useState(0);
   const [bigWin, setBigWin] = useState(null);
+  const media = getPremiumGameMedia(
+    machine || {
+      id,
+      name: "Carnival 3D",
+      tagline: "AAA 3D media package is loading.",
+      theme: "fortune",
+    },
+  );
 
   useEffect(() => {
     let alive = true;
@@ -297,7 +306,7 @@ export default function Carnival3DSlot() {
     setLastWin(0);
     if (sceneRef.current) sceneRef.current.spinning = true;
     resetReels();
-    sfx.spin();
+    sfx.spin(media.soundProfile);
     try {
       const { data } = await api.post("/games/slots/spin", {
         machine_id: id,
@@ -309,12 +318,12 @@ export default function Carnival3DSlot() {
         setLastWin(data.total_win);
         refreshUser();
         if (data.total_win > 0) {
-          sfx.win();
+          sfx.win(media.soundProfile);
           triggerParticles();
           toast.success(`WIN +${fmt(data.total_win)} credits`);
         }
         if (data.total_win >= bet * 50) {
-          sfx.bigWin();
+          sfx.bigWin(media.soundProfile);
           setBigWin({ win: data.total_win, multiplier: 1 });
         }
       });
