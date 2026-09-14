@@ -264,11 +264,9 @@ export default function Landing() {
             </div>
             <h1
               className="hero-title animate-pop"
+              aria-label="Wages of War Casino — Night Ops Edition"
               style={{ animationDelay: "0.04s" }}
             >
-              <span className="sr-only">
-                Wages of War Casino — Night Ops Edition
-              </span>
               <img
                 src={BRAND.nightOpsEdition}
                 alt=""
