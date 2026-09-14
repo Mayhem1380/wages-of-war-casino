@@ -2,9 +2,22 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
-import { FLAGSHIP_ART, FLAGSHIP_IDS, MACHINE_ART, resolveMachineArt, fmt } from "@/data/gameMeta";
+import {
+  FLAGSHIP_ART,
+  MACHINE_ART,
+  resolveMachineArt,
+  fmt,
+} from "@/data/gameMeta";
+import {
+  CONNECTED_PLATFORM_COUNT,
+  SPECIAL_GAME_CATALOG,
+  SLOT_CATALOG,
+  SLOT_INVENTORY_COUNT,
+  buildPremiumLobbySlides,
+  countReadyPremiumGames,
+  getPremiumGameMedia,
+} from "@/data/premiumMedia";
 import { LOBBY } from "@/constants/testIds";
-import { SymbolTile } from "@/components/SymbolTile";
 import { AnimatedShowcase } from "@/components/AnimatedShowcase";
 import { LobbyHype } from "@/components/LobbyHype";
 import { LiveDrawBoard } from "@/components/LiveDrawBoard";
@@ -14,9 +27,7 @@ import {
   Target,
   CaretRight,
   Coins,
-  GameController,
   Skull,
-  RocketLaunch,
   MagnifyingGlass,
   Trophy,
   Sparkle,
@@ -25,23 +36,36 @@ import {
 } from "@phosphor-icons/react";
 
 const FALLBACK_DETAILS = {
-  warpath_legends: ["Warpath Legends", "Command the frontier and chase the grand jackpot.", "western"],
-  golden_dynasty: ["Golden Dynasty", "Enter the imperial vault for Hold & Win prizes.", "dynasty"],
-  money_train_convoy: ["Money Train Convoy", "Board the armored convoy and collect cash-on-reels.", "heist"],
+  warpath_legends: [
+    "Warpath Legends",
+    "Command the frontier and chase the grand jackpot.",
+    "western",
+  ],
+  golden_dynasty: [
+    "Golden Dynasty",
+    "Enter the imperial vault for Hold & Win prizes.",
+    "dynasty",
+  ],
+  money_train_convoy: [
+    "Money Train Convoy",
+    "Board the armored convoy and collect cash-on-reels.",
+    "heist",
+  ],
 };
-const LOBBY_FALLBACK_SLOTS = FLAGSHIP_IDS.map((id, index) => {
-  const [name, tagline, theme] = FALLBACK_DETAILS[id] || [
-    id.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase()),
-    "Premium reels, live jackpot prizes, and feature-rich bonus play.",
-    "military",
+const LOBBY_FALLBACK_SLOTS = SLOT_CATALOG.map((slot, index) => {
+  const [name, tagline, theme] = FALLBACK_DETAILS[slot.id] || [
+    slot.name ||
+      slot.id.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase()),
+    slot.tagline || "Premium reels, live jackpot prizes, and feature-rich bonus play.",
+    slot.theme || "military",
   ];
   return {
-  id,
-  name,
-  tagline,
-  theme,
-  popularity: FLAGSHIP_IDS.length - index,
-  is_flagship: true,
+    ...slot,
+    id: slot.id,
+    name,
+    tagline,
+    theme,
+    popularity: slot.popularity || SLOT_CATALOG.length - index,
   };
 });
 
@@ -69,7 +93,14 @@ const THEME_CATEGORY = {
   bushido: "Military",
   prairie: "Fortune",
 };
-const CATEGORIES = ["All", "Dragons", "Fortune", "Military", "Egyptian", "Ocean"];
+const CATEGORIES = [
+  "All",
+  "Dragons",
+  "Fortune",
+  "Military",
+  "Egyptian",
+  "Ocean",
+];
 const catOf = (s) => THEME_CATEGORY[s.theme] || "Military";
 
 function CornerCard({
@@ -83,7 +114,7 @@ function CornerCard({
     <button
       data-testid={testId}
       onClick={onClick}
-          className={`slot-catalog-card relative text-left bg-[#0a0d0a] border border-border overflow-hidden group hover:-translate-y-1 transition-transform duration-300 ${className}`}
+      className={`slot-catalog-card relative text-left bg-[#0a0d0a] border border-border overflow-hidden group hover:-translate-y-1 transition-transform duration-300 ${className}`}
       style={{ boxShadow: "inset 0 0 60px rgba(0,0,0,0.6)" }}
     >
       <span
@@ -175,32 +206,11 @@ export default function Lobby() {
         .slice(0, 6),
     [slots],
   );
+  const premiumReadyCount = useMemo(() => countReadyPremiumGames(slots), [slots]);
+  const lobbySlides = useMemo(() => buildPremiumLobbySlides(slots), [slots]);
 
   const catCount = (c) =>
     c === "All" ? slots.length : slots.filter((s) => catOf(s) === c).length;
-
-  const symbolPreview = {
-    gates_of_glory: ["crown", "gem_red", "orb"],
-    book_of_ops: ["idol", "book", "scarab"],
-    big_bass_bombardment: ["fisherman", "boat", "scatter"],
-    wild_west_recon: ["sheriff", "revolver", "wild"],
-    sweet_ammo: ["candy", "heart", "grape"],
-    money_train_convoy: ["vault", "coin", "gunner"],
-    pharaohs_arsenal: ["pharaoh", "ankh", "anubis"],
-    kraken_depths: ["kraken", "pearl", "scatter"],
-    inferno_airstrike: ["jet", "missile", "flame"],
-    frozen_front: ["yeti", "snow", "wild"],
-    golden_dynasty: ["emperor", "lantern", "coin"],
-    samurai_strike: ["shogun", "katana", "wild"],
-    voodoo_vengeance: ["witchdoctor", "totem", "scatter"],
-    corsair_cannons: ["corsair", "doubloon", "compass_sym"],
-    warpath_legends: ["warchief", "buffalo", "eagle"],
-    bull_rush: ["warchief", "buffalo", "eagle"],
-    buffalo_blast: ["warchief", "buffalo", "eagle"],
-    prairie_royale: ["warchief", "buffalo", "eagle"],
-    stampede_skyline: ["warchief", "buffalo", "eagle"],
-    golden_bull_run: ["warchief", "buffalo", "eagle"],
-  };
 
   return (
     <div
@@ -238,10 +248,13 @@ export default function Lobby() {
 
         <div className="mt-6 grid gap-4 md:grid-cols-4">
           {[
-            { label: "Jackpots Live", value: "$4.8M+" },
-            { label: "Elite Titles", value: "145" },
-            { label: "Daily Drops", value: "12" },
-            { label: "VIP Rate", value: "98%" },
+            { label: "Slot Floor", value: String(SLOT_INVENTORY_COUNT) },
+            { label: "Premium Ready", value: String(premiumReadyCount) },
+            { label: "Special Games", value: String(SPECIAL_GAME_CATALOG.length) },
+            {
+            label: "Connected Platforms",
+            value: String(CONNECTED_PLATFORM_COUNT),
+            },
           ].map((item) => (
             <div key={item.label} className="lobby-stat-card">
               <div className="lobby-stat-value">{item.value}</div>
@@ -292,7 +305,11 @@ export default function Lobby() {
 
       {/* GAME PREVIEW VIDEO */}
       <div className="mb-10">
-        <AnimatedShowcase testId="lobby-preview-video" variant="game-preview" />
+        <AnimatedShowcase
+          testId="lobby-preview-video"
+          variant="game-preview"
+          slides={lobbySlides}
+        />
       </div>
 
       {/* VERIFIED HOUSE RANKING — based on the backend catalogue popularity score */}
@@ -317,7 +334,9 @@ export default function Lobby() {
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             {featuredSlots.map((slot, rank) => {
-              const featuredArt = FLAGSHIP_ART[slot.id] || resolveMachineArt(slot.id);
+              const featuredArt =
+                FLAGSHIP_ART[slot.id] || resolveMachineArt(slot.id);
+              const media = getPremiumGameMedia(slot);
               return (
                 <button
                   key={slot.id}
@@ -340,7 +359,11 @@ export default function Lobby() {
                       {slot.name}
                     </p>
                     <p className="font-mono text-[9px] tracking-widest text-gold/80 mt-1">
-                      {slot.is_flagship ? "AAA FLAGSHIP" : "FLEET FAVORITE"} · DEPLOY →
+                      {slot.is_flagship ? "AAA FLAGSHIP" : "FLEET FAVORITE"} ·
+                      DEPLOY →
+                    </p>
+                    <p className="font-mono text-[9px] tracking-[0.2em] text-white/65 mt-1">
+                      {media.soundtrack} · VIDEO PLAY
                     </p>
                   </div>
                 </button>
@@ -358,6 +381,14 @@ export default function Lobby() {
         <div
           data-testid={LOBBY.championSpotlight}
           onClick={() => navigate("/tournament")}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              navigate("/tournament");
+            }
+          }}
+          role="button"
+          tabIndex={0}
           className="mt-6 cursor-pointer border border-gold/40 bg-gradient-to-r from-gold/10 via-black/40 to-transparent px-5 py-3 flex items-center gap-4 overflow-hidden hover:border-gold/70 transition-colors"
         >
           <Crown size={26} weight="fill" className="text-gold shrink-0" />
@@ -367,9 +398,7 @@ export default function Lobby() {
           <div key={champIdx} className="min-w-0 flex-1 animate-pop">
             <span className="font-display text-lg sm:text-xl tracking-wide text-foreground">
               #{champions[champIdx].rank}{" "}
-              <span className="gold-gradient">
-                {champions[champIdx].name}
-              </span>
+              <span className="gold-gradient">{champions[champIdx].name}</span>
             </span>
             <span className="font-mono text-xs text-muted-foreground ml-2">
               banked{" "}
@@ -390,6 +419,14 @@ export default function Lobby() {
         <div
           data-testid={LOBBY.wheelReady}
           onClick={() => navigate("/wheel")}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              navigate("/wheel");
+            }
+          }}
+          role="button"
+          tabIndex={0}
           className="mt-4 cursor-pointer border border-nvg/50 bg-nvg/10 px-5 py-3 flex items-center gap-3 hover:bg-nvg/15 transition-colors animate-pulse-soft"
         >
           {wheel.mega_unlocked ? (
@@ -433,7 +470,12 @@ export default function Lobby() {
         >
           <div className="p-6 min-h-[140px] flex items-center gap-5">
             <div className="shrink-0 w-16 h-16 rounded-full border-2 border-gold/60 flex items-center justify-center glow-gold animate-spin-slow">
-              <FeatureIcon icon={Sparkle} alt="Streak Wheel" size={32} className="text-gold" />
+              <FeatureIcon
+                icon={Sparkle}
+                alt="Streak Wheel"
+                size={32}
+                className="text-gold"
+              />
             </div>
             <div>
               <p className="font-mono text-[10px] tracking-[0.3em] text-gold/70">
@@ -467,7 +509,12 @@ export default function Lobby() {
         >
           <div className="p-6 min-h-[140px] flex items-center gap-5">
             <div className="shrink-0 w-16 h-16 rounded-full border-2 border-nvg/60 flex items-center justify-center glow-nvg">
-              <FeatureIcon icon={Trophy} alt="Tournament" size={32} className="text-nvg" />
+              <FeatureIcon
+                icon={Trophy}
+                alt="Tournament"
+                size={32}
+                className="text-nvg"
+              />
             </div>
             <div>
               <p className="font-mono text-[10px] tracking-[0.3em] text-nvg/70">
@@ -517,8 +564,7 @@ export default function Lobby() {
                   : "border-border text-muted-foreground hover:border-nvg/50 hover:text-foreground"
               }`}
             >
-              {c}{" "}
-              <span className="opacity-60">({catCount(c)})</span>
+              {c} <span className="opacity-60">({catCount(c)})</span>
             </button>
           ))}
         </div>
@@ -561,6 +607,7 @@ export default function Lobby() {
             tag: "",
           };
           const flag = s.is_flagship ? FLAGSHIP_ART[s.id] : null;
+          const media = getPremiumGameMedia(s);
           const feature = i === 0;
           const hot = i < 3 || (s.popularity || 0) > 80;
           if (flag) {
@@ -624,7 +671,7 @@ export default function Lobby() {
                     <p className="text-sm text-white/70 mt-1">{s.tagline}</p>
                     <div className="mt-3 flex items-center justify-between">
                       <span className="font-mono text-[11px] text-gold">
-                        HOLD &amp; WIN · ROYAL 10,000×
+                        {media.soundtrack} · VIDEO PLAY GRAPHICS
                       </span>
                       <span
                         className="flex items-center gap-1 font-stencil tracking-widest uppercase text-sm px-3 py-1 rounded-sm"
@@ -690,12 +737,15 @@ export default function Lobby() {
                     {s.name}
                   </h3>
                   <p className="text-sm text-white/70 mt-1">{s.tagline}</p>
+                  <p className="mt-2 font-mono text-[10px] tracking-[0.25em] text-white/65">
+                    {media.soundtrack} · {media.videoKicker}
+                  </p>
                   <div className="mt-3 flex items-center justify-between">
                     <span
                       className="font-mono text-[11px]"
                       style={{ color: rart.accent }}
                     >
-                      {art.tag}
+                      {art.tag || media.highlightLines[2]}
                     </span>
                     <span
                       className="flex items-center gap-1 font-stencil tracking-widest uppercase text-sm px-3 py-1 rounded-sm"

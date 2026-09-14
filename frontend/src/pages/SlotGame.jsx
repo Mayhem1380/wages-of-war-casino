@@ -4,7 +4,8 @@ import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { SymbolTile } from "@/components/SymbolTile";
 import { PixiReelFX } from "@/components/PixiReelFX";
-import { MACHINE_ART, resolveMachineArt, fmt } from "@/data/gameMeta";
+import { resolveMachineArt, fmt } from "@/data/gameMeta";
+import { getPremiumGameMedia } from "@/data/premiumMedia";
 import { SLOT } from "@/constants/testIds";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -43,12 +44,19 @@ export default function SlotGame() {
   const [free, setFree] = useState(null); // {active, spinsLeft, multiplier, total, done, sessionId}
   const [bigWin, setBigWin] = useState(null); // {win, multiplier}
   const [flash, setFlash] = useState(null); // {type, label}
-  const [shake, setShake] = useState(false);
   const [briefing, setBriefing] = useState(true);
   const spinRef = useRef();
   const machineRef = useRef(null);
 
   const art = resolveMachineArt(id);
+  const media = getPremiumGameMedia(
+    machine || {
+      id,
+      name: "Loading Machine",
+      tagline: "AAA-grade media package is arming the reels.",
+      theme: "military",
+    },
+  );
   const randSym = useCallback(
     (syms) => syms[Math.floor(Math.random() * syms.length)],
     [],
@@ -94,7 +102,7 @@ export default function SlotGame() {
     const m = machineRef.current;
     setWinCells(new Set());
     setReelStop([false, false, false, false, false]);
-    sfx.spin();
+    sfx.spin(media.soundProfile);
     clearInterval(spinRef.current);
     spinRef.current = setInterval(() => {
       setGrid((prev) => prev.map((col) => col.map(() => randSym(m.symbols))));
@@ -105,7 +113,7 @@ export default function SlotGame() {
         setTimeout(() => {
           setGrid((prev) => prev.map((c, r) => (r === reel ? col : c)));
           setReelStop((prev) => prev.map((v, r) => (r === reel ? true : v)));
-          sfx.reelStop();
+          sfx.reelStop(media.soundProfile);
           if (reel === 4) setTimeout(onDone, 150);
         }, reel * 150);
       });
@@ -157,7 +165,7 @@ export default function SlotGame() {
         bet,
       });
       await refreshUser();
-      sfx.scatter();
+      sfx.scatter(media.soundProfile);
       toast.success(
         `FEATURE BOUGHT — ${data.free_session.spins_left} FREE SPINS!`,
       );
@@ -177,14 +185,13 @@ export default function SlotGame() {
     }
   };
 
-
   const finalizePaid = (data) => {
     highlight(data);
     setLastWin(data.total_win);
     setSpinning(false);
     refreshUser();
-    if (data.total_win >= bet * 15) sfx.bigWin();
-    else if (data.total_win > 0) sfx.win();
+    if (data.total_win >= bet * 15) sfx.bigWin(media.soundProfile);
+    else if (data.total_win > 0) sfx.win(media.soundProfile);
     if (data.total_win >= bet * 50)
       setBigWin({ win: data.total_win, multiplier: 1 });
     if (data.total_win > 0)
@@ -193,7 +200,7 @@ export default function SlotGame() {
       setFlash({ type: "win", label: `+${fmt(data.total_win)}` });
     else if (!data.free_session) setFlash({ type: "lose" });
     if (data.free_session) {
-      sfx.scatter();
+      sfx.scatter(media.soundProfile);
       toast.success(
         `★ SCATTER! ${data.free_session.spins_left} FREE SPINS INBOUND`,
       );
@@ -224,12 +231,13 @@ export default function SlotGame() {
           total: data.total_session_win,
           done: !data.active,
         }));
-        if (data.win >= machineRef.current.paylines * 5) sfx.bigWin();
-        else if (data.win > 0) sfx.win();
+        if (data.win >= machineRef.current.paylines * 5)
+          sfx.bigWin(media.soundProfile);
+        else if (data.win > 0) sfx.win(media.soundProfile);
         if (data.win >= bet * 50)
           setBigWin({ win: data.win, multiplier: data.multiplier });
         if (data.retrigger) {
-          sfx.scatter();
+          sfx.scatter(media.soundProfile);
           toast.success("★ RETRIGGER +5 SPINS");
         }
         refreshUser();
@@ -243,7 +251,7 @@ export default function SlotGame() {
 
   const collectFree = () => {
     const total = free?.total || 0;
-    sfx.coin();
+    sfx.coin(media.soundProfile);
     setFree(null);
     setLastWin(0);
     setWinCells(new Set());
@@ -281,8 +289,8 @@ export default function SlotGame() {
       data-testid={SLOT.root}
       className="max-w-6xl mx-auto px-4 sm:px-8 pt-2 sm:pt-4 pb-28 lg:pb-8"
       style={{
-        background: art.bg
-          ? `linear-gradient(rgba(6, 10, 8, 0.78), rgba(6, 10, 8, 0.94)), url(${art.bg}) center/cover no-repeat fixed`
+        background: media.heroPoster
+          ? `linear-gradient(rgba(6, 10, 8, 0.7), rgba(6, 10, 8, 0.95)), url(${media.heroPoster}) center/cover no-repeat fixed`
           : "#070b07",
       }}
     >
@@ -307,22 +315,30 @@ export default function SlotGame() {
         >
           <div className="relative w-full max-w-2xl overflow-hidden border border-gold/50 bg-[#050805] shadow-2xl shadow-gold/20">
             <img
-              src="/brand/coin-nightops.png"
-              alt="Wages of War Casino Night Ops Edition"
+              src={media.heroPoster}
+              alt={`${media.name} premium machine artwork`}
               className="h-56 w-full object-cover object-center sm:h-72"
             />
             <div className="absolute inset-x-0 top-0 h-56 bg-gradient-to-b from-black/20 to-[#050805] sm:h-72" />
             <div className="relative -mt-10 px-5 pb-5 sm:px-8">
               <p className="font-mono text-[10px] tracking-[0.35em] text-nvg">
-                // MACHINE DEPLOYMENT READY
+                {`// ${media.videoKicker}`}
               </p>
               <h2 className="mt-2 font-display text-3xl tracking-widest gold-gradient sm:text-5xl">
                 {machine.name}
               </h2>
-              <p className="mt-2 text-sm text-foreground/70">{machine.tagline}</p>
+              <p className="mt-2 text-sm text-foreground/70">
+                {machine.tagline}
+              </p>
               <div className="mt-4 flex flex-wrap gap-2 font-mono text-[10px] tracking-widest text-muted-foreground">
                 <span className="border border-gold/30 px-2 py-1 text-gold">
                   {machine.volatility.toUpperCase()} VOLATILITY
+                </span>
+                <span
+                  className="border px-2 py-1"
+                  style={{ borderColor: `${media.accent}66`, color: media.accent }}
+                >
+                  {media.soundtrack}
                 </span>
                 <span className="border border-nvg/30 px-2 py-1 text-nvg">
                   {machine.free_spins} FREE SPINS
@@ -367,6 +383,20 @@ export default function SlotGame() {
             <p className="text-muted-foreground text-sm sm:text-base mt-2 max-w-xl">
               {machine.tagline}
             </p>
+            <div className="mt-3 flex flex-wrap gap-2 font-mono text-[10px] tracking-[0.25em] text-white/70">
+              <span
+                className="border px-2 py-1"
+                style={{ borderColor: `${media.accent}55`, color: media.accent }}
+              >
+                {media.quality} GRAPHICS
+              </span>
+              <span className="border border-border px-2 py-1">
+                VIDEO PLAY PRESENTATION
+              </span>
+              <span className="border border-nvg/30 px-2 py-1 text-nvg">
+                {media.soundtrack}
+              </span>
+            </div>
           </div>
 
           <div className="slot-metric-strip">
@@ -393,7 +423,9 @@ export default function SlotGame() {
         <span className="font-mono text-[10px] tracking-[0.3em] text-gold/80 uppercase">
           Casino wallet
         </span>
-        <span className="font-mono text-base text-gold">{fmt(user?.balance || 0)}</span>
+        <span className="font-mono text-base text-gold">
+          {fmt(user?.balance || 0)}
+        </span>
       </div>
 
       <div className="hidden sm:block">
@@ -405,9 +437,9 @@ export default function SlotGame() {
         <div
           className="hud p-4 sm:p-6 relative overflow-hidden reel-scan"
           style={{
-            background: "#060906",
+            background: media.graphicsProfile.surface,
             boxShadow:
-              "inset 0 0 70px rgba(0,0,0,0.7), inset 0 0 30px rgba(78,228,78,0.06)",
+              `inset 0 0 70px rgba(0,0,0,0.7), inset 0 0 30px ${media.graphicsProfile.haze}`,
           }}
         >
           {/* FREE SPINS BANNER */}
@@ -519,7 +551,7 @@ export default function SlotGame() {
           {lastWin > 0 && !spinning && !inFree && (
             <GamblePanel
               amount={lastWin}
-              onDone={(finalWin) => {
+              onDone={() => {
                 setLastWin(0);
                 refreshUser();
               }}
@@ -529,7 +561,7 @@ export default function SlotGame() {
 
         {/* CONTROLS */}
         <div className="space-y-4">
-          <IntermissionShowcase />
+          <IntermissionShowcase slides={media.showcaseSlides} />
           <div className="hud p-5">
             <p className="font-mono text-[10px] tracking-widest text-nvg/70 mb-2">
               STAKE / SPIN
@@ -614,36 +646,34 @@ export default function SlotGame() {
               className="w-full h-14 border-2 border-nvg text-nvg font-display text-lg tracking-widest hover:bg-nvg hover:text-black transition-colors flex items-center justify-center gap-2 disabled:opacity-40"
             >
               <Sparkle size={20} weight="fill" />
-              {buying
-                ? "BUYING…"
-                : `BUY FEATURE · ${fmt(bet * 100)}`}
+              {buying ? "BUYING…" : `BUY FEATURE · ${fmt(bet * 100)}`}
             </button>
           )}
 
           <div className="hidden lg:block">
-          {free && free.done ? (
-            <Button
-              data-testid={SLOT.freeCollect}
-              onClick={collectFree}
-              className="w-full h-16 bg-nvg hover:bg-nvg/90 text-black font-display text-2xl tracking-widest glow-nvg gap-2 animate-flicker"
-            >
-              <Coins size={26} weight="fill" /> COLLECT {fmt(free.total)}
-            </Button>
-          ) : (
-            <Button
-              data-testid={SLOT.spin}
-              onClick={doSpin}
-              disabled={spinning || inFree}
-              className="w-full h-16 bg-gold hover:bg-gold/90 text-black font-display text-2xl tracking-widest glow-gold gap-2 disabled:opacity-60 animate-pulse-gold"
-            >
-              {inFree ? (
-                <Sparkle size={26} weight="fill" />
-              ) : (
-                <Lightning size={26} weight="fill" />
-              )}
-              {inFree ? "FREE FIRE..." : spinning ? "SPINNING..." : "SPIN"}
-            </Button>
-          )}
+            {free && free.done ? (
+              <Button
+                data-testid={SLOT.freeCollect}
+                onClick={collectFree}
+                className="w-full h-16 bg-nvg hover:bg-nvg/90 text-black font-display text-2xl tracking-widest glow-nvg gap-2 animate-flicker"
+              >
+                <Coins size={26} weight="fill" /> COLLECT {fmt(free.total)}
+              </Button>
+            ) : (
+              <Button
+                data-testid={SLOT.spin}
+                onClick={doSpin}
+                disabled={spinning || inFree}
+                className="w-full h-16 bg-gold hover:bg-gold/90 text-black font-display text-2xl tracking-widest glow-gold gap-2 disabled:opacity-60 animate-pulse-gold"
+              >
+                {inFree ? (
+                  <Sparkle size={26} weight="fill" />
+                ) : (
+                  <Lightning size={26} weight="fill" />
+                )}
+                {inFree ? "FREE FIRE..." : spinning ? "SPINNING..." : "SPIN"}
+              </Button>
+            )}
           </div>
 
           <div
@@ -706,8 +736,12 @@ export default function SlotGame() {
       {/* Mobile sticky action bar */}
       <div className="lg:hidden fixed bottom-0 inset-x-0 z-[60] flex items-center gap-3 px-3 py-2.5 bg-black/92 backdrop-blur-md border-t-2 border-gold/40">
         <div className="flex flex-col leading-none shrink-0">
-          <span className="font-mono text-[9px] text-white/50 tracking-widest">BALANCE</span>
-          <span className="font-mono text-sm text-gold">{fmt(user?.balance || 0)}</span>
+          <span className="font-mono text-[9px] text-white/50 tracking-widest">
+            BALANCE
+          </span>
+          <span className="font-mono text-sm text-gold">
+            {fmt(user?.balance || 0)}
+          </span>
         </div>
         {free && free.done ? (
           <Button
@@ -724,7 +758,11 @@ export default function SlotGame() {
             disabled={spinning || inFree}
             className="flex-1 h-14 bg-gold hover:bg-gold/90 text-black font-display text-xl tracking-widest gap-2 disabled:opacity-60"
           >
-            {inFree ? <Sparkle size={22} weight="fill" /> : <Lightning size={22} weight="fill" />}
+            {inFree ? (
+              <Sparkle size={22} weight="fill" />
+            ) : (
+              <Lightning size={22} weight="fill" />
+            )}
             {inFree ? "FREE FIRE..." : spinning ? "SPINNING..." : "SPIN"}
           </Button>
         )}

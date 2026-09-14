@@ -75,7 +75,9 @@ export default function DailyWheel() {
     if (!user) return openAuth("register");
     if (spinning) return;
     if (!canSpin) {
-      toast.error("No spins yet — make a $500 deposit or reach $1,000 total deposits for one free spin.");
+      toast.error(
+        "No spins yet — make a $500 deposit or reach $1,000 total deposits for one free spin.",
+      );
       return;
     }
     setSpinning(true);
@@ -147,8 +149,9 @@ export default function DailyWheel() {
             WHEEL OF WEALTH
           </h1>
           <p className="text-muted-foreground mt-2 max-w-xl mx-auto">
-            Win real cash back — <span className="text-gold">$5 up to $500</span>,
-            no wagering, no terms.
+            Win real cash back —{" "}
+            <span className="text-gold">$5 up to $500</span>, no wagering, no
+            terms.
           </p>
         </div>
 
@@ -162,8 +165,8 @@ export default function DailyWheel() {
                 : "text-muted-foreground"
             }`}
           >
-            <Trophy size={20} weight="fill" /> {spins} SPIN{spins === 1 ? "" : "S"}{" "}
-            AVAILABLE
+            <Trophy size={20} weight="fill" /> {spins} SPIN
+            {spins === 1 ? "" : "S"} AVAILABLE
           </div>
           <p className="font-mono text-[11px] text-muted-foreground tracking-wide text-center">
             Earn a spin for every single deposit of{" "}
@@ -173,7 +176,9 @@ export default function DailyWheel() {
         </div>
 
         {/* Wheel */}
-        <div className={`wheel-stage relative mx-auto w-[320px] h-[320px] sm:w-[380px] sm:h-[380px] ${spinning ? "wheel-stage-spinning" : ""}`}>
+        <div
+          className={`wheel-stage relative mx-auto w-[320px] h-[320px] sm:w-[380px] sm:h-[380px] ${spinning ? "wheel-stage-spinning" : ""}`}
+        >
           <div className="wheel-heat-ring" aria-hidden="true" />
           <div className="wheel-sparks" aria-hidden="true" />
           <div className="absolute left-1/2 -translate-x-1/2 -top-2 z-20">
@@ -239,7 +244,9 @@ export default function DailyWheel() {
                 ) : win.type === "again" ? (
                   <span className="text-nvg">SPIN AGAIN — FREE RE-SPIN</span>
                 ) : (
-                  <span className="text-muted-foreground">BETTER LUCK NEXT TIME</span>
+                  <span className="text-muted-foreground">
+                    BETTER LUCK NEXT TIME
+                  </span>
                 )}
               </p>
             )}
@@ -272,7 +279,8 @@ export default function DailyWheel() {
           )}
 
           <p className="font-mono text-xs text-muted-foreground">
-            Balance: <span className="text-gold">{fmt(user?.balance || 0)}</span>
+            Balance:{" "}
+            <span className="text-gold">{fmt(user?.balance || 0)}</span>
           </p>
         </div>
       </div>

@@ -28,7 +28,7 @@ export default function UpgradesPanel() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_UPGRADES));
     return DEFAULT_UPGRADES;
   });
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let live = true;
@@ -44,6 +44,10 @@ export default function UpgradesPanel() {
           "upgrade load failed, falling back to local state:",
           apiError(error.response?.data?.detail || error),
         );
+      } finally {
+        if (live) {
+          setLoading(false);
+        }
       }
     };
 
@@ -67,7 +71,10 @@ export default function UpgradesPanel() {
       const { data } = await api.post("/admin/upgrades", nextItems);
       return data;
     } catch (error) {
-      console.warn("upgrade save failed:", apiError(error.response?.data?.detail || error));
+      console.warn(
+        "upgrade save failed:",
+        apiError(error.response?.data?.detail || error),
+      );
       return nextItems;
     }
   };
@@ -130,7 +137,8 @@ export default function UpgradesPanel() {
             <div className="upgrade-desc">{p.description}</div>
             <div className="upgrade-price">${p.price_usd}</div>
             <div className="upgrade-status">
-              {p.published ? "Published" : "Draft"} · {p.active ? "Active" : "Inactive"}
+              {p.published ? "Published" : "Draft"} ·{" "}
+              {p.active ? "Active" : "Inactive"}
             </div>
             <div className="upgrade-actions">
               <button

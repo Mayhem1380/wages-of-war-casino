@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Broadcast, Trophy } from "@phosphor-icons/react";
 import { sfx } from "@/lib/sounds";
 
@@ -34,7 +34,10 @@ function makeWin(game) {
  * latest draws/spins and a scrolling feed of recent winners. Shared across
  * Warkino (Keno) and the other games so every table has the same lounge feel.
  */
-export function LiveWinnersTicker({ game = "Wages of War", intervalMs = 3200 }) {
+export function LiveWinnersTicker({
+  game = "Wages of War",
+  intervalMs = 3200,
+}) {
   const [wins, setWins] = useState(() =>
     Array.from({ length: 8 }, () => makeWin(game)),
   );

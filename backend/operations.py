@@ -12,7 +12,6 @@ import uuid
 from pymongo import ReturnDocument
 from pymongo.errors import DuplicateKeyError
 
-
 _JOB_TYPE_RE = re.compile(r"^[a-z][a-z0-9_.-]{1,63}$")
 
 
@@ -93,8 +92,13 @@ async def create_job(db, *, job_type, payload, actor, idempotency_key=None):
             if existing:
                 return _public(existing), False
         raise
-    await audit(db, action="job_created", actor=actor, job_id=doc["job_id"],
-                details={"job_type": job_type})
+    await audit(
+        db,
+        action="job_created",
+        actor=actor,
+        job_id=doc["job_id"],
+        details={"job_type": job_type},
+    )
     return _public(doc), True
 
 
@@ -124,12 +128,19 @@ async def claim_job(db, *, job_id, actor, lease_seconds=300):
         return_document=ReturnDocument.AFTER,
     )
     if doc:
-        await audit(db, action="job_claimed", actor=actor, job_id=job_id,
-                    details={"lease_seconds": lease_seconds})
+        await audit(
+            db,
+            action="job_claimed",
+            actor=actor,
+            job_id=job_id,
+            details={"lease_seconds": lease_seconds},
+        )
     return _public(doc)
 
 
-async def finish_job(db, *, job_id, lease_token, actor, success, result=None, error=None):
+async def finish_job(
+    db, *, job_id, lease_token, actor, success, result=None, error=None
+):
     if not lease_token:
         return None
     now = now_utc()
@@ -151,6 +162,11 @@ async def finish_job(db, *, job_id, lease_token, actor, success, result=None, er
         return_document=ReturnDocument.AFTER,
     )
     if doc:
-        await audit(db, action=f"job_{status}", actor=actor, job_id=job_id,
-                    details={"error": error} if error else {})
+        await audit(
+            db,
+            action=f"job_{status}",
+            actor=actor,
+            job_id=job_id,
+            details={"error": error} if error else {},
+        )
     return _public(doc)

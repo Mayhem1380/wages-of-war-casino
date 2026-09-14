@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { fmt } from "@/data/gameMeta";
+import { getPremiumGameMedia } from "@/data/premiumMedia";
 import { AnimatedShowcase } from "@/components/AnimatedShowcase";
 import { KenoLiveBoard } from "@/components/KenoLiveBoard";
 import { KenoMosaicTiles } from "@/components/KenoMosaicTiles";
@@ -26,13 +27,38 @@ import {
 const NUMS = Array.from({ length: 80 }, (_, i) => i + 1);
 
 // Vibrant, high-brightness pool-ball palette (even numbers), cycled by decade.
-const BALL_COLORS = ["#e63946", "#f4a300", "#ffd60a", "#2ec4b6", "#3a86ff", "#8338ec", "#ff5fa2", "#06d6a0"];
-const ballColor = (n) => BALL_COLORS[Math.floor((n - 1) / 10) % BALL_COLORS.length];
+const BALL_COLORS = [
+  "#e63946",
+  "#f4a300",
+  "#ffd60a",
+  "#2ec4b6",
+  "#3a86ff",
+  "#8338ec",
+  "#ff5fa2",
+  "#06d6a0",
+];
+const ballColor = (n) =>
+  BALL_COLORS[Math.floor((n - 1) / 10) % BALL_COLORS.length];
 
 const SIDE_MARKETS = [
-  { key: "sum", label: "TOTAL SUM", a: { v: "over", t: "OVER 810" }, b: { v: "under", t: "UNDER 810" } },
-  { key: "parity", label: "PARITY", a: { v: "odd", t: "ODD MAJORITY" }, b: { v: "even", t: "EVEN MAJORITY" } },
-  { key: "zone", label: "STRIKE ZONE", a: { v: "high", t: "HIGH 41–80" }, b: { v: "low", t: "LOW 1–40" } },
+  {
+    key: "sum",
+    label: "TOTAL SUM",
+    a: { v: "over", t: "OVER 810" },
+    b: { v: "under", t: "UNDER 810" },
+  },
+  {
+    key: "parity",
+    label: "PARITY",
+    a: { v: "odd", t: "ODD MAJORITY" },
+    b: { v: "even", t: "EVEN MAJORITY" },
+  },
+  {
+    key: "zone",
+    label: "STRIKE ZONE",
+    a: { v: "high", t: "HIGH 41–80" },
+    b: { v: "low", t: "LOW 1–40" },
+  },
 ];
 
 const KENO_MODES = [
@@ -53,6 +79,10 @@ export default function KenoGame() {
   const [autoPlay, setAutoPlay] = useState(false);
   const [mode, setMode] = useState("warhead");
   const [sideBets, setSideBets] = useState({});
+  const media = useMemo(
+    () => getPremiumGameMedia({ id: "warkino", kind: "special" }),
+    [],
+  );
 
   const toggleSideBet = (key, v) =>
     setSideBets((prev) => {
@@ -65,14 +95,14 @@ export default function KenoGame() {
   const drawn = new Set(result?.drawn || []);
   const hits = new Set(result?.hits || []);
 
-  const buildQuickPicks = () => {
+  const buildQuickPicks = useCallback(() => {
     const pool = [...NUMS];
     const out = [];
     const count = 6 + Math.floor(Math.random() * 3);
     for (let i = 0; i < count; i++)
       out.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
     return out.sort((a, b) => a - b);
-  };
+  }, []);
 
   const toggle = (n) => {
     if (busy) return;
@@ -106,7 +136,7 @@ export default function KenoGame() {
       setBusy(true);
       setResult(null);
       sfx.prime();
-      sfx.spin();
+      sfx.spin(media.soundProfile);
       try {
         let data;
         if (mode === "side") {
@@ -150,12 +180,14 @@ export default function KenoGame() {
         setResult(data);
         refreshUser();
         if (data.win > 0) {
-          sfx.bigWin();
-          setCelebrate({ intensity: (data.multiplier || 2) >= 10 ? "big" : "small" });
+          sfx.bigWin(media.soundProfile);
+          setCelebrate({
+            intensity: (data.multiplier || 2) >= 10 ? "big" : "small",
+          });
           setFlash({ type: "win", label: `+${fmt(data.win)}` });
           toast.success(`WIN +${fmt(data.win)}`);
         } else {
-          sfx.lose();
+          sfx.lose(media.soundProfile);
           setFlash({ type: "lose" });
           toast(
             mode === "side"
@@ -168,7 +200,19 @@ export default function KenoGame() {
       }
       setBusy(false);
     },
-    [autoPlay, busy, picks, stake, user, openAuth, refreshUser, mode, sideBets],
+    [
+      autoPlay,
+      busy,
+      picks,
+      stake,
+      user,
+      openAuth,
+      refreshUser,
+      mode,
+      sideBets,
+      buildQuickPicks,
+      media.soundProfile,
+    ],
   );
 
   useEffect(() => {
@@ -180,7 +224,7 @@ export default function KenoGame() {
       void play(nextPicks, stake);
     }, 2600);
     return () => clearInterval(timer);
-  }, [autoPlay, user, busy, picks, stake, play, mode]);
+  }, [autoPlay, user, busy, picks, stake, play, mode, buildQuickPicks]);
 
   return (
     <div
@@ -219,17 +263,31 @@ export default function KenoGame() {
           className="relative mb-6 overflow-hidden border border-gold/30 rounded-sm"
         >
           <img
-            src="/brand/warkino_hero.jpg"
-            alt="WARKINO — Special Forces Night Ops Edition"
+            src={media.heroPoster}
+            alt={`${media.name} premium poster`}
             className="w-full h-40 sm:h-56 object-cover object-top"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
+          <div className="absolute left-4 top-4 z-10 flex flex-wrap gap-2 font-mono text-[10px] tracking-[0.25em] text-white/85">
+            <span
+              className="border px-2 py-1"
+              style={{ borderColor: `${media.accent}66`, color: media.accent }}
+            >
+              {media.quality} GRAPHICS
+            </span>
+            <span className="border border-border bg-black/45 px-2 py-1">
+              VIDEO PLAY
+            </span>
+            <span className="border border-nvg/30 bg-black/45 px-2 py-1 text-nvg">
+              {media.soundtrack}
+            </span>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
           <div>
             <p className="font-mono text-xs tracking-[0.4em] text-nvg/70">
-              // WARKINO · SPECIAL FORCES ·{" "}
+              {`// ${media.videoKicker} · `}
               {mode === "wow"
                 ? "WARHEAD MULTIPLIERS UP TO 8×"
                 : mode === "side"
@@ -278,7 +336,11 @@ export default function KenoGame() {
         <LiveWinnersTicker game="Warhead Keno" />
 
         <div className="mb-6">
-          <AnimatedShowcase variant="keno" testId="keno-video" />
+          <AnimatedShowcase
+            variant="keno"
+            testId="keno-video"
+            slides={media.showcaseSlides}
+          />
         </div>
 
         <div className="grid lg:grid-cols-[1fr_260px] gap-6">
@@ -318,7 +380,9 @@ export default function KenoGame() {
               </p>
             </div>
           )}
-          <div className={`hud p-4 sm:p-6 relative overflow-hidden ${mode === "side" ? "hidden" : ""}`}>
+          <div
+            className={`hud p-4 sm:p-6 relative overflow-hidden ${mode === "side" ? "hidden" : ""}`}
+          >
             <KenoMosaicTiles count={480} cols={40} />
             <div className="relative z-10 grid grid-cols-10 gap-1.5 sm:gap-2">
               {NUMS.map((n) => {
@@ -329,7 +393,8 @@ export default function KenoGame() {
                   "border-border bg-black/40 text-foreground/70 hover:border-nvg/60";
                 if (picked && !result)
                   cls = "border-nvg bg-nvg/20 text-nvg glow-nvg";
-                if (isHit) cls = "border-gold bg-gold/25 text-gold keno-ball-neon-gold";
+                if (isHit)
+                  cls = "border-gold bg-gold/25 text-gold keno-ball-neon-gold";
                 else if (picked && result)
                   cls = "border-nvg/60 bg-nvg/10 text-nvg";
                 else if (isDrawn)
@@ -359,7 +424,9 @@ export default function KenoGame() {
                       className={`keno-ball ${n % 2 === 0 ? "keno-ball-even" : "keno-ball-odd"}`}
                       style={{ "--ball-color": ballColor(n) }}
                     >
-                      <span className="keno-ball-label text-[11px] sm:text-sm">{n}</span>
+                      <span className="keno-ball-label text-[11px] sm:text-sm">
+                        {n}
+                      </span>
                     </span>
                   </button>
                 );
@@ -445,8 +512,8 @@ export default function KenoGame() {
                 {mode === "side" ? (
                   <p className="font-mono text-xs text-muted-foreground">
                     {result.legs?.filter((l) => l.won).length || 0}/
-                    {result.legs?.length || 0} BETS LANDED · {result.total_stake}{" "}
-                    STAKED
+                    {result.legs?.length || 0} BETS LANDED ·{" "}
+                    {result.total_stake} STAKED
                   </p>
                 ) : (
                   <p className="font-mono text-xs text-muted-foreground">

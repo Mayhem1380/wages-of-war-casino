@@ -14,14 +14,21 @@ Without `--no-install`, the builder uses `npm ci --legacy-peer-deps --omit=optio
 
 Set the host values in the private runner environment. Do not commit credentials or put secrets in source files.
 
-For the GitHub Actions SCP workflow, repository secrets may use either `DEPLOY_KEY` or `DEPLOY_PASSWORD`. The local shell deploy path below still expects `DEPLOY_KEY`.
+You can use either `DEPLOY_KEY` or `DEPLOY_PASSWORD` for the remote credential.
 
 ```bash
 DEPLOY_HOST=host DEPLOY_USER=user DEPLOY_PATH=/var/www/site \
 	DEPLOY_KEY=/path/to/key ./agent/build.sh --deploy
 ```
 
-`--deploy` refuses to run unless all three target values are present. The remote host must provide `ssh`, `scp`, `sha256sum`, `tar`, and permissions to create `$DEPLOY_PATH/.releases` and update `$DEPLOY_PATH/current`.
+or with password auth:
+
+```bash
+DEPLOY_HOST=host DEPLOY_USER=user DEPLOY_PATH=/var/www/site \
+	DEPLOY_PASSWORD=secret ./agent/build.sh --deploy
+```
+
+`--deploy` refuses to run unless the host, user, path, and one supported credential are present. The local machine running `build.sh` also needs `sshpass` installed when using password auth. The remote host must provide `ssh`, `scp`, `sha256sum`, `tar`, and permissions to create `$DEPLOY_PATH/.releases` and update `$DEPLOY_PATH/current`.
 
 ## Release verification
 

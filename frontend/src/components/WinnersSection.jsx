@@ -46,13 +46,17 @@ function WinnerCard({ winner }) {
           <p className="font-mono text-[9px] tracking-[0.2em] text-muted-foreground">
             TOTAL WON
           </p>
-          <p className="mt-1 font-display text-2xl text-nvg">{fmt(winner.total_won)}</p>
+          <p className="mt-1 font-display text-2xl text-nvg">
+            {fmt(winner.total_won)}
+          </p>
         </div>
         <div className="text-right">
           <p className="font-mono text-[9px] tracking-[0.2em] text-muted-foreground">
             BEST WIN
           </p>
-          <p className="mt-1 font-display text-2xl text-gold">{fmt(winner.biggest_win)}</p>
+          <p className="mt-1 font-display text-2xl text-gold">
+            {fmt(winner.biggest_win)}
+          </p>
         </div>
       </div>
     </article>
@@ -83,21 +87,31 @@ export function WinnersSection({ compact = false }) {
       aria-labelledby="winners-section-title"
       className={`${compact ? "mb-10" : "border-y border-gold/20"} relative overflow-hidden bg-[#050805]`}
     >
-      <div className="pointer-events-none absolute inset-0 opacity-30" aria-hidden="true">
+      <div
+        className="pointer-events-none absolute inset-0 opacity-30"
+        aria-hidden="true"
+      >
         <div className="absolute left-1/2 top-0 h-64 w-64 -translate-x-1/2 rounded-full bg-gold/10 blur-3xl" />
         <div className="absolute bottom-0 right-1/4 h-40 w-40 rounded-full bg-nvg/10 blur-3xl" />
       </div>
-      <div className={`relative mx-auto max-w-[1400px] px-4 sm:px-8 ${compact ? "py-8" : "py-12 sm:py-16"}`}>
+      <div
+        className={`relative mx-auto max-w-[1400px] px-4 sm:px-8 ${compact ? "py-8" : "py-12 sm:py-16"}`}
+      >
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="flex items-center gap-2 font-mono text-[10px] tracking-[0.35em] text-nvg">
               <TrendUp size={14} weight="bold" /> VERIFIED PLAYER MOMENTUM
             </p>
-            <h2 id="winners-section-title" className="mt-2 flex items-center gap-3 font-display text-4xl tracking-wide gold-gradient sm:text-5xl">
-              <Trophy size={34} weight="fill" className="text-gold" /> WINNERS&apos; CIRCLE
+            <h2
+              id="winners-section-title"
+              className="mt-2 flex items-center gap-3 font-display text-4xl tracking-wide gold-gradient sm:text-5xl"
+            >
+              <Trophy size={34} weight="fill" className="text-gold" />{" "}
+              WINNERS&apos; CIRCLE
             </h2>
             <p className="mt-2 max-w-xl text-sm text-muted-foreground">
-              Real leaderboard totals from the current platform. No fabricated wins, no simulated payouts.
+              Real leaderboard totals from the current platform. No fabricated
+              wins, no simulated payouts.
             </p>
           </div>
           <p className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground">
@@ -105,20 +119,31 @@ export function WinnersSection({ compact = false }) {
           </p>
         </div>
         {!loaded ? (
-          <div className="grid gap-4 md:grid-cols-3" aria-label="Loading winners">
+          <div
+            className="grid gap-4 md:grid-cols-3"
+            aria-label="Loading winners"
+          >
             {[1, 2, 3].map((item) => (
-              <div key={item} className="h-40 animate-pulse border border-border bg-white/[0.03]" />
+              <div
+                key={item}
+                className="h-40 animate-pulse border border-border bg-white/[0.03]"
+              />
             ))}
           </div>
         ) : winners.length ? (
           <div className="grid gap-4 md:grid-cols-3">
             {winners.map((winner) => (
-              <WinnerCard key={`${winner.rank}-${winner.name}`} winner={winner} />
+              <WinnerCard
+                key={`${winner.rank}-${winner.name}`}
+                winner={winner}
+              />
             ))}
           </div>
         ) : (
           <div className="border border-dashed border-gold/30 bg-black/30 p-8 text-center">
-            <p className="font-display text-2xl tracking-wide text-foreground">THE CIRCLE IS OPEN</p>
+            <p className="font-display text-2xl tracking-wide text-foreground">
+              THE CIRCLE IS OPEN
+            </p>
             <p className="mt-2 font-mono text-xs text-muted-foreground">
               Be the first verified operative to take a place on the board.
             </p>

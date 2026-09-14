@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
@@ -16,7 +16,6 @@ import {
   Gift,
   ShieldCheck,
   Percent,
-  Warning,
 } from "@phosphor-icons/react";
 
 const TXN_LABEL = {
@@ -39,29 +38,53 @@ export default function Wallet() {
   const [cashbackLog, setCashbackLog] = useState([]);
   const [claiming, setClaiming] = useState(false);
 
-  const loadCashback = () =>
-    api
-      .get("/cashback/status")
-      .then(({ data }) => setCashback(data))
-      .catch(() => {});
-  const loadCashbackLog = () =>
-    api
-      .get("/cashback/history")
-      .then(({ data }) => setCashbackLog(data))
-      .catch(() => {});
+  const loadPackages = useCallback(
+    () =>
+      api
+        .get("/payments/packages")
+        .then(({ data }) => setPackages(data))
+        .catch((error) => {
+          console.warn("wallet packages load failed", error);
+        }),
+    [],
+  );
+  const loadTransactions = useCallback(
+    () =>
+      api
+        .get("/wallet/transactions")
+        .then(({ data }) => setTxns(data))
+        .catch((error) => {
+          console.warn("wallet transactions load failed", error);
+        }),
+    [],
+  );
+  const loadCashback = useCallback(
+    () =>
+      api
+        .get("/cashback/status")
+        .then(({ data }) => setCashback(data))
+        .catch((error) => {
+          console.warn("wallet cashback status load failed", error);
+        }),
+    [],
+  );
+  const loadCashbackLog = useCallback(
+    () =>
+      api
+        .get("/cashback/history")
+        .then(({ data }) => setCashbackLog(data))
+        .catch((error) => {
+          console.warn("wallet cashback history load failed", error);
+        }),
+    [],
+  );
 
   useEffect(() => {
-    api
-      .get("/payments/packages")
-      .then(({ data }) => setPackages(data))
-      .catch(() => {});
-    api
-      .get("/wallet/transactions")
-      .then(({ data }) => setTxns(data))
-      .catch(() => {});
+    loadPackages();
+    loadTransactions();
     loadCashback();
     loadCashbackLog();
-  }, []);
+  }, [loadPackages, loadTransactions, loadCashback, loadCashbackLog]);
 
   const claimCashback = async () => {
     setClaiming(true);
@@ -71,10 +94,7 @@ export default function Wallet() {
       await refreshUser();
       await loadCashback();
       loadCashbackLog();
-      api
-        .get("/wallet/transactions")
-        .then(({ data }) => setTxns(data))
-        .catch(() => {});
+      loadTransactions();
     } catch (e) {
       toast.error(e.response?.data?.detail || "Cashback not ready");
     }

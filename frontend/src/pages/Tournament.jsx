@@ -84,7 +84,8 @@ export default function Tournament() {
             // LIVE TOURNAMENT
           </p>
           <h1 className="font-display text-5xl sm:text-6xl tracking-wide nvg-text flex items-center justify-center gap-3">
-            <Trophy size={44} weight="fill" /> {data?.name || "OPERATION HIGH ROLLER"}
+            <Trophy size={44} weight="fill" />{" "}
+            {data?.name || "OPERATION HIGH ROLLER"}
           </h1>
           <p className="text-muted-foreground mt-2">
             Every credit you win counts. Top 10 operatives split the pool at

@@ -209,7 +209,14 @@ def _is_placeholder_np() -> bool:
     key = (NOWPAYMENTS_API_KEY or "").strip().lower()
     if not key:
         return True
-    for token in ("placeholder", "replace", "example", "dummy", "your_key", "your-api-key"):
+    for token in (
+        "placeholder",
+        "replace",
+        "example",
+        "dummy",
+        "your_key",
+        "your-api-key",
+    ):
         if token in key:
             return True
     return False
@@ -217,7 +224,11 @@ def _is_placeholder_np() -> bool:
 
 def _is_repo_demo_np_key() -> bool:
     key = (NOWPAYMENTS_API_KEY or "").strip().lower()
-    return key.startswith("np_live_key") or key.startswith("np_test_key") or key.startswith("live_key")
+    return (
+        key.startswith("np_live_key")
+        or key.startswith("np_test_key")
+        or key.startswith("live_key")
+    )
 
 
 # Map our display codes to NOWPayments network-specific tickers.

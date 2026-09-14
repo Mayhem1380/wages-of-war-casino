@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
-import { BRAND, fmt } from "@/data/gameMeta";
+import { BRAND } from "@/data/gameMeta";
 import { LANDING } from "@/constants/testIds";
 import api from "@/lib/api";
 import { AnimatedShowcase } from "@/components/AnimatedShowcase";
@@ -134,7 +134,8 @@ export default function Landing() {
         data-testid="nexus-fleet-banner"
         className="block w-full bg-gradient-to-r from-black via-[#0b1a12] to-black border-b border-nvg/30 text-center py-2 px-4 font-mono text-[11px] sm:text-xs tracking-[0.25em] text-nvg hover:text-gold transition-colors"
       >
-        ✈ NEXUS STUDIO MASTER — MOBILE FLEET GAMING SALES · BUY YOUR OWN CASINO PLATFORM →
+        ✈ NEXUS STUDIO MASTER — MOBILE FLEET GAMING SALES · BUY YOUR OWN CASINO
+        PLATFORM →
       </a>
 
       {/* CINEMATIC HERO REEL — top of page */}
@@ -177,7 +178,9 @@ export default function Landing() {
               <h3 className="relative z-[1] font-display text-3xl tracking-wide text-foreground leading-none mb-2">
                 {title}
               </h3>
-              <p className="relative z-[1] text-sm text-foreground/75 leading-relaxed">{text}</p>
+              <p className="relative z-[1] text-sm text-foreground/75 leading-relaxed">
+                {text}
+              </p>
             </div>
           ))}
         </div>
@@ -208,7 +211,7 @@ export default function Landing() {
             <video
               data-testid="official-trailer-video"
               src="/brand/official_trailer.mp4"
-              poster={BRAND.hero}
+              poster="/brand/cine_carrier.jpg"
               autoPlay
               muted
               loop
@@ -232,13 +235,18 @@ export default function Landing() {
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-[#050605]" />
         <div className="hero-ambient hero-ambient-left" aria-hidden="true" />
         <div className="hero-ambient hero-ambient-right" aria-hidden="true" />
-        <img
-          src={BRAND.coinNightOps}
-          alt="Wages of War Casino — Night Ops Edition"
-          data-testid="hero-nightops-coin"
-          className="absolute top-3 right-3 sm:top-8 sm:right-8 w-16 sm:w-36 md:w-48 lg:w-56 z-20 animate-coin-intro pointer-events-none select-none"
-          style={{ filter: "drop-shadow(0 0 34px rgba(212,175,55,0.5))" }}
-        />
+        <div
+          data-testid="hero-nightops-squad"
+          className="absolute top-3 right-3 sm:top-8 sm:right-8 z-20 w-[9.5rem] sm:w-[16rem] md:w-[20rem] lg:w-[24rem] aspect-[1.15/1] rounded-[1.7rem] overflow-hidden border border-gold/40 bg-black/35 animate-coin-intro pointer-events-none select-none"
+          style={{ boxShadow: "0 0 34px rgba(212,175,55,0.28)" }}
+        >
+          <img
+            src={BRAND.nightOpsSquad}
+            alt=""
+            aria-hidden="true"
+            className="w-full h-full object-cover"
+          />
+        </div>
         <div className="relative max-w-[1400px] mx-auto px-4 sm:px-8 pt-16 pb-20 sm:pt-24 sm:pb-28 md:pt-32 md:pb-40">
           <div className="mx-auto max-w-3xl text-center sm:text-left sm:mx-0 sm:max-w-[38rem] md:max-w-[42rem]">
             <div className="hero-badges flex flex-wrap items-center justify-center gap-2 mb-6 animate-pop sm:justify-start">
@@ -256,13 +264,26 @@ export default function Landing() {
               </span>
             </div>
             <h1
-              className="hero-title font-display text-5xl sm:text-7xl lg:text-8xl leading-[0.85] tracking-tight animate-pop"
-              style={{ animationDelay: "0.05s" }}
+              className="hero-title animate-pop"
+              style={{ animationDelay: "0.04s" }}
             >
-              <span className="gold-gradient">WAGES OF WAR</span>
-              <br />
-              <span className="hero-subtitle text-foreground/90 text-3xl sm:text-5xl lg:text-6xl tracking-[0.2em]">
-                CASINO
+              <img
+                src={BRAND.nightOpsEdition}
+                alt=""
+                aria-hidden="true"
+                className="mx-auto mb-6 w-full max-w-[32rem] sm:mx-0"
+                style={{
+                  filter: "drop-shadow(0 14px 26px rgba(0,0,0,0.42))",
+                }}
+              />
+              <span
+                aria-hidden="true"
+                className="block -mt-2 text-center font-display text-base tracking-[0.45em] text-gold/80 sm:text-left sm:text-lg"
+              >
+                WAGES OF WAR CASINO
+              </span>
+              <span className="sr-only">
+                Wages of War Casino
               </span>
             </h1>
             <p
@@ -342,11 +363,31 @@ export default function Landing() {
       <section className="border-y border-gold/20 bg-black/50">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-8 grid grid-cols-2 md:grid-cols-4">
           {[
-            { Icon: GameController, img: "/brand/stat_rifle.jpg", label: "SLOT MACHINES", value: "145 Elite" },
-            { Icon: Target, img: "/brand/stat_keno.jpg", label: "WARHEAD KENO", value: "5000x Max" },
-            { Icon: Medal, img: "/brand/stat_vip.jpg", label: "VIP RANKS", value: "8 Tiers" },
-            { Icon: Gift, img: "/brand/stat_supply.jpg", label: "DAILY SUPPLY DROP", value: "Every 24h" },
-          ].map((s, i) => (
+            {
+              Icon: GameController,
+              img: "/brand/stat_rifle.jpg",
+              label: "SLOT MACHINES",
+              value: "145 Elite",
+            },
+            {
+              Icon: Target,
+              img: "/brand/stat_keno.jpg",
+              label: "WARHEAD KENO",
+              value: "5000x Max",
+            },
+            {
+              Icon: Medal,
+              img: "/brand/stat_vip.jpg",
+              label: "VIP RANKS",
+              value: "8 Tiers",
+            },
+            {
+              Icon: Gift,
+              img: "/brand/stat_supply.jpg",
+              label: "DAILY SUPPLY DROP",
+              value: "Every 24h",
+            },
+          ].map((s) => (
             <div
               key={s.label}
               className="stat-strip-item relative flex items-center gap-3 py-6 px-4 border-r border-border last:border-r-0 overflow-hidden"
@@ -356,7 +397,11 @@ export default function Landing() {
                 style={{ backgroundImage: `url(${s.img})` }}
                 aria-hidden="true"
               />
-              <s.Icon size={30} weight="fill" className="relative z-[1] text-nvg" />
+              <s.Icon
+                size={30}
+                weight="fill"
+                className="relative z-[1] text-nvg"
+              />
               <div className="relative z-[1]">
                 <div className="font-display text-2xl tracking-wide text-gold leading-none">
                   {s.value}
@@ -391,7 +436,7 @@ export default function Landing() {
         >
           <video
             src="/brand/wages_of_war_casino_promo_final.mp4"
-            poster={BRAND.hero}
+            poster="/brand/cine_carrier.jpg"
             controls
             autoPlay
             muted
@@ -478,7 +523,12 @@ export default function Landing() {
                     aria-hidden="true"
                   />
                   <div className="relative z-[1] mb-4 inline-flex h-11 w-11 items-center justify-center rounded border border-gold/40 bg-gold/10 text-gold">
-                    <FeatureIcon icon={Icon} alt={title} size={20} className="text-gold" />
+                    <FeatureIcon
+                      icon={Icon}
+                      alt={title}
+                      size={20}
+                      className="text-gold"
+                    />
                   </div>
                   <h3 className="relative z-[1] font-display text-2xl tracking-wide text-foreground mb-2">
                     {title}
@@ -491,9 +541,7 @@ export default function Landing() {
             </div>
           </div>
 
-          <div
-            className="hud target-profile-card relative overflow-hidden p-6 md:p-8 border-nvg/30 bg-[radial-gradient(circle_at_top,_rgba(78,228,78,0.12),_transparent_45%)]"
-          >
+          <div className="hud target-profile-card relative overflow-hidden p-6 md:p-8 border-nvg/30 bg-[radial-gradient(circle_at_top,_rgba(78,228,78,0.12),_transparent_45%)]">
             <div
               className="target-profile-art"
               style={{ backgroundImage: "url(/brand/stat_vip.jpg)" }}

@@ -22,7 +22,10 @@ function useCountdown() {
 }
 
 const Unit = ({ v, label }) => (
-  <div className="text-center" data-testid={`giveaway-countdown-${label.toLowerCase()}`}>
+  <div
+    className="text-center"
+    data-testid={`giveaway-countdown-${label.toLowerCase()}`}
+  >
     <div className="font-display text-4xl sm:text-5xl text-gold leading-none tabular-nums">
       {String(v).padStart(2, "0")}
     </div>
@@ -54,7 +57,8 @@ export const GiveawayAlert = () => {
         <div className="relative grid md:grid-cols-[1.4fr_1fr] gap-6 p-6 sm:p-10 items-center">
           <div>
             <p className="flex items-center gap-2 font-mono text-xs tracking-[0.35em] text-emerald-300/70">
-              <Fire size={16} weight="fill" className="text-alert" /> // MISSION ALERT
+              <Fire size={16} weight="fill" className="text-alert" /> // MISSION
+              ALERT
             </p>
             <h2 className="font-display text-4xl sm:text-5xl mt-2 leading-none">
               THE <span className="gold-gradient">$35,000</span> GIVEAWAY
@@ -72,11 +76,17 @@ export const GiveawayAlert = () => {
             </p>
             <div className="flex items-center gap-4 sm:gap-6 mt-3">
               <Unit v={days} label="DAYS" />
-              <span className="font-display text-3xl text-emerald-500/40">:</span>
+              <span className="font-display text-3xl text-emerald-500/40">
+                :
+              </span>
               <Unit v={hrs} label="HRS" />
-              <span className="font-display text-3xl text-emerald-500/40">:</span>
+              <span className="font-display text-3xl text-emerald-500/40">
+                :
+              </span>
               <Unit v={mins} label="MINS" />
-              <span className="font-display text-3xl text-emerald-500/40">:</span>
+              <span className="font-display text-3xl text-emerald-500/40">
+                :
+              </span>
               <Unit v={secs} label="SECS" />
             </div>
 
