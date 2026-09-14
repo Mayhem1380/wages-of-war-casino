@@ -1,65 +1,110 @@
 <svg width="1229" height="848" viewBox="0 0 1229 848" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <radialGradient id="glass" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(611.5 423.5) rotate(90) scale(233)">
-      <stop stop-color="#7CFF80"/>
-      <stop offset="0.28" stop-color="#34B84E"/>
-      <stop offset="0.62" stop-color="#155F28"/>
-      <stop offset="1" stop-color="#07190C"/>
+    <radialGradient id="scopeCore" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(611 424) rotate(90) scale(219)">
+      <stop stop-color="#6DFF7C"/>
+      <stop offset="0.24" stop-color="#38BF4E"/>
+      <stop offset="0.54" stop-color="#185F2D"/>
+      <stop offset="0.82" stop-color="#0B2714"/>
+      <stop offset="1" stop-color="#06130C"/>
     </radialGradient>
-    <radialGradient id="glassGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(611.5 423.5) rotate(90) scale(293)">
-      <stop stop-color="#80FF88" stop-opacity="0.4"/>
-      <stop offset="1" stop-color="#80FF88" stop-opacity="0"/>
+    <radialGradient id="scopeFog" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(611 436) rotate(90) scale(228 205)">
+      <stop stop-color="#84FF8D" stop-opacity="0.42"/>
+      <stop offset="1" stop-color="#84FF8D" stop-opacity="0"/>
     </radialGradient>
-    <linearGradient id="gold" x1="229" y1="157" x2="1001" y2="698" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#FFF6D7"/>
-      <stop offset="0.2" stop-color="#F7DA99"/>
-      <stop offset="0.45" stop-color="#D19A3C"/>
-      <stop offset="0.72" stop-color="#9E6019"/>
-      <stop offset="1" stop-color="#4E2D09"/>
+    <linearGradient id="outerGold" x1="240" y1="164" x2="976" y2="689" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF6D8"/>
+      <stop offset="0.15" stop-color="#F1D18C"/>
+      <stop offset="0.38" stop-color="#D1993B"/>
+      <stop offset="0.66" stop-color="#925518"/>
+      <stop offset="1" stop-color="#412206"/>
     </linearGradient>
-    <linearGradient id="goldDark" x1="326" y1="234" x2="897" y2="615" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#F0C56E"/>
-      <stop offset="0.5" stop-color="#9C6118"/>
-      <stop offset="1" stop-color="#3E2407"/>
+    <linearGradient id="innerGold" x1="322" y1="226" x2="889" y2="625" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF2C7"/>
+      <stop offset="0.32" stop-color="#E0AF59"/>
+      <stop offset="0.64" stop-color="#985816"/>
+      <stop offset="1" stop-color="#3D2006"/>
     </linearGradient>
-    <filter id="drop" x="0" y="57" width="1229" height="735" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+    <linearGradient id="rimShadow" x1="334" y1="208" x2="880" y2="629" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5A310C"/>
+      <stop offset="1" stop-color="#0D0602"/>
+    </linearGradient>
+    <filter id="shadow" x="12" y="92" width="1205" height="645" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
       <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#000000" flood-opacity="0.55"/>
     </filter>
   </defs>
 
-  <g filter="url(#drop)">
-    <circle cx="611.5" cy="423.5" r="286" fill="url(#goldDark)" />
-    <path d="M611.5 103C633.9 103 657.6 114.8 668 132.4C678.4 150 706.2 156.1 725.3 145.7C744.4 135.4 770.8 135.9 788.5 146.9C806.2 157.9 834.4 155.4 849.7 140.3C865 125.3 890.2 117.8 911.3 122.1C932.4 126.4 958.9 117.3 971.4 99.8L975.4 94.1C987.9 76.6 1009.7 64.3 1031.4 66.9C1053.2 69.5 1076.3 83.2 1088.2 101.1C1100 119 1125 129.2 1146 126.9C1167 124.5 1188 134.7 1198 152.8C1208 170.9 1205.8 196.4 1192.4 212.4C1179 228.3 1177.4 255.3 1188.4 273C1199.4 290.7 1199.1 316.6 1187.7 334C1176.4 351.5 1176.1 378.9 1187 396.9C1197.8 415 1198 440.9 1187.4 458.7C1176.8 476.4 1177.6 503.5 1189.6 520.6C1201.6 537.7 1204.2 563 1195.2 581.7C1186.2 600.4 1165.5 612.1 1144.2 611C1122.9 609.8 1098.6 622.2 1086.2 640.4C1073.7 658.6 1050.9 672.8 1029.1 675.2C1007.3 677.7 986.1 691 975 709.7L971.4 715.8C960.3 734.5 939.2 746.8 917.4 744.5C895.6 742.3 868.1 749.6 850.5 764.9C832.8 780.2 806.8 785.1 786.5 777.8C766.2 770.6 739.5 774.9 722.9 788.5C706.2 802.2 681.1 807.4 660 801.8C638.9 796.2 613.2 798.4 593.1 807.6C573 816.8 547.1 815.2 528.3 803.2C509.5 791.2 482.7 786.1 461.6 792C440.4 797.8 415.3 793 398.5 779.4C381.7 765.8 355 761.7 334.8 769C314.5 776.3 288.5 771.5 270.7 756.3C252.9 741.1 225.3 733.9 203.5 736.2C181.7 738.5 160.5 726.4 149.2 707.8L145.4 701.6C134 683 112.8 669.8 91 667.4C69.2 665 46.4 650.9 33.8 632.7C21.3 614.6 0.1 602.3 -21.2 603.5C-42.5 604.7 -63.2 593.2 -72.4 574.7C-81.5 556.2 -79.1 530.9 -67.3 513.7C-55.5 496.5 -54.9 469.5 -65.5 451.8C-76.1 434.1 -75.8 408.2 -64.9 390.2C-54 372.1 -54.1 345.1 -65.2 327.5C-76.3 310 -76.5 284 -65.6 266.1C-54.7 248.1 -55.6 221.1 -68.2 204.1C-80.9 187.1 -83.6 161.9 -74.7 143.3C-65.8 124.7 -45.2 113 -23.9 114.1C-2.6 115.3 21.7 102.9 34.3 84.7C46.8 66.6 69.7 52.5 91.5 50.1C113.3 47.7 134.5 34.6 145.8 15.9L149.2 10.3C160.5 -8.4 181.7 -20.6 203.5 -18.3C225.3 -16.1 252.9 -23.4 270.7 -38.6C288.5 -53.8 314.5 -58.6 334.8 -51.3C355 -44 381.7 -48.1 398.5 -61.7C415.3 -75.3 440.4 -80.1 461.6 -74.2C482.7 -68.4 509.5 -73.4 528.3 -85.4C547.1 -97.4 573 -99 593.1 -89.8C613.2 -80.6 638.9 -78.4 660 -84C681.1 -89.6 706.2 -84.3 722.9 -70.7C739.5 -57.1 766.2 -52.8 786.5 -60C806.8 -67.2 832.8 -62.3 850.5 -47C868.1 -31.7 895.6 -24.4 917.4 -26.7C939.2 -28.9 960.3 -16.6 971.4 2.1L975.4 8.7C986.5 27.4 1007.7 40.6 1029.5 43C1051.3 45.4 1074.1 59.5 1086.6 77.6C1099.2 95.8 1123.5 108.2 1144.8 107C1166.1 105.9 1186.8 117.5 1195.8 136.2C1204.8 154.9 1202.2 180.2 1190.2 197.3C1178.2 214.5 1177.4 241.5 1188 259.2C1198.6 276.9 1198.4 302.8 1187.5 320.9C1176.6 339 1176.8 366 1188.4 383.6C1199.9 401.2 1200.1 427.1 1189 445.1C1177.9 463.2 1179 490.2 1191.6 507.2C1204.2 524.2 1206.8 549.4 1198 568.1C1189.1 586.8 1168.5 598.5 1147.2 597.3C1125.8 596 1100.9 606 1088.9 623.5C1076.9 641.1 1053.8 654.8 1032 657.4C1010.3 660 988.4 647.7 975.9 630.2L971.9 624.5C959.4 607 933 597.8 911.9 602.1C890.8 606.4 865.6 598.9 850.3 583.9C835 568.8 806.8 566.3 789.1 577.3C771.4 588.3 745 588.8 725.9 578.5C706.8 568.1 679 574.2 668.6 591.8C658.2 609.4 634.5 621.2 612.1 621.2C589.7 621.2 566 609.4 555.6 591.8C545.2 574.2 517.4 568.1 498.3 578.5C479.2 588.8 452.8 588.3 435.1 577.3C417.4 566.3 389.2 568.8 373.9 583.9C358.6 598.9 333.4 606.4 312.3 602.1C291.2 597.8 264.8 607 252.3 624.5L248.3 630.2C235.8 647.7 213.9 660 192.2 657.4C170.4 654.8 147.3 641.1 135.3 623.5C123.3 606 98.4 596 77.1 597.3C55.7 598.5 35.2 586.8 26.3 568.1C17.4 549.4 20 524.2 32.6 507.2C45.2 490.2 46.3 463.2 35.2 445.1C24.1 427.1 24.3 401.2 35.8 383.6C47.4 366 47.6 339 36.7 320.9C25.8 302.8 25.6 276.9 36.2 259.2C46.8 241.5 46 214.5 34 197.3C22 180.2 19.4 154.9 28.4 136.2C37.4 117.5 58.1 105.9 79.4 107C100.7 108.2 125 95.8 137.6 77.6C150.1 59.5 172.9 45.4 194.7 43C216.5 40.6 237.7 27.4 248.8 8.7L252.8 2.1C263.9 -16.6 285 -28.9 306.8 -26.7C328.6 -24.4 356.1 -31.7 373.7 -47C391.4 -62.3 417.4 -67.2 437.7 -60C458 -52.8 484.7 -57.1 501.3 -70.7C518 -84.3 543.1 -89.6 564.2 -84C585.3 -78.4 611.5 -103 611.5 -103Z" transform="translate(5 103) scale(0.495)" fill="url(#gold)" />
-    <circle cx="611.5" cy="423.5" r="246" fill="url(#glass)"/>
-    <circle cx="611.5" cy="423.5" r="246" fill="url(#glassGlow)"/>
-    <circle cx="611.5" cy="423.5" r="252" stroke="#1D1205" stroke-width="12"/>
-    <circle cx="611.5" cy="423.5" r="272" stroke="url(#gold)" stroke-width="18"/>
+  <g filter="url(#shadow)">
+    <circle cx="611" cy="424" r="289" fill="url(#rimShadow)"/>
+    <circle cx="611" cy="424" r="278" fill="url(#outerGold)"/>
+    <circle cx="611" cy="424" r="248" fill="url(#rimShadow)"/>
+    <circle cx="611" cy="424" r="238" fill="url(#innerGold)"/>
+    <circle cx="611" cy="424" r="221" fill="url(#scopeCore)"/>
+    <circle cx="611" cy="424" r="221" fill="url(#scopeFog)"/>
 
-    <g stroke="#F73B2B" stroke-width="5" stroke-linecap="round" opacity="0.95">
-      <path d="M611.5 208V330"/>
-      <path d="M611.5 517V639"/>
-      <path d="M398 423.5H520"/>
-      <path d="M703 423.5H825"/>
-      <path d="M611.5 292V554"/>
-      <path d="M480 423.5H743"/>
-      <path d="M553 423.5H670"/>
-      <path d="M611.5 357V390"/>
-      <path d="M611.5 457V490"/>
-      <circle cx="611.5" cy="423.5" r="15"/>
+    <g opacity="0.95" stroke="#FF3A2B" stroke-width="5" stroke-linecap="round">
+      <path d="M611 203V326"/>
+      <path d="M611 523V646"/>
+      <path d="M390 424H514"/>
+      <path d="M708 424H832"/>
+      <path d="M611 292V554"/>
+      <path d="M478 424H744"/>
+      <path d="M552 424H669"/>
+      <path d="M611 358V390"/>
+      <path d="M611 458V490"/>
+      <circle cx="611" cy="424" r="14"/>
     </g>
 
-    <g fill="#07120A" opacity="0.92">
-      <ellipse cx="613" cy="329" rx="40" ry="45"/>
-      <path d="M563 379C563 358.013 580.013 341 601 341H625C645.987 341 663 358.013 663 379V541H563V379Z"/>
-      <rect x="544" y="391" width="28" height="139" rx="14" transform="rotate(8 544 391)"/>
-      <rect x="655" y="388" width="28" height="164" rx="14" transform="rotate(-10 655 388)"/>
-      <rect x="576" y="531" width="30" height="148" rx="15" transform="rotate(5 576 531)"/>
-      <rect x="620" y="531" width="30" height="148" rx="15" transform="rotate(-5 620 531)"/>
+    <g fill="#09120D" opacity="0.95">
+      <ellipse cx="612" cy="327" rx="35" ry="41"/>
+      <path d="M567 371C567 352.774 581.774 338 600 338H624C642.226 338 657 352.774 657 371V552H567V371Z"/>
+      <rect x="547" y="386" width="26" height="141" rx="13" transform="rotate(8 547 386)"/>
+      <rect x="653" y="384" width="28" height="168" rx="14" transform="rotate(-11 653 384)"/>
+      <rect x="579" y="544" width="28" height="134" rx="14" transform="rotate(5 579 544)"/>
+      <rect x="618" y="544" width="28" height="134" rx="14" transform="rotate(-5 618 544)"/>
+    </g>
+
+    <rect x="710" y="261" width="72" height="34" rx="6" fill="#95FF9D" opacity="0.45"/>
+
+    <g fill="#8D5A1D">
+      <circle cx="611" cy="137" r="9"/>
+      <circle cx="611" cy="711" r="9"/>
+      <circle cx="324" cy="424" r="9"/>
+      <circle cx="898" cy="424" r="9"/>
+      <circle cx="408" cy="171" r="9"/>
+      <circle cx="814" cy="171" r="9"/>
+      <circle cx="408" cy="677" r="9"/>
+      <circle cx="814" cy="677" r="9"/>
+      <circle cx="205" cy="289" r="9"/>
+      <circle cx="1017" cy="289" r="9"/>
+      <circle cx="205" cy="559" r="9"/>
+      <circle cx="1017" cy="559" r="9"/>
+      <circle cx="284" cy="211" r="9"/>
+      <circle cx="938" cy="211" r="9"/>
+      <circle cx="284" cy="637" r="9"/>
+      <circle cx="938" cy="637" r="9"/>
+    </g>
+    <g fill="url(#outerGold)">
+      <circle cx="611" cy="137" r="7"/>
+      <circle cx="611" cy="711" r="7"/>
+      <circle cx="324" cy="424" r="7"/>
+      <circle cx="898" cy="424" r="7"/>
+      <circle cx="408" cy="171" r="7"/>
+      <circle cx="814" cy="171" r="7"/>
+      <circle cx="408" cy="677" r="7"/>
+      <circle cx="814" cy="677" r="7"/>
+      <circle cx="205" cy="289" r="7"/>
+      <circle cx="1017" cy="289" r="7"/>
+      <circle cx="205" cy="559" r="7"/>
+      <circle cx="1017" cy="559" r="7"/>
+      <circle cx="284" cy="211" r="7"/>
+      <circle cx="938" cy="211" r="7"/>
+      <circle cx="284" cy="637" r="7"/>
+      <circle cx="938" cy="637" r="7"/>
     </g>
 
     <g>
-      <text x="78" y="548" fill="#2B1706" stroke="#2B1706" stroke-width="22" style="font: italic 154px 'Brush Script MT', 'Snell Roundhand', 'URW Chancery L', cursive;">Night Ops Edition</text>
-      <text x="78" y="548" fill="url(#gold)" stroke="#F7D992" stroke-width="4" style="font: italic 154px 'Brush Script MT', 'Snell Roundhand', 'URW Chancery L', cursive;">Night Ops Edition</text>
+      <text x="40" y="557" fill="#231105" stroke="#231105" stroke-width="24" style="font: italic 154px 'Brush Script MT', 'Snell Roundhand', 'URW Chancery L', cursive;">Night Ops Edition</text>
+      <text x="40" y="557" fill="url(#outerGold)" stroke="#F9E2A7" stroke-width="5" style="font: italic 154px 'Brush Script MT', 'Snell Roundhand', 'URW Chancery L', cursive;">Night Ops Edition</text>
     </g>
   </g>
 </svg>
