@@ -2681,6 +2681,21 @@ class MediaRollbackInput(BaseModel):
     reason: str = Field(min_length=3, max_length=1000)
 
 
+class UpgradePackageInput(BaseModel):
+    id: str = Field(
+        default_factory=lambda: uuid.uuid4().hex, min_length=1, max_length=128
+    )
+    name: str = Field(default="Fleet Upgrade", min_length=1, max_length=200)
+    description: str = Field(
+        default="Enhancement package — custom configuration available.",
+        min_length=1,
+        max_length=2000,
+    )
+    price_usd: float = Field(default=0.0, ge=0)
+    active: bool = False
+    published: bool = False
+
+
 DEFAULT_UPGRADES = [
     {
         "id": f"pkg-{i + 1}",
@@ -2724,32 +2739,14 @@ async def admin_get_upgrades(admin: dict = Depends(require_admin)):
 
 
 @api.post("/admin/upgrades")
-async def admin_set_upgrades(payload: List[dict], admin: dict = Depends(require_admin)):
-    if not isinstance(payload, list):
-        raise HTTPException(
-            status_code=400, detail="Expected a list of upgrade packages"
-        )
-    cleaned = []
-    for entry in payload:
-        if not isinstance(entry, dict):
-            continue
-        cleaned.append(
-            {
-                "id": str(entry.get("id") or uuid.uuid4().hex),
-                "name": str(entry.get("name") or "Fleet Upgrade"),
-                "description": str(
-                    entry.get("description")
-                    or "Enhancement package — custom configuration available."
-                ),
-                "price_usd": float(entry.get("price_usd", 0.0) or 0.0),
-                "active": bool(entry.get("active", False)),
-                "published": bool(entry.get("published", False)),
-            }
-        )
-    if not cleaned:
+async def admin_set_upgrades(
+    payload: List[UpgradePackageInput], admin: dict = Depends(require_admin)
+):
+    if not payload:
         raise HTTPException(
             status_code=400, detail="No valid upgrade packages supplied"
         )
+    cleaned = [entry.model_dump() for entry in payload]
     await db.upgrades.update_one(
         {"_id": "catalog"},
         {
