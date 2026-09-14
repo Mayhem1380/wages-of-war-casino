@@ -1,6 +1,5 @@
-import React from "react";
+import React, { act } from "react";
 import ReactDOM from "react-dom/client";
-import { act } from "react-dom/test-utils";
 import { CinematicReel } from "../CinematicReel";
 
 jest.mock(
@@ -24,6 +23,7 @@ describe("CinematicReel", () => {
 
   beforeEach(() => {
     jest.useFakeTimers();
+    global.IS_REACT_ACT_ENVIRONMENT = true;
     container = document.createElement("div");
     document.body.appendChild(container);
     window.matchMedia = jest.fn().mockReturnValue({
@@ -42,6 +42,7 @@ describe("CinematicReel", () => {
     }
     jest.runOnlyPendingTimers();
     jest.useRealTimers();
+    global.IS_REACT_ACT_ENVIRONMENT = false;
   });
 
   it("opens with the carrier launch and cycles through Black Hawk and Apache scenes first", () => {
