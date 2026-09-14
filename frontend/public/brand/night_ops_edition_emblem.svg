@@ -22,7 +22,6 @@
     </filter>
   </defs>
 
-  <rect width="1229" height="848" fill="#ECECEC"/>
   <g filter="url(#shadow)">
     <circle cx="612" cy="423" r="258" fill="url(#scopeGlow)" stroke="url(#goldStroke)" stroke-width="26"/>
     <circle cx="612" cy="423" r="302" stroke="url(#goldStroke)" stroke-width="32"/>

@@ -262,26 +262,33 @@ export default function Landing() {
                 <Trophy size={13} weight="fill" /> NIGHT OPS EDITION
               </span>
             </div>
-            <h1 className="animate-pop" style={{ animationDelay: "0.04s" }}>
+            <h1
+              className="hero-title animate-pop"
+              style={{ animationDelay: "0.04s" }}
+            >
+              <span className="sr-only">
+                Wages of War Casino — Night Ops Edition
+              </span>
               <img
                 src={BRAND.nightOpsEdition}
-                alt="Wages of War Casino — Night Ops Edition"
+                alt=""
+                aria-hidden="true"
                 className="mx-auto mb-6 w-full max-w-[32rem] sm:mx-0"
                 style={{
                   filter: "drop-shadow(0 14px 26px rgba(0,0,0,0.42))",
                 }}
               />
-            </h1>
-            <div
-              className="hero-title font-display text-5xl sm:text-7xl lg:text-8xl leading-[0.85] tracking-tight animate-pop"
-              style={{ animationDelay: "0.05s" }}
-            >
-              <span className="gold-gradient">WAGES OF WAR</span>
-              <br />
-              <span className="hero-subtitle text-foreground/90 text-3xl sm:text-5xl lg:text-6xl tracking-[0.2em]">
-                CASINO
+              <span
+                aria-hidden="true"
+                className="block font-display text-5xl sm:text-7xl lg:text-8xl leading-[0.85] tracking-tight"
+              >
+                <span className="gold-gradient">WAGES OF WAR</span>
+                <br />
+                <span className="hero-subtitle text-foreground/90 text-3xl sm:text-5xl lg:text-6xl tracking-[0.2em]">
+                  CASINO
+                </span>
               </span>
-            </div>
+            </h1>
             <p
               className="hero-copy mx-auto mt-6 max-w-xl text-base text-foreground/80 leading-relaxed animate-pop sm:mx-0 sm:text-lg"
               style={{ animationDelay: "0.1s" }}
