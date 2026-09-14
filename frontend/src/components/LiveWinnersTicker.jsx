@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Broadcast, Trophy } from "@phosphor-icons/react";
 import { sfx } from "@/lib/sounds";
 

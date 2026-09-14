@@ -101,8 +101,8 @@ export default function PaymentSuccess() {
               RESUPPLY UNCONFIRMED
             </h1>
             <p className="font-mono text-sm text-muted-foreground mt-2">
-              We couldn't confirm the payment. If you were charged, credits will
-              arrive shortly.
+              We couldn&apos;t confirm the payment. If you were charged, credits
+              will arrive shortly.
             </p>
             <Button
               onClick={() => navigate("/wallet")}

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo } from "react";
 import { Coin } from "@phosphor-icons/react";
 
 const CONFETTI_COLORS = [
@@ -17,8 +17,6 @@ const CONFETTI_COLORS = [
  * intensity: "small" | "big"  — big = more coins/confetti + longer.
  */
 export function WinCelebration({ show, intensity = "big", onDone, testId }) {
-  const shakeTargetRef = useRef(null);
-
   const coinCount = intensity === "big" ? 46 : 22;
   const confettiCount = intensity === "big" ? 60 : 28;
   const duration = intensity === "big" ? 3200 : 2000;

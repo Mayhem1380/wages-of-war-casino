@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
-import { BRAND, fmt } from "@/data/gameMeta";
+import { BRAND } from "@/data/gameMeta";
 import { LANDING } from "@/constants/testIds";
 import api from "@/lib/api";
 import { AnimatedShowcase } from "@/components/AnimatedShowcase";
@@ -369,7 +369,7 @@ export default function Landing() {
               label: "DAILY SUPPLY DROP",
               value: "Every 24h",
             },
-          ].map((s, i) => (
+          ].map((s) => (
             <div
               key={s.label}
               className="stat-strip-item relative flex items-center gap-3 py-6 px-4 border-r border-border last:border-r-0 overflow-hidden"

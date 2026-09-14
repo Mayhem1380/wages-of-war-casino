@@ -33,7 +33,7 @@ const STATUS_STYLE = {
 };
 
 export default function Cashier() {
-  const { user, refreshUser } = useAuth();
+  const { refreshUser } = useAuth();
   const [params, setParams] = useSearchParams();
   const [meta, setMeta] = useState(null);
   const [summary, setSummary] = useState(null);

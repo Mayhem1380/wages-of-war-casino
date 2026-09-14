@@ -545,6 +545,15 @@ export default function FlagshipSlot() {
             sfx.prime();
             setIntro(false);
           }}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              sfx.prime();
+              setIntro(false);
+            }
+          }}
+          role="button"
+          tabIndex={0}
           className="fixed inset-0 z-50 flex flex-col items-center justify-center cursor-pointer overflow-y-auto p-4"
           style={{
             backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.85)), url(${art.bg})`,

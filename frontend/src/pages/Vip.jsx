@@ -15,7 +15,6 @@ import {
   Trophy,
   Crown,
   Diamond,
-  Fire,
 } from "@phosphor-icons/react";
 
 // One distinct insignia icon per rank, escalating in visual weight from Recruit to General.

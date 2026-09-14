@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { sfx } from "@/lib/sounds";
 import { WinCelebration } from "@/components/WinCelebration";
 import { LiveWinnersTicker } from "@/components/LiveWinnersTicker";
-import { Coins, ArrowLeft, Lightning, TrendUp } from "@phosphor-icons/react";
+import { ArrowLeft, Lightning, TrendUp } from "@phosphor-icons/react";
 
 export default function CoinFlipGame() {
   const navigate = useNavigate();

@@ -4,7 +4,7 @@ import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { SymbolTile } from "@/components/SymbolTile";
 import { PixiReelFX } from "@/components/PixiReelFX";
-import { MACHINE_ART, resolveMachineArt, fmt } from "@/data/gameMeta";
+import { resolveMachineArt, fmt } from "@/data/gameMeta";
 import { SLOT } from "@/constants/testIds";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -43,7 +43,6 @@ export default function SlotGame() {
   const [free, setFree] = useState(null); // {active, spinsLeft, multiplier, total, done, sessionId}
   const [bigWin, setBigWin] = useState(null); // {win, multiplier}
   const [flash, setFlash] = useState(null); // {type, label}
-  const [shake, setShake] = useState(false);
   const [briefing, setBriefing] = useState(true);
   const spinRef = useRef();
   const machineRef = useRef(null);
@@ -522,7 +521,7 @@ export default function SlotGame() {
           {lastWin > 0 && !spinning && !inFree && (
             <GamblePanel
               amount={lastWin}
-              onDone={(finalWin) => {
+              onDone={() => {
                 setLastWin(0);
                 refreshUser();
               }}

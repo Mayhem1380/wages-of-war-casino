@@ -28,6 +28,14 @@ export const BigWinOverlay = React.memo(function BigWinOverlay({
     <div
       data-testid={BIGWIN.overlay}
       onClick={onDone}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onDone();
+        }
+      }}
+      role="button"
+      tabIndex={0}
       className="fixed inset-0 z-[10000] flex items-center justify-center cursor-pointer overflow-hidden"
       style={{
         background:
@@ -66,7 +74,7 @@ export const BigWinOverlay = React.memo(function BigWinOverlay({
       <div className="absolute w-[45vmin] h-[45vmin] rounded-full border border-nvg/20" />
 
       {/* gold bursts */}
-      {[0, 0.25, 0.5].map((d, i) => (
+      {[0, 0.25, 0.5].map((d) => (
         <div
           key={d}
           className="absolute w-[50vmin] h-[50vmin] rounded-full bw-ring"

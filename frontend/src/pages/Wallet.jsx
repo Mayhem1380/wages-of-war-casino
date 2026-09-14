@@ -16,7 +16,6 @@ import {
   Gift,
   ShieldCheck,
   Percent,
-  Warning,
 } from "@phosphor-icons/react";
 
 const TXN_LABEL = {

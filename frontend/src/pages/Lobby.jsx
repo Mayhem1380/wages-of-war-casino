@@ -10,7 +10,6 @@ import {
   fmt,
 } from "@/data/gameMeta";
 import { LOBBY } from "@/constants/testIds";
-import { SymbolTile } from "@/components/SymbolTile";
 import { AnimatedShowcase } from "@/components/AnimatedShowcase";
 import { LobbyHype } from "@/components/LobbyHype";
 import { LiveDrawBoard } from "@/components/LiveDrawBoard";
@@ -20,9 +19,7 @@ import {
   Target,
   CaretRight,
   Coins,
-  GameController,
   Skull,
-  RocketLaunch,
   MagnifyingGlass,
   Trophy,
   Sparkle,
@@ -204,29 +201,6 @@ export default function Lobby() {
   const catCount = (c) =>
     c === "All" ? slots.length : slots.filter((s) => catOf(s) === c).length;
 
-  const symbolPreview = {
-    gates_of_glory: ["crown", "gem_red", "orb"],
-    book_of_ops: ["idol", "book", "scarab"],
-    big_bass_bombardment: ["fisherman", "boat", "scatter"],
-    wild_west_recon: ["sheriff", "revolver", "wild"],
-    sweet_ammo: ["candy", "heart", "grape"],
-    money_train_convoy: ["vault", "coin", "gunner"],
-    pharaohs_arsenal: ["pharaoh", "ankh", "anubis"],
-    kraken_depths: ["kraken", "pearl", "scatter"],
-    inferno_airstrike: ["jet", "missile", "flame"],
-    frozen_front: ["yeti", "snow", "wild"],
-    golden_dynasty: ["emperor", "lantern", "coin"],
-    samurai_strike: ["shogun", "katana", "wild"],
-    voodoo_vengeance: ["witchdoctor", "totem", "scatter"],
-    corsair_cannons: ["corsair", "doubloon", "compass_sym"],
-    warpath_legends: ["warchief", "buffalo", "eagle"],
-    bull_rush: ["warchief", "buffalo", "eagle"],
-    buffalo_blast: ["warchief", "buffalo", "eagle"],
-    prairie_royale: ["warchief", "buffalo", "eagle"],
-    stampede_skyline: ["warchief", "buffalo", "eagle"],
-    golden_bull_run: ["warchief", "buffalo", "eagle"],
-  };
-
   return (
     <div
       data-testid={LOBBY.root}
@@ -385,6 +359,14 @@ export default function Lobby() {
         <div
           data-testid={LOBBY.championSpotlight}
           onClick={() => navigate("/tournament")}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              navigate("/tournament");
+            }
+          }}
+          role="button"
+          tabIndex={0}
           className="mt-6 cursor-pointer border border-gold/40 bg-gradient-to-r from-gold/10 via-black/40 to-transparent px-5 py-3 flex items-center gap-4 overflow-hidden hover:border-gold/70 transition-colors"
         >
           <Crown size={26} weight="fill" className="text-gold shrink-0" />
@@ -415,6 +397,14 @@ export default function Lobby() {
         <div
           data-testid={LOBBY.wheelReady}
           onClick={() => navigate("/wheel")}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              navigate("/wheel");
+            }
+          }}
+          role="button"
+          tabIndex={0}
           className="mt-4 cursor-pointer border border-nvg/50 bg-nvg/10 px-5 py-3 flex items-center gap-3 hover:bg-nvg/15 transition-colors animate-pulse-soft"
         >
           {wheel.mega_unlocked ? (

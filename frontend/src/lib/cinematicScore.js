@@ -18,7 +18,9 @@ export function useCinematicScore() {
         a.oscs.forEach((o) => o.stop());
         a.ctx.close();
       }, 1000);
-    } catch (e) {}
+    } catch {
+      // ignore best-effort audio teardown failures
+    }
     ref.current = null;
     setOn(false);
   };
