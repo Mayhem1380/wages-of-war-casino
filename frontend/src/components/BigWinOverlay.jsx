@@ -3,7 +3,11 @@ import { fmt } from "@/data/gameMeta";
 import { BIGWIN } from "@/constants/testIds";
 import { Sparkle, Star, Coin } from "@phosphor-icons/react";
 
-export const BigWinOverlay = React.memo(function BigWinOverlay({ win, multiplier, onDone }) {
+export const BigWinOverlay = React.memo(function BigWinOverlay({
+  win,
+  multiplier,
+  onDone,
+}) {
   useEffect(() => {
     const t = setTimeout(onDone, 2800);
     return () => clearTimeout(t);

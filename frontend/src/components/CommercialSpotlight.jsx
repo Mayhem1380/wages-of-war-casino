@@ -3,7 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { BRAND } from "@/data/gameMeta";
 import { Button } from "@/components/ui/button";
-import { ArrowUpRight, Coins, Cube, Headset, RocketLaunch } from "@phosphor-icons/react";
+import {
+  ArrowUpRight,
+  Coins,
+  Cube,
+  Headset,
+  RocketLaunch,
+} from "@phosphor-icons/react";
 
 const OFFERINGS = [
   {
@@ -79,7 +85,8 @@ export function CommercialSpotlight() {
             </Button>
           </div>
           <p className="mt-3 font-mono text-[10px] tracking-widest text-muted-foreground">
-            STARTUP, TURNKEY, AND ENTERPRISE QUOTES · LOOP2LUCK CONCEPTS BY ENQUIRY
+            STARTUP, TURNKEY, AND ENTERPRISE QUOTES · LOOP2LUCK CONCEPTS BY
+            ENQUIRY
           </p>
         </div>
         <div className="grid gap-3">
@@ -88,7 +95,11 @@ export function CommercialSpotlight() {
               key={title}
               className="flex gap-4 border border-gold/20 bg-black/55 p-4 backdrop-blur-sm"
             >
-              <Icon size={27} weight="fill" className="mt-1 shrink-0 text-nvg" />
+              <Icon
+                size={27}
+                weight="fill"
+                className="mt-1 shrink-0 text-nvg"
+              />
               <div>
                 <h3 className="font-stencil text-sm tracking-[0.2em] text-gold">
                   {title}

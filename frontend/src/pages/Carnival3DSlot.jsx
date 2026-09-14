@@ -156,7 +156,10 @@ export default function Carnival3DSlot() {
       });
     }
     const particleGeo = new THREE.BufferGeometry();
-    particleGeo.setAttribute("position", new THREE.BufferAttribute(particlePos, 3));
+    particleGeo.setAttribute(
+      "position",
+      new THREE.BufferAttribute(particlePos, 3),
+    );
     const particleMat = new THREE.PointsMaterial({
       color: 0xffd700,
       size: 0.15,
@@ -357,7 +360,9 @@ export default function Carnival3DSlot() {
           <Button variant="outline" size="icon" onClick={() => changeBet(-20)}>
             <Minus size={16} />
           </Button>
-          <span className="text-lg text-gold min-w-24 text-center">{fmt(bet)}</span>
+          <span className="text-lg text-gold min-w-24 text-center">
+            {fmt(bet)}
+          </span>
           <Button variant="outline" size="icon" onClick={() => changeBet(20)}>
             <Plus size={16} />
           </Button>

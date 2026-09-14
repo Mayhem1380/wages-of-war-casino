@@ -43,7 +43,8 @@ export function WinCelebration({ show, intensity = "big", onDone, testId }) {
         dur: 1.8 + Math.random() * 1.8,
         w: 6 + Math.random() * 8,
         h: 10 + Math.random() * 14,
-        color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
+        color:
+          CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
       })),
     [confettiCount],
   );

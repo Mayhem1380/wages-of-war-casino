@@ -4,7 +4,22 @@ import { Broadcast } from "@phosphor-icons/react";
 // Always-on WARKINO draw board. Runs continuously (even with no players): a new
 // ball every 3s, 20 balls per 60s round, then resets. Pure display + ticker.
 const ROUND = 20;
-const NAMES = ["Ghost", "Viper", "Recon6", "NightHawk", "Bandit", "Reaper", "K9-Rex", "Sniper1", "Delta", "Foxtrot", "Warlord", "Apex", "Havoc", "Ranger"];
+const NAMES = [
+  "Ghost",
+  "Viper",
+  "Recon6",
+  "NightHawk",
+  "Bandit",
+  "Reaper",
+  "K9-Rex",
+  "Sniper1",
+  "Delta",
+  "Foxtrot",
+  "Warlord",
+  "Apex",
+  "Havoc",
+  "Ranger",
+];
 const money = () => "$" + (Math.floor(Math.random() * 480) + 20) * 5;
 
 function drawFor(bucket) {
@@ -60,7 +75,11 @@ export function LiveDrawBoard() {
     >
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
         <p className="font-display text-2xl tracking-widest gold-gradient flex items-center gap-2">
-          <Broadcast size={22} weight="fill" className="text-danger animate-pulse" />
+          <Broadcast
+            size={22}
+            weight="fill"
+            className="text-danger animate-pulse"
+          />
           WARKINO · LIVE DRAW
         </p>
         <span className="font-mono text-xs text-nvg tracking-widest">
@@ -68,7 +87,10 @@ export function LiveDrawBoard() {
         </span>
       </div>
 
-      <div className="grid grid-cols-10 sm:grid-cols-20 gap-1 mb-4" style={{ gridTemplateColumns: "repeat(20, minmax(0,1fr))" }}>
+      <div
+        className="grid grid-cols-10 sm:grid-cols-20 gap-1 mb-4"
+        style={{ gridTemplateColumns: "repeat(20, minmax(0,1fr))" }}
+      >
         {Array.from({ length: 80 }, (_, k) => {
           const n = k + 1;
           const hit = drawn.includes(n);
@@ -85,7 +107,11 @@ export function LiveDrawBoard() {
                   : hit
                     ? "rgba(78,228,78,0.35)"
                     : "rgba(255,255,255,0.04)",
-                color: isLast ? "#052b02" : hit ? "#CFFFC4" : "rgba(255,255,255,0.35)",
+                color: isLast
+                  ? "#052b02"
+                  : hit
+                    ? "#CFFFC4"
+                    : "rgba(255,255,255,0.35)",
                 border: hit
                   ? "1px solid rgba(120,255,110,0.85)"
                   : "1px solid rgba(255,255,255,0.06)",
@@ -110,7 +136,10 @@ export function LiveDrawBoard() {
         </span>
         <div className="flex gap-4 overflow-hidden whitespace-nowrap">
           {ticker.map((t, i) => (
-            <span key={i} className="font-mono text-xs text-foreground/80 shrink-0">
+            <span
+              key={i}
+              className="font-mono text-xs text-foreground/80 shrink-0"
+            >
               {t.n} <span className="text-gold">{t.w}</span>
             </span>
           ))}

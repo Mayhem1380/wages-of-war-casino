@@ -67,7 +67,10 @@ export default function UpgradesPanel() {
       const { data } = await api.post("/admin/upgrades", nextItems);
       return data;
     } catch (error) {
-      console.warn("upgrade save failed:", apiError(error.response?.data?.detail || error));
+      console.warn(
+        "upgrade save failed:",
+        apiError(error.response?.data?.detail || error),
+      );
       return nextItems;
     }
   };
@@ -130,7 +133,8 @@ export default function UpgradesPanel() {
             <div className="upgrade-desc">{p.description}</div>
             <div className="upgrade-price">${p.price_usd}</div>
             <div className="upgrade-status">
-              {p.published ? "Published" : "Draft"} · {p.active ? "Active" : "Inactive"}
+              {p.published ? "Published" : "Draft"} ·{" "}
+              {p.active ? "Active" : "Inactive"}
             </div>
             <div className="upgrade-actions">
               <button

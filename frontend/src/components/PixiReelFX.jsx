@@ -3,7 +3,11 @@ import { Application, Container, Graphics } from "pixi.js";
 
 const PARTICLE_COUNT = 34;
 
-export const PixiReelFX = React.memo(function PixiReelFX({ accent = "#F6C64A", spinning = false, winCount = 0 }) {
+export const PixiReelFX = React.memo(function PixiReelFX({
+  accent = "#F6C64A",
+  spinning = false,
+  winCount = 0,
+}) {
   const hostRef = useRef(null);
   const spinningRef = useRef(spinning);
   const winCountRef = useRef(winCount);
@@ -24,7 +28,11 @@ export const PixiReelFX = React.memo(function PixiReelFX({ accent = "#F6C64A", s
 
     const safeDestroy = (a) => {
       try {
-        a?.destroy(true, { children: true, texture: true, textureSource: true });
+        a?.destroy(true, {
+          children: true,
+          texture: true,
+          textureSource: true,
+        });
       } catch (e) {
         /* pixi app was not fully initialized yet — ignore */
       }
@@ -77,7 +85,9 @@ export const PixiReelFX = React.memo(function PixiReelFX({ accent = "#F6C64A", s
         app.renderer.resize(width, height);
         beams.clear();
         beams.rect(0, 0, width, 2).fill({ color: accent, alpha: 0.22 });
-        beams.rect(0, height - 2, width, 2).fill({ color: accent, alpha: 0.16 });
+        beams
+          .rect(0, height - 2, width, 2)
+          .fill({ color: accent, alpha: 0.16 });
         for (let reel = 1; reel < 5; reel += 1) {
           const x = (width * reel) / 5;
           beams.rect(x, 0, 1, height).fill({ color: accent, alpha: 0.08 });
@@ -93,13 +103,25 @@ export const PixiReelFX = React.memo(function PixiReelFX({ accent = "#F6C64A", s
         const height = Math.max(host.clientHeight, 1);
         const time = performance.now() / 1000;
         particles.forEach((particle) => {
-          particle.x = ((particle.x + particle.vx * (spinningRef.current ? 2.5 : 1)) % 1 + 1) % 1;
-          particle.y = ((particle.y + particle.vy * (spinningRef.current ? 2.5 : 1)) % 1 + 1) % 1;
+          particle.x =
+            (((particle.x + particle.vx * (spinningRef.current ? 2.5 : 1)) %
+              1) +
+              1) %
+            1;
+          particle.y =
+            (((particle.y + particle.vy * (spinningRef.current ? 2.5 : 1)) %
+              1) +
+              1) %
+            1;
           particle.position.set(particle.x * width, particle.y * height);
-          particle.alpha = (0.16 + Math.sin(time * 2 + particle.phase) * 0.12) * (spinningRef.current ? 1.5 : 1);
+          particle.alpha =
+            (0.16 + Math.sin(time * 2 + particle.phase) * 0.12) *
+            (spinningRef.current ? 1.5 : 1);
           particle.scale.set(winCountRef.current ? 1.6 : 1);
         });
-        beams.alpha = spinningRef.current ? 1 : 0.72 + Math.sin(time * 1.4) * 0.12;
+        beams.alpha = spinningRef.current
+          ? 1
+          : 0.72 + Math.sin(time * 1.4) * 0.12;
       });
     };
 
@@ -111,5 +133,11 @@ export const PixiReelFX = React.memo(function PixiReelFX({ accent = "#F6C64A", s
     };
   }, [accent]);
 
-  return <div ref={hostRef} data-testid="pixi-reel-fx" className="pointer-events-none absolute inset-0 z-10 overflow-hidden" />;
+  return (
+    <div
+      ref={hostRef}
+      data-testid="pixi-reel-fx"
+      className="pointer-events-none absolute inset-0 z-10 overflow-hidden"
+    />
+  );
 });

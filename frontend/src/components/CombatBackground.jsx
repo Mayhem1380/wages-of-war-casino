@@ -168,7 +168,14 @@ const CombatBackground = React.memo(function CombatBackground() {
           explosions.splice(i, 1);
           continue;
         }
-        const g = ctx.createRadialGradient(e.x, e.y, 0, e.x, e.y, Math.max(0.01, e.r));
+        const g = ctx.createRadialGradient(
+          e.x,
+          e.y,
+          0,
+          e.x,
+          e.y,
+          Math.max(0.01, e.r),
+        );
         g.addColorStop(0, `rgba(255,230,170,${0.22 * k})`);
         g.addColorStop(0.4, `rgba(255,140,50,${0.16 * k})`);
         g.addColorStop(1, "rgba(255,80,20,0)");

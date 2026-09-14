@@ -26,13 +26,38 @@ import {
 const NUMS = Array.from({ length: 80 }, (_, i) => i + 1);
 
 // Vibrant, high-brightness pool-ball palette (even numbers), cycled by decade.
-const BALL_COLORS = ["#e63946", "#f4a300", "#ffd60a", "#2ec4b6", "#3a86ff", "#8338ec", "#ff5fa2", "#06d6a0"];
-const ballColor = (n) => BALL_COLORS[Math.floor((n - 1) / 10) % BALL_COLORS.length];
+const BALL_COLORS = [
+  "#e63946",
+  "#f4a300",
+  "#ffd60a",
+  "#2ec4b6",
+  "#3a86ff",
+  "#8338ec",
+  "#ff5fa2",
+  "#06d6a0",
+];
+const ballColor = (n) =>
+  BALL_COLORS[Math.floor((n - 1) / 10) % BALL_COLORS.length];
 
 const SIDE_MARKETS = [
-  { key: "sum", label: "TOTAL SUM", a: { v: "over", t: "OVER 810" }, b: { v: "under", t: "UNDER 810" } },
-  { key: "parity", label: "PARITY", a: { v: "odd", t: "ODD MAJORITY" }, b: { v: "even", t: "EVEN MAJORITY" } },
-  { key: "zone", label: "STRIKE ZONE", a: { v: "high", t: "HIGH 41–80" }, b: { v: "low", t: "LOW 1–40" } },
+  {
+    key: "sum",
+    label: "TOTAL SUM",
+    a: { v: "over", t: "OVER 810" },
+    b: { v: "under", t: "UNDER 810" },
+  },
+  {
+    key: "parity",
+    label: "PARITY",
+    a: { v: "odd", t: "ODD MAJORITY" },
+    b: { v: "even", t: "EVEN MAJORITY" },
+  },
+  {
+    key: "zone",
+    label: "STRIKE ZONE",
+    a: { v: "high", t: "HIGH 41–80" },
+    b: { v: "low", t: "LOW 1–40" },
+  },
 ];
 
 const KENO_MODES = [
@@ -151,7 +176,9 @@ export default function KenoGame() {
         refreshUser();
         if (data.win > 0) {
           sfx.bigWin();
-          setCelebrate({ intensity: (data.multiplier || 2) >= 10 ? "big" : "small" });
+          setCelebrate({
+            intensity: (data.multiplier || 2) >= 10 ? "big" : "small",
+          });
           setFlash({ type: "win", label: `+${fmt(data.win)}` });
           toast.success(`WIN +${fmt(data.win)}`);
         } else {
@@ -318,7 +345,9 @@ export default function KenoGame() {
               </p>
             </div>
           )}
-          <div className={`hud p-4 sm:p-6 relative overflow-hidden ${mode === "side" ? "hidden" : ""}`}>
+          <div
+            className={`hud p-4 sm:p-6 relative overflow-hidden ${mode === "side" ? "hidden" : ""}`}
+          >
             <KenoMosaicTiles count={480} cols={40} />
             <div className="relative z-10 grid grid-cols-10 gap-1.5 sm:gap-2">
               {NUMS.map((n) => {
@@ -329,7 +358,8 @@ export default function KenoGame() {
                   "border-border bg-black/40 text-foreground/70 hover:border-nvg/60";
                 if (picked && !result)
                   cls = "border-nvg bg-nvg/20 text-nvg glow-nvg";
-                if (isHit) cls = "border-gold bg-gold/25 text-gold keno-ball-neon-gold";
+                if (isHit)
+                  cls = "border-gold bg-gold/25 text-gold keno-ball-neon-gold";
                 else if (picked && result)
                   cls = "border-nvg/60 bg-nvg/10 text-nvg";
                 else if (isDrawn)
@@ -359,7 +389,9 @@ export default function KenoGame() {
                       className={`keno-ball ${n % 2 === 0 ? "keno-ball-even" : "keno-ball-odd"}`}
                       style={{ "--ball-color": ballColor(n) }}
                     >
-                      <span className="keno-ball-label text-[11px] sm:text-sm">{n}</span>
+                      <span className="keno-ball-label text-[11px] sm:text-sm">
+                        {n}
+                      </span>
                     </span>
                   </button>
                 );
@@ -445,8 +477,8 @@ export default function KenoGame() {
                 {mode === "side" ? (
                   <p className="font-mono text-xs text-muted-foreground">
                     {result.legs?.filter((l) => l.won).length || 0}/
-                    {result.legs?.length || 0} BETS LANDED · {result.total_stake}{" "}
-                    STAKED
+                    {result.legs?.length || 0} BETS LANDED ·{" "}
+                    {result.total_stake} STAKED
                   </p>
                 ) : (
                   <p className="font-mono text-xs text-muted-foreground">

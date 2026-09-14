@@ -24,7 +24,10 @@ export function IntermissionShowcase() {
       </div>
       <div className="flex items-center justify-between gap-3 p-3">
         <div>
-          <h2 id="intermission-showcase-title" className="font-display text-lg tracking-widest text-foreground">
+          <h2
+            id="intermission-showcase-title"
+            className="font-display text-lg tracking-widest text-foreground"
+          >
             WATCH THE FLEET
           </h2>
           <p className="font-mono text-[9px] tracking-widest text-muted-foreground">

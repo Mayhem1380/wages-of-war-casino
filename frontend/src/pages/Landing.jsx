@@ -134,7 +134,8 @@ export default function Landing() {
         data-testid="nexus-fleet-banner"
         className="block w-full bg-gradient-to-r from-black via-[#0b1a12] to-black border-b border-nvg/30 text-center py-2 px-4 font-mono text-[11px] sm:text-xs tracking-[0.25em] text-nvg hover:text-gold transition-colors"
       >
-        ✈ NEXUS STUDIO MASTER — MOBILE FLEET GAMING SALES · BUY YOUR OWN CASINO PLATFORM →
+        ✈ NEXUS STUDIO MASTER — MOBILE FLEET GAMING SALES · BUY YOUR OWN CASINO
+        PLATFORM →
       </a>
 
       {/* CINEMATIC HERO REEL — top of page */}
@@ -177,7 +178,9 @@ export default function Landing() {
               <h3 className="relative z-[1] font-display text-3xl tracking-wide text-foreground leading-none mb-2">
                 {title}
               </h3>
-              <p className="relative z-[1] text-sm text-foreground/75 leading-relaxed">{text}</p>
+              <p className="relative z-[1] text-sm text-foreground/75 leading-relaxed">
+                {text}
+              </p>
             </div>
           ))}
         </div>
@@ -342,10 +345,30 @@ export default function Landing() {
       <section className="border-y border-gold/20 bg-black/50">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-8 grid grid-cols-2 md:grid-cols-4">
           {[
-            { Icon: GameController, img: "/brand/stat_rifle.jpg", label: "SLOT MACHINES", value: "145 Elite" },
-            { Icon: Target, img: "/brand/stat_keno.jpg", label: "WARHEAD KENO", value: "5000x Max" },
-            { Icon: Medal, img: "/brand/stat_vip.jpg", label: "VIP RANKS", value: "8 Tiers" },
-            { Icon: Gift, img: "/brand/stat_supply.jpg", label: "DAILY SUPPLY DROP", value: "Every 24h" },
+            {
+              Icon: GameController,
+              img: "/brand/stat_rifle.jpg",
+              label: "SLOT MACHINES",
+              value: "145 Elite",
+            },
+            {
+              Icon: Target,
+              img: "/brand/stat_keno.jpg",
+              label: "WARHEAD KENO",
+              value: "5000x Max",
+            },
+            {
+              Icon: Medal,
+              img: "/brand/stat_vip.jpg",
+              label: "VIP RANKS",
+              value: "8 Tiers",
+            },
+            {
+              Icon: Gift,
+              img: "/brand/stat_supply.jpg",
+              label: "DAILY SUPPLY DROP",
+              value: "Every 24h",
+            },
           ].map((s, i) => (
             <div
               key={s.label}
@@ -356,7 +379,11 @@ export default function Landing() {
                 style={{ backgroundImage: `url(${s.img})` }}
                 aria-hidden="true"
               />
-              <s.Icon size={30} weight="fill" className="relative z-[1] text-nvg" />
+              <s.Icon
+                size={30}
+                weight="fill"
+                className="relative z-[1] text-nvg"
+              />
               <div className="relative z-[1]">
                 <div className="font-display text-2xl tracking-wide text-gold leading-none">
                   {s.value}
@@ -478,7 +505,12 @@ export default function Landing() {
                     aria-hidden="true"
                   />
                   <div className="relative z-[1] mb-4 inline-flex h-11 w-11 items-center justify-center rounded border border-gold/40 bg-gold/10 text-gold">
-                    <FeatureIcon icon={Icon} alt={title} size={20} className="text-gold" />
+                    <FeatureIcon
+                      icon={Icon}
+                      alt={title}
+                      size={20}
+                      className="text-gold"
+                    />
                   </div>
                   <h3 className="relative z-[1] font-display text-2xl tracking-wide text-foreground mb-2">
                     {title}
@@ -491,9 +523,7 @@ export default function Landing() {
             </div>
           </div>
 
-          <div
-            className="hud target-profile-card relative overflow-hidden p-6 md:p-8 border-nvg/30 bg-[radial-gradient(circle_at_top,_rgba(78,228,78,0.12),_transparent_45%)]"
-          >
+          <div className="hud target-profile-card relative overflow-hidden p-6 md:p-8 border-nvg/30 bg-[radial-gradient(circle_at_top,_rgba(78,228,78,0.12),_transparent_45%)]">
             <div
               className="target-profile-art"
               style={{ backgroundImage: "url(/brand/stat_vip.jpg)" }}

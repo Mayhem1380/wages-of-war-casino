@@ -2,7 +2,13 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
-import { FLAGSHIP_ART, FLAGSHIP_IDS, MACHINE_ART, resolveMachineArt, fmt } from "@/data/gameMeta";
+import {
+  FLAGSHIP_ART,
+  FLAGSHIP_IDS,
+  MACHINE_ART,
+  resolveMachineArt,
+  fmt,
+} from "@/data/gameMeta";
 import { LOBBY } from "@/constants/testIds";
 import { SymbolTile } from "@/components/SymbolTile";
 import { AnimatedShowcase } from "@/components/AnimatedShowcase";
@@ -25,9 +31,21 @@ import {
 } from "@phosphor-icons/react";
 
 const FALLBACK_DETAILS = {
-  warpath_legends: ["Warpath Legends", "Command the frontier and chase the grand jackpot.", "western"],
-  golden_dynasty: ["Golden Dynasty", "Enter the imperial vault for Hold & Win prizes.", "dynasty"],
-  money_train_convoy: ["Money Train Convoy", "Board the armored convoy and collect cash-on-reels.", "heist"],
+  warpath_legends: [
+    "Warpath Legends",
+    "Command the frontier and chase the grand jackpot.",
+    "western",
+  ],
+  golden_dynasty: [
+    "Golden Dynasty",
+    "Enter the imperial vault for Hold & Win prizes.",
+    "dynasty",
+  ],
+  money_train_convoy: [
+    "Money Train Convoy",
+    "Board the armored convoy and collect cash-on-reels.",
+    "heist",
+  ],
 };
 const LOBBY_FALLBACK_SLOTS = FLAGSHIP_IDS.map((id, index) => {
   const [name, tagline, theme] = FALLBACK_DETAILS[id] || [
@@ -36,12 +54,12 @@ const LOBBY_FALLBACK_SLOTS = FLAGSHIP_IDS.map((id, index) => {
     "military",
   ];
   return {
-  id,
-  name,
-  tagline,
-  theme,
-  popularity: FLAGSHIP_IDS.length - index,
-  is_flagship: true,
+    id,
+    name,
+    tagline,
+    theme,
+    popularity: FLAGSHIP_IDS.length - index,
+    is_flagship: true,
   };
 });
 
@@ -69,7 +87,14 @@ const THEME_CATEGORY = {
   bushido: "Military",
   prairie: "Fortune",
 };
-const CATEGORIES = ["All", "Dragons", "Fortune", "Military", "Egyptian", "Ocean"];
+const CATEGORIES = [
+  "All",
+  "Dragons",
+  "Fortune",
+  "Military",
+  "Egyptian",
+  "Ocean",
+];
 const catOf = (s) => THEME_CATEGORY[s.theme] || "Military";
 
 function CornerCard({
@@ -83,7 +108,7 @@ function CornerCard({
     <button
       data-testid={testId}
       onClick={onClick}
-          className={`slot-catalog-card relative text-left bg-[#0a0d0a] border border-border overflow-hidden group hover:-translate-y-1 transition-transform duration-300 ${className}`}
+      className={`slot-catalog-card relative text-left bg-[#0a0d0a] border border-border overflow-hidden group hover:-translate-y-1 transition-transform duration-300 ${className}`}
       style={{ boxShadow: "inset 0 0 60px rgba(0,0,0,0.6)" }}
     >
       <span
@@ -317,7 +342,8 @@ export default function Lobby() {
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             {featuredSlots.map((slot, rank) => {
-              const featuredArt = FLAGSHIP_ART[slot.id] || resolveMachineArt(slot.id);
+              const featuredArt =
+                FLAGSHIP_ART[slot.id] || resolveMachineArt(slot.id);
               return (
                 <button
                   key={slot.id}
@@ -340,7 +366,8 @@ export default function Lobby() {
                       {slot.name}
                     </p>
                     <p className="font-mono text-[9px] tracking-widest text-gold/80 mt-1">
-                      {slot.is_flagship ? "AAA FLAGSHIP" : "FLEET FAVORITE"} · DEPLOY →
+                      {slot.is_flagship ? "AAA FLAGSHIP" : "FLEET FAVORITE"} ·
+                      DEPLOY →
                     </p>
                   </div>
                 </button>
@@ -367,9 +394,7 @@ export default function Lobby() {
           <div key={champIdx} className="min-w-0 flex-1 animate-pop">
             <span className="font-display text-lg sm:text-xl tracking-wide text-foreground">
               #{champions[champIdx].rank}{" "}
-              <span className="gold-gradient">
-                {champions[champIdx].name}
-              </span>
+              <span className="gold-gradient">{champions[champIdx].name}</span>
             </span>
             <span className="font-mono text-xs text-muted-foreground ml-2">
               banked{" "}
@@ -433,7 +458,12 @@ export default function Lobby() {
         >
           <div className="p-6 min-h-[140px] flex items-center gap-5">
             <div className="shrink-0 w-16 h-16 rounded-full border-2 border-gold/60 flex items-center justify-center glow-gold animate-spin-slow">
-              <FeatureIcon icon={Sparkle} alt="Streak Wheel" size={32} className="text-gold" />
+              <FeatureIcon
+                icon={Sparkle}
+                alt="Streak Wheel"
+                size={32}
+                className="text-gold"
+              />
             </div>
             <div>
               <p className="font-mono text-[10px] tracking-[0.3em] text-gold/70">
@@ -467,7 +497,12 @@ export default function Lobby() {
         >
           <div className="p-6 min-h-[140px] flex items-center gap-5">
             <div className="shrink-0 w-16 h-16 rounded-full border-2 border-nvg/60 flex items-center justify-center glow-nvg">
-              <FeatureIcon icon={Trophy} alt="Tournament" size={32} className="text-nvg" />
+              <FeatureIcon
+                icon={Trophy}
+                alt="Tournament"
+                size={32}
+                className="text-nvg"
+              />
             </div>
             <div>
               <p className="font-mono text-[10px] tracking-[0.3em] text-nvg/70">
@@ -517,8 +552,7 @@ export default function Lobby() {
                   : "border-border text-muted-foreground hover:border-nvg/50 hover:text-foreground"
               }`}
             >
-              {c}{" "}
-              <span className="opacity-60">({catCount(c)})</span>
+              {c} <span className="opacity-60">({catCount(c)})</span>
             </button>
           ))}
         </div>

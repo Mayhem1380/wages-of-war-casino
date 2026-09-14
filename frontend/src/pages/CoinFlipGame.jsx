@@ -43,10 +43,12 @@ export default function CoinFlipGame() {
       setTimeout(() => {
         setFlip(false);
         setResult(data);
-        setHistory((previous) => [
-          { outcome: data.outcome, won: data.win > 0 },
-          ...previous,
-        ].slice(0, 8));
+        setHistory((previous) =>
+          [{ outcome: data.outcome, won: data.win > 0 }, ...previous].slice(
+            0,
+            8,
+          ),
+        );
         refreshUser();
         if (data.win > 0) {
           sfx.win();
@@ -153,10 +155,19 @@ export default function CoinFlipGame() {
               <motion.img
                 key={i}
                 aria-hidden="true"
-                src={i % 2 === 0 ? "/brand/shark_coin_heads.png" : "/brand/shark_coin_tails.png"}
+                src={
+                  i % 2 === 0
+                    ? "/brand/shark_coin_heads.png"
+                    : "/brand/shark_coin_tails.png"
+                }
                 alt=""
                 className="pointer-events-none absolute w-10 h-10 sm:w-12 sm:h-12 object-contain drop-shadow-[0_0_10px_rgba(246,198,74,0.7)]"
-                style={{ top: "50%", left: "50%", marginTop: -24, marginLeft: -24 }}
+                style={{
+                  top: "50%",
+                  left: "50%",
+                  marginTop: -24,
+                  marginLeft: -24,
+                }}
                 animate={
                   flip
                     ? {
@@ -238,14 +249,19 @@ export default function CoinFlipGame() {
             <p className="mb-2 flex items-center justify-center gap-2 font-mono text-[10px] tracking-[0.2em] text-nvg/80">
               <TrendUp size={13} weight="bold" /> MISSION STREAK
             </p>
-            <div className="flex justify-center gap-1.5" aria-label="Recent coin flip results">
-              {history.length ? history.map((entry, index) => (
-                <span
-                  key={`${entry.outcome}-${index}`}
-                  title={`${LBL[entry.outcome]} ${entry.won ? "win" : "loss"}`}
-                  className={`h-2.5 w-2.5 rounded-full border ${entry.won ? "border-nvg bg-nvg" : "border-alert bg-alert/40"}`}
-                />
-              )) : (
+            <div
+              className="flex justify-center gap-1.5"
+              aria-label="Recent coin flip results"
+            >
+              {history.length ? (
+                history.map((entry, index) => (
+                  <span
+                    key={`${entry.outcome}-${index}`}
+                    title={`${LBL[entry.outcome]} ${entry.won ? "win" : "loss"}`}
+                    className={`h-2.5 w-2.5 rounded-full border ${entry.won ? "border-nvg bg-nvg" : "border-alert bg-alert/40"}`}
+                  />
+                ))
+              ) : (
                 <span className="font-mono text-[9px] tracking-widest text-muted-foreground">
                   FLIP TO START YOUR RUN
                 </span>

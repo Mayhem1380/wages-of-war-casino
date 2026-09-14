@@ -893,25 +893,25 @@ export default function FlagshipSlot() {
             )}
 
             <div className="hidden lg:block">
-            {free && free.done ? (
-              <Button
-                data-testid="flagship-free-collect"
-                onClick={collectFree}
-                className="w-full h-16 bg-nvg hover:bg-nvg/90 text-black font-display text-2xl tracking-widest glow-nvg gap-2 animate-flicker"
-              >
-                <Coins size={26} weight="fill" /> COLLECT {fmt(free.total)}
-              </Button>
-            ) : (
-              <Button
-                data-testid="flagship-spin"
-                onClick={doSpin}
-                disabled={busy}
-                className="w-full h-16 text-black font-display text-2xl tracking-widest glow-gold gap-2 disabled:opacity-60"
-                style={{ background: art.accent }}
-              >
-                <Lightning size={26} weight="fill" /> {busy ? "..." : "SPIN"}
-              </Button>
-            )}
+              {free && free.done ? (
+                <Button
+                  data-testid="flagship-free-collect"
+                  onClick={collectFree}
+                  className="w-full h-16 bg-nvg hover:bg-nvg/90 text-black font-display text-2xl tracking-widest glow-nvg gap-2 animate-flicker"
+                >
+                  <Coins size={26} weight="fill" /> COLLECT {fmt(free.total)}
+                </Button>
+              ) : (
+                <Button
+                  data-testid="flagship-spin"
+                  onClick={doSpin}
+                  disabled={busy}
+                  className="w-full h-16 text-black font-display text-2xl tracking-widest glow-gold gap-2 disabled:opacity-60"
+                  style={{ background: art.accent }}
+                >
+                  <Lightning size={26} weight="fill" /> {busy ? "..." : "SPIN"}
+                </Button>
+              )}
             </div>
 
             <div
@@ -957,8 +957,12 @@ export default function FlagshipSlot() {
       {!intro && (
         <div className="lg:hidden fixed bottom-0 inset-x-0 z-[60] flex items-center justify-center px-3 py-2.5 bg-black/92 backdrop-blur-md border-t-2 border-gold/40">
           <div className="absolute left-3 flex flex-col leading-none">
-            <span className="font-mono text-[9px] text-white/50 tracking-widest">BALANCE</span>
-            <span className="font-mono text-sm text-gold">{fmt(user?.balance || 0)}</span>
+            <span className="font-mono text-[9px] text-white/50 tracking-widest">
+              BALANCE
+            </span>
+            <span className="font-mono text-sm text-gold">
+              {fmt(user?.balance || 0)}
+            </span>
           </div>
           {free && free.done ? (
             <Button

@@ -177,7 +177,6 @@ export default function SlotGame() {
     }
   };
 
-
   const finalizePaid = (data) => {
     highlight(data);
     setLastWin(data.total_win);
@@ -319,7 +318,9 @@ export default function SlotGame() {
               <h2 className="mt-2 font-display text-3xl tracking-widest gold-gradient sm:text-5xl">
                 {machine.name}
               </h2>
-              <p className="mt-2 text-sm text-foreground/70">{machine.tagline}</p>
+              <p className="mt-2 text-sm text-foreground/70">
+                {machine.tagline}
+              </p>
               <div className="mt-4 flex flex-wrap gap-2 font-mono text-[10px] tracking-widest text-muted-foreground">
                 <span className="border border-gold/30 px-2 py-1 text-gold">
                   {machine.volatility.toUpperCase()} VOLATILITY
@@ -393,7 +394,9 @@ export default function SlotGame() {
         <span className="font-mono text-[10px] tracking-[0.3em] text-gold/80 uppercase">
           Casino wallet
         </span>
-        <span className="font-mono text-base text-gold">{fmt(user?.balance || 0)}</span>
+        <span className="font-mono text-base text-gold">
+          {fmt(user?.balance || 0)}
+        </span>
       </div>
 
       <div className="hidden sm:block">
@@ -614,36 +617,34 @@ export default function SlotGame() {
               className="w-full h-14 border-2 border-nvg text-nvg font-display text-lg tracking-widest hover:bg-nvg hover:text-black transition-colors flex items-center justify-center gap-2 disabled:opacity-40"
             >
               <Sparkle size={20} weight="fill" />
-              {buying
-                ? "BUYING…"
-                : `BUY FEATURE · ${fmt(bet * 100)}`}
+              {buying ? "BUYING…" : `BUY FEATURE · ${fmt(bet * 100)}`}
             </button>
           )}
 
           <div className="hidden lg:block">
-          {free && free.done ? (
-            <Button
-              data-testid={SLOT.freeCollect}
-              onClick={collectFree}
-              className="w-full h-16 bg-nvg hover:bg-nvg/90 text-black font-display text-2xl tracking-widest glow-nvg gap-2 animate-flicker"
-            >
-              <Coins size={26} weight="fill" /> COLLECT {fmt(free.total)}
-            </Button>
-          ) : (
-            <Button
-              data-testid={SLOT.spin}
-              onClick={doSpin}
-              disabled={spinning || inFree}
-              className="w-full h-16 bg-gold hover:bg-gold/90 text-black font-display text-2xl tracking-widest glow-gold gap-2 disabled:opacity-60 animate-pulse-gold"
-            >
-              {inFree ? (
-                <Sparkle size={26} weight="fill" />
-              ) : (
-                <Lightning size={26} weight="fill" />
-              )}
-              {inFree ? "FREE FIRE..." : spinning ? "SPINNING..." : "SPIN"}
-            </Button>
-          )}
+            {free && free.done ? (
+              <Button
+                data-testid={SLOT.freeCollect}
+                onClick={collectFree}
+                className="w-full h-16 bg-nvg hover:bg-nvg/90 text-black font-display text-2xl tracking-widest glow-nvg gap-2 animate-flicker"
+              >
+                <Coins size={26} weight="fill" /> COLLECT {fmt(free.total)}
+              </Button>
+            ) : (
+              <Button
+                data-testid={SLOT.spin}
+                onClick={doSpin}
+                disabled={spinning || inFree}
+                className="w-full h-16 bg-gold hover:bg-gold/90 text-black font-display text-2xl tracking-widest glow-gold gap-2 disabled:opacity-60 animate-pulse-gold"
+              >
+                {inFree ? (
+                  <Sparkle size={26} weight="fill" />
+                ) : (
+                  <Lightning size={26} weight="fill" />
+                )}
+                {inFree ? "FREE FIRE..." : spinning ? "SPINNING..." : "SPIN"}
+              </Button>
+            )}
           </div>
 
           <div
@@ -706,8 +707,12 @@ export default function SlotGame() {
       {/* Mobile sticky action bar */}
       <div className="lg:hidden fixed bottom-0 inset-x-0 z-[60] flex items-center gap-3 px-3 py-2.5 bg-black/92 backdrop-blur-md border-t-2 border-gold/40">
         <div className="flex flex-col leading-none shrink-0">
-          <span className="font-mono text-[9px] text-white/50 tracking-widest">BALANCE</span>
-          <span className="font-mono text-sm text-gold">{fmt(user?.balance || 0)}</span>
+          <span className="font-mono text-[9px] text-white/50 tracking-widest">
+            BALANCE
+          </span>
+          <span className="font-mono text-sm text-gold">
+            {fmt(user?.balance || 0)}
+          </span>
         </div>
         {free && free.done ? (
           <Button
@@ -724,7 +729,11 @@ export default function SlotGame() {
             disabled={spinning || inFree}
             className="flex-1 h-14 bg-gold hover:bg-gold/90 text-black font-display text-xl tracking-widest gap-2 disabled:opacity-60"
           >
-            {inFree ? <Sparkle size={22} weight="fill" /> : <Lightning size={22} weight="fill" />}
+            {inFree ? (
+              <Sparkle size={22} weight="fill" />
+            ) : (
+              <Lightning size={22} weight="fill" />
+            )}
             {inFree ? "FREE FIRE..." : spinning ? "SPINNING..." : "SPIN"}
           </Button>
         )}

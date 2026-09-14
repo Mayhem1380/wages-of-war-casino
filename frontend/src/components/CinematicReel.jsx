@@ -225,7 +225,11 @@ export function CinematicReel({ onEnlist }) {
           onClick={replay}
           className="flex items-center gap-2 px-3 py-1.5 bg-black/60 border border-gold/30 text-gold font-mono text-[10px] tracking-widest hover:bg-black/80"
         >
-          {playing ? <Play size={12} weight="fill" /> : <ArrowClockwise size={12} weight="bold" />}
+          {playing ? (
+            <Play size={12} weight="fill" />
+          ) : (
+            <ArrowClockwise size={12} weight="bold" />
+          )}
           {playing ? "PLAYING" : "REPLAY"}
         </button>
       </div>

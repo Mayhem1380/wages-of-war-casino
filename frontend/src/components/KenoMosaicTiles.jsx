@@ -20,7 +20,11 @@ function mulberry32(seed) {
  * background-position on the same image) so the tile artwork blends
  * seamlessly into the theme instead of looking like a separate layer.
  */
-export function KenoMosaicTiles({ count = 480, cols = 40, image = "/slots/keno_bg.jpg" }) {
+export function KenoMosaicTiles({
+  count = 480,
+  cols = 40,
+  image = "/slots/keno_bg.jpg",
+}) {
   const rows = Math.ceil(count / cols);
   const tiles = useMemo(() => {
     const rand = mulberry32(count * 31 + cols);

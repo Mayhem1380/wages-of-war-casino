@@ -19,7 +19,16 @@ import {
 } from "@phosphor-icons/react";
 
 // One distinct insignia icon per rank, escalating in visual weight from Recruit to General.
-const RANK_ICONS = [Shield, ShieldCheck, Medal, ShieldStar, Star, Trophy, Diamond, Crown];
+const RANK_ICONS = [
+  Shield,
+  ShieldCheck,
+  Medal,
+  ShieldStar,
+  Star,
+  Trophy,
+  Diamond,
+  Crown,
+];
 
 export default function Vip() {
   const { user } = useAuth();
@@ -75,7 +84,11 @@ export default function Vip() {
                 weight="fill"
                 aria-hidden="true"
                 className="pointer-events-none absolute -right-4 -bottom-6 opacity-[0.07]"
-                style={{ width: 120, height: 120, color: unlocked ? "#D4AF37" : "#8a948a" }}
+                style={{
+                  width: 120,
+                  height: 120,
+                  color: unlocked ? "#D4AF37" : "#8a948a",
+                }}
               />
               {isCurrent && (
                 <span className="absolute top-3 right-3 font-mono text-[10px] text-black bg-gold px-2 py-0.5">
