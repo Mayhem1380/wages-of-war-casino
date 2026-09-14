@@ -31,6 +31,15 @@ const THEME_PRESETS = {
     panel: "#24170a",
     callouts: ["Ancient relics", "Expanding reels", "Royal multipliers"],
   },
+  adventure: {
+    label: "EXPEDITION COMMAND",
+    kicker: "TREASURE HUNT CINEMA",
+    soundLabel: "Frontier Echo",
+    accent: "#7FE3FF",
+    haze: "rgba(127,227,255,0.2)",
+    panel: "#0b1820",
+    callouts: ["Hidden routes", "Explorer reels", "Frontier feature trail"],
+  },
   naval: {
     label: "ABYSSAL COMMAND",
     kicker: "DEEP-WATER CINEMA",
@@ -123,7 +132,6 @@ function normalizeTheme(theme) {
   const key = String(theme || DEFAULT_THEME).toLowerCase();
   if (THEME_PRESETS[key]) return key;
   if (key === "dragons") return "dragon";
-  if (key === "adventure") return "egypt";
   if (key === "fishing" || key === "pirate" || key === "ocean") return "naval";
   return DEFAULT_THEME;
 }

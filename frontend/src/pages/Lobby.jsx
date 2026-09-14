@@ -10,7 +10,6 @@ import {
 } from "@/data/gameMeta";
 import {
   CONNECTED_PLATFORM_COUNT,
-  PLATFORM_LINKS,
   SPECIAL_GAME_CATALOG,
   SLOT_CATALOG,
   SLOT_INVENTORY_COUNT,
@@ -253,8 +252,8 @@ export default function Lobby() {
             { label: "Premium Ready", value: String(premiumReadyCount) },
             { label: "Special Games", value: String(SPECIAL_GAME_CATALOG.length) },
             {
-              label: "Platform Links",
-              value: String(PLATFORM_LINKS.length + CONNECTED_PLATFORM_COUNT),
+            label: "Connected Platforms",
+            value: String(CONNECTED_PLATFORM_COUNT),
             },
           ].map((item) => (
             <div key={item.label} className="lobby-stat-card">
