@@ -34,7 +34,7 @@ export const PixiReelFX = React.memo(function PixiReelFX({
           textureSource: true,
         });
       } catch (e) {
-        /* pixi app was not fully initialized yet — ignore */
+        console.debug("Pixi cleanup skipped for partially initialized app", e);
       }
     };
 

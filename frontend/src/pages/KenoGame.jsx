@@ -95,14 +95,14 @@ export default function KenoGame() {
   const drawn = new Set(result?.drawn || []);
   const hits = new Set(result?.hits || []);
 
-  const buildQuickPicks = () => {
+  const buildQuickPicks = useCallback(() => {
     const pool = [...NUMS];
     const out = [];
     const count = 6 + Math.floor(Math.random() * 3);
     for (let i = 0; i < count; i++)
       out.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
     return out.sort((a, b) => a - b);
-  };
+  }, []);
 
   const toggle = (n) => {
     if (busy) return;
@@ -210,6 +210,7 @@ export default function KenoGame() {
       refreshUser,
       mode,
       sideBets,
+      buildQuickPicks,
       media.soundProfile,
     ],
   );
@@ -223,7 +224,7 @@ export default function KenoGame() {
       void play(nextPicks, stake);
     }, 2600);
     return () => clearInterval(timer);
-  }, [autoPlay, user, busy, picks, stake, play, mode]);
+  }, [autoPlay, user, busy, picks, stake, play, mode, buildQuickPicks]);
 
   return (
     <div
