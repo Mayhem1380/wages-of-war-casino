@@ -269,8 +269,7 @@ export default function Landing() {
             >
               <img
                 src={BRAND.nightOpsEdition}
-                alt=""
-                aria-hidden="true"
+                alt="Wages of War Casino — Night Ops Edition"
                 className="mx-auto mb-6 w-full max-w-[32rem] sm:mx-0"
                 style={{
                   filter: "drop-shadow(0 14px 26px rgba(0,0,0,0.42))",
@@ -285,9 +284,6 @@ export default function Landing() {
                 <span className="hero-subtitle text-foreground/90 text-3xl sm:text-5xl lg:text-6xl tracking-[0.2em]">
                   CASINO
                 </span>
-              </span>
-              <span className="sr-only">
-                Wages of War Casino — Night Ops Edition
               </span>
             </h1>
             <p
