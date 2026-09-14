@@ -276,7 +276,10 @@ export default function Landing() {
                   filter: "drop-shadow(0 14px 26px rgba(0,0,0,0.42))",
                 }}
               />
-              <span className="block -mt-2 text-center font-display text-base tracking-[0.45em] text-gold/80 sm:text-left sm:text-lg">
+              <span
+                aria-hidden="true"
+                className="block -mt-2 text-center font-display text-base tracking-[0.45em] text-gold/80 sm:text-left sm:text-lg"
+              >
                 WAGES OF WAR CASINO
               </span>
               <span className="sr-only">
