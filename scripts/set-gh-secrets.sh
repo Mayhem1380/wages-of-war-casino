@@ -2,7 +2,7 @@
 set -euo pipefail
 
 usage() {
-  cat <<EOF
+  cat <<'EOF2'
 Usage: export values then run this script to set GitHub Actions secrets via gh CLI.
 
 Required env vars:
@@ -13,6 +13,8 @@ Required env vars:
   DEPLOY_KEY or DEPLOY_PASSWORD
 
 Optional env vars:
+  DEPLOY_KEY         (path to private key file or the key content)
+  DEPLOY_PASSWORD    (plaintext password for password-based SSH/SCP)
   DEPLOY_PORT
   DEPLOY_AFTER_CMD
 
@@ -23,7 +25,7 @@ Example:
   export DEPLOY_KEY="$(cat ~/.ssh/id_rsa)"
   export DEPLOY_PATH=/var/www/wagesofwar/host
   ./scripts/set-gh-secrets.sh
-EOF
+EOF2
   exit 1
 }
 
@@ -47,10 +49,6 @@ if [ -n "${DEPLOY_AFTER_CMD:-}" ]; then
   gh secret set DEPLOY_AFTER_CMD --repo "$GITHUB_REPO" --body "$DEPLOY_AFTER_CMD"
 fi
 
-if [ -n "${DEPLOY_PASSWORD:-}" ]; then
-  gh secret set DEPLOY_PASSWORD --repo "$GITHUB_REPO" --body "$DEPLOY_PASSWORD"
-fi
-
 if [ -n "${DEPLOY_KEY:-}" ]; then
   # DEPLOY_KEY may be a path to a file or the raw key content
   if [ -f "$DEPLOY_KEY" ]; then
@@ -60,6 +58,10 @@ if [ -n "${DEPLOY_KEY:-}" ]; then
   fi
 
   gh secret set DEPLOY_KEY --repo "$GITHUB_REPO" --body "$KEY_CONTENT"
+fi
+
+if [ -n "${DEPLOY_PASSWORD:-}" ]; then
+  gh secret set DEPLOY_PASSWORD --repo "$GITHUB_REPO" --body "$DEPLOY_PASSWORD"
 fi
 
 echo "Secrets set. Trigger the workflow via GitHub Actions or run:"

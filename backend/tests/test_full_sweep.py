@@ -13,9 +13,33 @@ import pytest
 import requests
 from dotenv import dotenv_values
 
-_env = dotenv_values("/app/frontend/.env")
-BASE_URL = (os.environ.get("REACT_APP_BACKEND_URL") or _env.get("REACT_APP_BACKEND_URL")).rstrip("/")
+
+def _resolve_base_url():
+    env_url = (os.environ.get("REACT_APP_BACKEND_URL") or "").strip()
+    if env_url:
+        return env_url.rstrip("/")
+
+    frontend_env = Path(__file__).resolve().parents[2] / "frontend" / ".env"
+    file_url = (dotenv_values(frontend_env).get("REACT_APP_BACKEND_URL") or "").strip() if frontend_env.exists() else ""
+    if file_url:
+        return file_url.rstrip("/")
+
+    pytest.skip(
+        "full sweep requires REACT_APP_BACKEND_URL via env or frontend/.env",
+        allow_module_level=True,
+    )
+
+
+BASE_URL = _resolve_base_url()
 API = f"{BASE_URL}/api"
+
+try:
+    requests.get(f"{API}/", timeout=5)
+except requests.RequestException:
+    pytest.skip(
+        f"full sweep requires reachable backend at {BASE_URL}",
+        allow_module_level=True,
+    )
 
 NEW22 = [
     "solar_vanguard", "obsidian_empire", "neon_pharaoh", "crimson_vanguard", "golden_atlas",
@@ -27,7 +51,10 @@ NEW22 = [
 
 
 def _creds():
-    txt = Path("/app/memory/test_credentials.md").read_text()
+    creds_path = Path(__file__).resolve().parents[2] / "memory" / "test_credentials.md"
+    if not creds_path.exists():
+        pytest.skip("full sweep requires memory/test_credentials.md", allow_module_level=True)
+    txt = creds_path.read_text()
     email = re.search(r"Email:\s*`([^`]+)`", txt).group(1)
     pwd = re.search(r"Password:\s*`([^`]+)`", txt).group(1)
     pin = re.search(r"PIN:\s*`([^`]+)`", txt).group(1)
@@ -87,11 +114,16 @@ class TestAuth:
         import asyncio
 
         from motor.motor_asyncio import AsyncIOMotorClient
-        benv = dotenv_values("/app/backend/.env")
+        backend_env = Path(__file__).resolve().parents[2] / "backend" / ".env"
+        benv = dotenv_values(backend_env) if backend_env.exists() else {}
+        mongo_url = (os.environ.get("MONGO_URL") or benv.get("MONGO_URL") or "").strip()
+        db_name = (os.environ.get("DB_NAME") or benv.get("DB_NAME") or "").strip()
+        if not mongo_url or not db_name:
+            pytest.skip("bcrypt db check requires MONGO_URL and DB_NAME")
 
         async def go():
-            c = AsyncIOMotorClient(benv["MONGO_URL"])
-            u = await c[benv["DB_NAME"]].users.find_one({"email": ADMIN_EMAIL})
+            c = AsyncIOMotorClient(mongo_url)
+            u = await c[db_name].users.find_one({"email": ADMIN_EMAIL})
             c.close()
             return u
         u = asyncio.get_event_loop().run_until_complete(go()) if False else asyncio.run(go())

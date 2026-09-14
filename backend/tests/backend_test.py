@@ -3,18 +3,39 @@
 import os
 import uuid
 import time
+from pathlib import Path
 import pytest
 import requests
+from dotenv import dotenv_values
 
-BASE_URL = (
-    os.environ.get("REACT_APP_BACKEND_URL")
-    or open("/app/frontend/.env")
-    .read()
-    .split("REACT_APP_BACKEND_URL=")[1]
-    .splitlines()[0]
-)
-BASE_URL = BASE_URL.rstrip("/")
+
+def _resolve_base_url():
+    env_url = (os.environ.get("REACT_APP_BACKEND_URL") or "").strip()
+    if env_url:
+        return env_url.rstrip("/")
+
+    frontend_env = Path(__file__).resolve().parents[2] / "frontend" / ".env"
+    if frontend_env.exists():
+        file_url = (dotenv_values(frontend_env).get("REACT_APP_BACKEND_URL") or "").strip()
+        if file_url:
+            return file_url.rstrip("/")
+
+    pytest.skip(
+        "integration tests require REACT_APP_BACKEND_URL via env or frontend/.env",
+        allow_module_level=True,
+    )
+
+
+BASE_URL = _resolve_base_url()
 API = f"{BASE_URL}/api"
+
+try:
+    requests.get(f"{API}/", timeout=5)
+except requests.RequestException:
+    pytest.skip(
+        f"integration tests require reachable backend at {BASE_URL}",
+        allow_module_level=True,
+    )
 
 
 @pytest.fixture(scope="session")

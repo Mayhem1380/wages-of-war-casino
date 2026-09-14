@@ -54,7 +54,7 @@ ensure_frontend_dependencies() {
   fi
 
   if [ -f "$package_lock" ]; then
-    npm ci --legacy-peer-deps
+    npm ci --legacy-peer-deps --omit=optional
   else
     npm install --legacy-peer-deps
   fi
