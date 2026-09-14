@@ -116,10 +116,11 @@ export function getBackendOriginUrl() {
       ) {
         return window.location.origin;
       }
-      return trimTrailingSlash(explicit);
     } catch (error) {
       console.warn("Ignoring malformed REACT_APP_BACKEND_URL", error);
+      return trimTrailingSlash(explicit);
     }
+    return trimTrailingSlash(explicit);
   }
   if (typeof window === "undefined") return "";
   return window.location.origin;
