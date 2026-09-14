@@ -275,16 +275,6 @@ export default function Landing() {
                   filter: "drop-shadow(0 14px 26px rgba(0,0,0,0.42))",
                 }}
               />
-              <span
-                aria-hidden="true"
-                className="block font-display text-5xl sm:text-7xl lg:text-8xl leading-[0.85] tracking-tight"
-              >
-                <span className="gold-gradient">WAGES OF WAR</span>
-                <br />
-                <span className="hero-subtitle text-foreground/90 text-3xl sm:text-5xl lg:text-6xl tracking-[0.2em]">
-                  CASINO
-                </span>
-              </span>
             </h1>
             <p
               className="hero-copy mx-auto mt-6 max-w-xl text-base text-foreground/80 leading-relaxed animate-pop sm:mx-0 sm:text-lg"
