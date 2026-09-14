@@ -9,6 +9,9 @@ import {
   fmt,
 } from "@/data/gameMeta";
 import {
+  CONNECTED_PLATFORM_COUNT,
+  PLATFORM_LINKS,
+  SPECIAL_GAME_CATALOG,
   SLOT_CATALOG,
   SLOT_INVENTORY_COUNT,
   buildPremiumLobbySlides,
@@ -248,8 +251,11 @@ export default function Lobby() {
           {[
             { label: "Slot Floor", value: String(SLOT_INVENTORY_COUNT) },
             { label: "Premium Ready", value: String(premiumReadyCount) },
-            { label: "Special Games", value: "2" },
-            { label: "Platform Links", value: "16" },
+            { label: "Special Games", value: String(SPECIAL_GAME_CATALOG.length) },
+            {
+              label: "Platform Links",
+              value: String(PLATFORM_LINKS.length + CONNECTED_PLATFORM_COUNT),
+            },
           ].map((item) => (
             <div key={item.label} className="lobby-stat-card">
               <div className="lobby-stat-value">{item.value}</div>

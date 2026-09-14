@@ -26,8 +26,13 @@ describe("premium media coverage", () => {
 
   it("builds a lobby-ready premium showcase from the current slot floor", () => {
     const slides = buildPremiumLobbySlides(SLOT_CATALOG);
+    const expectedTopTitles = SLOT_CATALOG.slice()
+      .sort((left, right) => (right.popularity || 0) - (left.popularity || 0))
+      .slice(0, 6)
+      .map((game) => game.name);
 
     expect(slides).toHaveLength(6);
+    expect(slides.map((slide) => slide.title)).toEqual(expectedTopTitles);
     slides.forEach((slide) => {
       expect(slide.img).toBeTruthy();
       expect(slide.title).toBeTruthy();

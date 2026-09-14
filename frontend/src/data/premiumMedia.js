@@ -31,7 +31,7 @@ const THEME_PRESETS = {
     panel: "#24170a",
     callouts: ["Ancient relics", "Expanding reels", "Royal multipliers"],
   },
-  ocean: {
+  naval: {
     label: "ABYSSAL COMMAND",
     kicker: "DEEP-WATER CINEMA",
     soundLabel: "Sonar Bloom",
@@ -40,7 +40,7 @@ const THEME_PRESETS = {
     panel: "#071e1f",
     callouts: ["Sub-surface glow", "Ambient swell", "Torpedo jackpots"],
   },
-  dragons: {
+  dragon: {
     label: "DRAGON HOLD",
     kicker: "LEGENDARY REEL FIRE",
     soundLabel: "Celestial Ember",
@@ -89,11 +89,13 @@ const SPECIAL_GAME_MEDIA = {
 
 export const SLOT_CATALOG = slotCatalog.map((slot) => ({
   ...slot,
+  theme: normalizeTheme(slot.theme),
   popularity: Math.max(0, Math.min(100, Number(slot.popularity) || 0)),
 }));
 export const SLOT_INVENTORY_COUNT = SLOT_CATALOG.length;
 export const SPECIAL_GAME_CATALOG = Object.values(SPECIAL_GAME_MEDIA);
-export const PLATFORM_LINKS = ["Vault", "HQ", "Nexus Studio Master", "14 Platforms"];
+export const PLATFORM_LINKS = ["Vault", "HQ", "Nexus Studio Master"];
+export const CONNECTED_PLATFORM_COUNT = 14;
 export const PREMIUM_MEDIA_REQUIRED_FIELDS = [
   "titleArt",
   "heroPoster",
@@ -120,9 +122,9 @@ function titleize(value = "") {
 function normalizeTheme(theme) {
   const key = String(theme || DEFAULT_THEME).toLowerCase();
   if (THEME_PRESETS[key]) return key;
-  if (key === "dragon") return "dragons";
+  if (key === "dragons") return "dragon";
   if (key === "adventure") return "egypt";
-  if (key === "fishing" || key === "pirate" || key === "naval") return "ocean";
+  if (key === "fishing" || key === "pirate" || key === "ocean") return "naval";
   return DEFAULT_THEME;
 }
 
@@ -172,7 +174,7 @@ function buildShowcaseSlides(game, preset, poster, thumb, accent, seed) {
       img: poster,
       kicker: "VIDEO PLAY GRAPHICS",
       title: `${title.toUpperCase()} LIVE`,
-      sub: `Vault · HQ · Nexus Studio Master · ${PLATFORM_LINKS[3]}`,
+      sub: `Vault · HQ · Nexus Studio Master · ${CONNECTED_PLATFORM_COUNT} linked platforms`,
       accent,
     },
   ];
@@ -263,11 +265,11 @@ export function countReadyPremiumGames(catalog = SLOT_CATALOG) {
 }
 
 export function buildPremiumLobbySlides(catalog = SLOT_CATALOG) {
-  return catalog
+  const topGames = catalog
     .slice()
     .sort((left, right) => (right.popularity || 0) - (left.popularity || 0))
-    .slice(0, 6)
-    .map((game) => getPremiumGameMedia(game).showcaseSlides[0]);
+    .slice(0, 6);
+  return topGames.map((game) => getPremiumGameMedia(game).showcaseSlides[0]);
 }
 
 export function isFlagshipSlot(id) {
