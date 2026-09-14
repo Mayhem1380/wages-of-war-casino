@@ -19,7 +19,7 @@
   </defs>
 
   <rect x="38" y="38" width="844" height="684" rx="42" fill="url(#bg)" stroke="url(#frame)" stroke-width="24"/>
-  <rect x="66" y="66" width="788" height="628" rx="28" fill="url(#glow)" stroke="rgba(255,255,255,0.12)" stroke-width="2"/>
+  <rect x="66" y="66" width="788" height="628" rx="28" fill="url(#glow)" stroke="#FFFFFF" stroke-opacity="0.12" stroke-width="2"/>
 
   <g opacity="0.2" stroke="#57E6C6" stroke-width="2">
     <path d="M110 172H810"/>
