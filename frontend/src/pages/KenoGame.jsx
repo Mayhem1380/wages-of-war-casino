@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
@@ -79,7 +79,10 @@ export default function KenoGame() {
   const [autoPlay, setAutoPlay] = useState(false);
   const [mode, setMode] = useState("warhead");
   const [sideBets, setSideBets] = useState({});
-  const media = getPremiumGameMedia({ id: "warkino", kind: "special" });
+  const media = useMemo(
+    () => getPremiumGameMedia({ id: "warkino", kind: "special" }),
+    [],
+  );
 
   const toggleSideBet = (key, v) =>
     setSideBets((prev) => {
@@ -197,7 +200,18 @@ export default function KenoGame() {
       }
       setBusy(false);
     },
-    [autoPlay, busy, picks, stake, user, openAuth, refreshUser, mode, sideBets],
+    [
+      autoPlay,
+      busy,
+      picks,
+      stake,
+      user,
+      openAuth,
+      refreshUser,
+      mode,
+      sideBets,
+      media.soundProfile,
+    ],
   );
 
   useEffect(() => {
