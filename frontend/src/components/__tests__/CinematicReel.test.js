@@ -37,12 +37,12 @@ describe("CinematicReel", () => {
 
   afterEach(() => {
     act(() => {
+      jest.clearAllTimers();
       root?.unmount();
     });
     if (container) {
       document.body.removeChild(container);
     }
-    jest.runOnlyPendingTimers();
     jest.useRealTimers();
     global.IS_REACT_ACT_ENVIRONMENT = false;
     window.matchMedia = originalMatchMedia;
