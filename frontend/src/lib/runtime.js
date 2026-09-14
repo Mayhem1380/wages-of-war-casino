@@ -84,7 +84,9 @@ export function getAppOriginUrl() {
 }
 
 export function getBackendOriginUrl() {
-  const explicit = (process.env.REACT_APP_BACKEND_URL || "").trim();
+  const runtimeBackend =
+    typeof window !== "undefined" ? window.__WOW_CONFIG__?.backendUrl : "";
+  const explicit = (runtimeBackend || process.env.REACT_APP_BACKEND_URL || "").trim();
   if (explicit) {
     try {
       const explicitOrigin = new URL(explicit).origin;
