@@ -87,7 +87,10 @@ const SPECIAL_GAME_MEDIA = {
   },
 };
 
-export const SLOT_CATALOG = slotCatalog;
+export const SLOT_CATALOG = slotCatalog.map((slot) => ({
+  ...slot,
+  popularity: Math.max(0, Math.min(100, Number(slot.popularity) || 0)),
+}));
 export const SLOT_INVENTORY_COUNT = SLOT_CATALOG.length;
 export const SPECIAL_GAME_CATALOG = Object.values(SPECIAL_GAME_MEDIA);
 export const PLATFORM_LINKS = ["Vault", "HQ", "Nexus Studio Master", "14 Platforms"];
@@ -190,7 +193,7 @@ export function getPremiumGameMedia(game) {
           panel: base.panel || preset.panel,
         }
       : resolveMachineArt(id, { panel: preset.panel });
-  const accent = base.accent || art.panel || preset.accent;
+  const accent = base.accent || art.accent || preset.accent || art.panel;
   const heroPoster = base.heroPoster || art.bg || BRAND.coinNightOps;
   const titleArt = base.titleArt || art.thumb || heroPoster;
   const lobbyThumb = base.lobbyThumb || art.thumb || heroPoster;
