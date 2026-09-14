@@ -316,7 +316,7 @@ export default function SlotGame() {
           <div className="relative w-full max-w-2xl overflow-hidden border border-gold/50 bg-[#050805] shadow-2xl shadow-gold/20">
             <img
               src={media.heroPoster}
-              alt={`${machine.name} premium machine artwork`}
+              alt={`${media.name} premium machine artwork`}
               className="h-56 w-full object-cover object-center sm:h-72"
             />
             <div className="absolute inset-x-0 top-0 h-56 bg-gradient-to-b from-black/20 to-[#050805] sm:h-72" />

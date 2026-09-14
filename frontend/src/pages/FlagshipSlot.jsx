@@ -572,7 +572,7 @@ export default function FlagshipSlot() {
         >
           <img
             src={media.titleArt}
-            alt={machine.name}
+            alt={media.name}
             className="w-32 h-32 sm:w-52 sm:h-52 object-cover rounded-lg border-2 mb-4 sm:mb-6 animate-pop"
             style={{
               borderColor: art.accent,

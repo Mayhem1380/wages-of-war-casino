@@ -67,6 +67,95 @@ const THEME_PRESETS = {
     panel: "#0b1726",
     callouts: ["Skyfall respins", "Crowned wilds", "Storm jackpot ladder"],
   },
+  arctic: {
+    label: "FROST COMMAND",
+    kicker: "GLACIAL AAA REELS",
+    soundLabel: "Polar Echo",
+    accent: "#9FD0FF",
+    haze: "rgba(159,208,255,0.2)",
+    panel: "#091521",
+    callouts: ["Frozen shimmer", "Icebound features", "Cold-fire jackpots"],
+  },
+  cyber: {
+    label: "NEON GRID",
+    kicker: "DIGITAL CINEMA REELS",
+    soundLabel: "Pulse Matrix",
+    accent: "#57E6C6",
+    haze: "rgba(87,230,198,0.2)",
+    panel: "#08181a",
+    callouts: ["Reactive pulses", "Neon overlays", "High-voltage bonus flow"],
+  },
+  royal: {
+    label: "ROYAL CHAMBER",
+    kicker: "PRESTIGE AAA JACKPOTS",
+    soundLabel: "Crown Resonance",
+    accent: "#F6C64A",
+    haze: "rgba(246,198,74,0.2)",
+    panel: "#211608",
+    callouts: ["Regal framing", "Prestige features", "Grand-tier jackpot flow"],
+  },
+  western: {
+    label: "FRONTIER RAID",
+    kicker: "HIGH-NOON AAA REELS",
+    soundLabel: "Dustline Echo",
+    accent: "#FFB454",
+    haze: "rgba(255,180,84,0.2)",
+    panel: "#23140a",
+    callouts: ["Dust-storm trails", "Outlaw features", "Frontier payout bursts"],
+  },
+};
+
+const THEME_ALIASES = {
+  ancient: "egypt",
+  asia: "fortune",
+  aurora: "arctic",
+  bushido: "military",
+  candy: "fortune",
+  casino: "royal",
+  city: "cyber",
+  cosmic: "cyber",
+  diamond: "royal",
+  dino: "adventure",
+  dynasty: "fortune",
+  fairytale: "royal",
+  festival: "fortune",
+  fishing: "naval",
+  forest: "adventure",
+  forge: "military",
+  fruit: "fortune",
+  gold: "fortune",
+  goldrush: "fortune",
+  heist: "military",
+  ice: "arctic",
+  inferno: "military",
+  jackpot: "royal",
+  lucky: "fortune",
+  magic: "royal",
+  maya: "egypt",
+  middle_east: "adventure",
+  midnight: "military",
+  mystic: "royal",
+  mythic: "olympus",
+  neon: "cyber",
+  oasis: "adventure",
+  panda: "fortune",
+  pirate: "naval",
+  prairie: "western",
+  space: "cyber",
+  speed: "cyber",
+  stealth: "military",
+  storm: "olympus",
+  sun: "olympus",
+  thunder: "olympus",
+  titans: "olympus",
+  tribal: "military",
+  valley: "adventure",
+  voodoo: "military",
+  vortex: "cyber",
+  wildlife: "adventure",
+  wolf: "arctic",
+  zen: "adventure",
+  zodiac: "fortune",
 };
 
 const SPECIAL_GAME_MEDIA = {
@@ -132,7 +221,8 @@ function normalizeTheme(theme) {
   const key = String(theme || DEFAULT_THEME).toLowerCase();
   if (THEME_PRESETS[key]) return key;
   if (key === "dragons") return "dragon";
-  if (key === "fishing" || key === "pirate" || key === "ocean") return "naval";
+  if (key === "ocean") return "naval";
+  if (THEME_ALIASES[key]) return THEME_ALIASES[key];
   return DEFAULT_THEME;
 }
 
