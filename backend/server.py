@@ -989,8 +989,7 @@ async def kyc_session(payload: KycSessionInput, user: dict = Depends(require_use
         msg = str(e).lower()
         if (
             "not set up to use identity" in msg
-            or "identity" in msg
-            and "not set up" in msg
+            or ("identity" in msg and "not set up" in msg)
             or "identity is not enabled" in msg
             or "does not support identity" in msg
         ):
