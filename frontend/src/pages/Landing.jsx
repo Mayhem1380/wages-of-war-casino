@@ -283,7 +283,7 @@ export default function Landing() {
                 WAGES OF WAR CASINO
               </span>
               <span className="sr-only">
-                Wages of War Casino — Night Ops Edition
+                Wages of War Casino
               </span>
             </h1>
             <p
