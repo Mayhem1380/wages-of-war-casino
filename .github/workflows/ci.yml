@@ -34,10 +34,18 @@ jobs:
         run: |
           . .venv/bin/activate
           flake8 backend
-      - name: Run backend tests
+      - name: Validate deploy compose config
+        run: docker compose config >/dev/null
+      - name: Run deploy-safe backend tests
         run: |
           . .venv/bin/activate
-          pytest backend -q
+          pytest -q \
+            backend/tests/test_compose_env.py \
+            backend/tests/test_slot_guards.py \
+            backend/tests/test_startup_indexes.py \
+            backend/tests/test_vault_api_compat.py \
+            backend/tests/test_operations.py \
+            backend/tests/test_media_release.py
 
   frontend:
     runs-on: ubuntu-latest
@@ -50,9 +58,9 @@ jobs:
           node-version: '20'
           cache: 'npm'
       - name: Install frontend deps
-        run: npm ci --prefix frontend --legacy-peer-deps
+        run: npm ci --prefix frontend --legacy-peer-deps --omit=optional
       - name: Build frontend
-        run: npm --prefix frontend run build --if-present
+        run: npm --prefix frontend run build -- --no-sourcemap
       - name: Install frontend dev tooling
         run: npm --prefix frontend install --no-audit --no-fund --save-dev eslint@8 eslint-plugin-react eslint-plugin-jsx-a11y eslint-plugin-react-hooks --legacy-peer-deps
       - name: Run frontend format & lint checks

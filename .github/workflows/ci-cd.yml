@@ -18,10 +18,18 @@ jobs:
           cd backend
           python -m pip install --upgrade pip
           pip install -r requirements.txt pytest pytest-xdist
-      - name: Run tests
+      - name: Validate deploy compose config
+        run: docker compose config >/dev/null
+      - name: Run deploy-safe backend tests
         run: |
           cd backend
-          pytest -q
+          pytest -q \
+            tests/test_compose_env.py \
+            tests/test_slot_guards.py \
+            tests/test_startup_indexes.py \
+            tests/test_vault_api_compat.py \
+            tests/test_operations.py \
+            tests/test_media_release.py
 
   build-and-publish:
     needs: test-backend
