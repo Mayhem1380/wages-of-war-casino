@@ -3,9 +3,13 @@ import ReactDOM from "react-dom/client";
 import { act } from "react-dom/test-utils";
 import { CinematicReel } from "../CinematicReel";
 
-jest.mock("react-router-dom", () => ({
-  useNavigate: () => jest.fn(),
-}));
+jest.mock(
+  "react-router-dom",
+  () => ({
+    useNavigate: () => jest.fn(),
+  }),
+  { virtual: true },
+);
 
 jest.mock("@/lib/cinematicScore", () => ({
   useCinematicScore: () => ({
