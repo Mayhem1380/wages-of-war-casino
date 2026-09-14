@@ -2412,6 +2412,8 @@ export const BRAND = {
   promo: "/brand/promo-platforms.jpeg",
   coin: "/brand/winged_emblem.png",
   coinNightOps: "/brand/coin-nightops.png",
+  nightOpsEdition: "/brand/night_ops_edition_emblem.svg",
+  nightOpsSquad: "/brand/night_ops_squad.svg",
   nexusBanner: "/brand/nexus-banner.jpg",
   nexusSizzle: "/brand/nexus_fleet_sizzle.jpg",
   jungleAmbush: "/brand/jungle_ambush.jpg",

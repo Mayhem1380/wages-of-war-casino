@@ -211,7 +211,7 @@ export default function Landing() {
             <video
               data-testid="official-trailer-video"
               src="/brand/official_trailer.mp4"
-              poster={BRAND.hero}
+              poster="/brand/cine_carrier.jpg"
               autoPlay
               muted
               loop
@@ -235,13 +235,17 @@ export default function Landing() {
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-[#050605]" />
         <div className="hero-ambient hero-ambient-left" aria-hidden="true" />
         <div className="hero-ambient hero-ambient-right" aria-hidden="true" />
-        <img
-          src={BRAND.coinNightOps}
-          alt="Wages of War Casino — Night Ops Edition"
-          data-testid="hero-nightops-coin"
-          className="absolute top-3 right-3 sm:top-8 sm:right-8 w-16 sm:w-36 md:w-48 lg:w-56 z-20 animate-coin-intro pointer-events-none select-none"
-          style={{ filter: "drop-shadow(0 0 34px rgba(212,175,55,0.5))" }}
-        />
+        <div
+          data-testid="hero-nightops-squad"
+          className="absolute top-3 right-3 sm:top-8 sm:right-8 z-20 w-[9.5rem] sm:w-[16rem] md:w-[20rem] lg:w-[24rem] aspect-[1.15/1] rounded-[1.7rem] overflow-hidden border border-gold/40 bg-black/35 animate-coin-intro pointer-events-none select-none"
+          style={{ boxShadow: "0 0 34px rgba(212,175,55,0.28)" }}
+        >
+          <img
+            src={BRAND.nightOpsSquad}
+            alt="Night Ops strike team"
+            className="w-full h-full object-cover"
+          />
+        </div>
         <div className="relative max-w-[1400px] mx-auto px-4 sm:px-8 pt-16 pb-20 sm:pt-24 sm:pb-28 md:pt-32 md:pb-40">
           <div className="mx-auto max-w-3xl text-center sm:text-left sm:mx-0 sm:max-w-[38rem] md:max-w-[42rem]">
             <div className="hero-badges flex flex-wrap items-center justify-center gap-2 mb-6 animate-pop sm:justify-start">
@@ -258,6 +262,15 @@ export default function Landing() {
                 <Trophy size={13} weight="fill" /> NIGHT OPS EDITION
               </span>
             </div>
+            <img
+              src={BRAND.nightOpsEdition}
+              alt="Night Ops Edition"
+              className="mx-auto mb-6 w-full max-w-[32rem] animate-pop sm:mx-0"
+              style={{
+                animationDelay: "0.04s",
+                filter: "drop-shadow(0 14px 26px rgba(0,0,0,0.42))",
+              }}
+            />
             <h1
               className="hero-title font-display text-5xl sm:text-7xl lg:text-8xl leading-[0.85] tracking-tight animate-pop"
               style={{ animationDelay: "0.05s" }}
@@ -418,7 +431,7 @@ export default function Landing() {
         >
           <video
             src="/brand/wages_of_war_casino_promo_final.mp4"
-            poster={BRAND.hero}
+            poster="/brand/cine_carrier.jpg"
             controls
             autoPlay
             muted

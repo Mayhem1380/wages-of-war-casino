@@ -1,0 +1,61 @@
+<svg width="1229" height="848" viewBox="0 0 1229 848" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="scopeGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(612 420) rotate(90) scale(250 250)">
+      <stop stop-color="#65FF74"/>
+      <stop offset="0.55" stop-color="#1F7D36"/>
+      <stop offset="1" stop-color="#0A2913"/>
+    </radialGradient>
+    <linearGradient id="goldStroke" x1="141" y1="96" x2="1088" y2="752" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF1B7"/>
+      <stop offset="0.25" stop-color="#F6D47D"/>
+      <stop offset="0.6" stop-color="#C28A29"/>
+      <stop offset="1" stop-color="#8B5A15"/>
+    </linearGradient>
+    <linearGradient id="goldFill" x1="214" y1="137" x2="1027" y2="716" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF6D1"/>
+      <stop offset="0.35" stop-color="#F3C96D"/>
+      <stop offset="0.7" stop-color="#C18A2E"/>
+      <stop offset="1" stop-color="#6F4510"/>
+    </linearGradient>
+    <filter id="shadow" x="0" y="0" width="1229" height="848" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="18" stdDeviation="14" flood-color="#000000" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <rect width="1229" height="848" fill="#ECECEC"/>
+  <g filter="url(#shadow)">
+    <circle cx="612" cy="423" r="258" fill="url(#scopeGlow)" stroke="url(#goldStroke)" stroke-width="26"/>
+    <circle cx="612" cy="423" r="302" stroke="url(#goldStroke)" stroke-width="32"/>
+    <circle cx="612" cy="423" r="336" stroke="#4A2A09" stroke-opacity="0.22" stroke-width="8"/>
+    <path d="M612 138C631 138 646 152 646 171V226C646 245 631 260 612 260C593 260 578 245 578 226V171C578 152 593 138 612 138Z" fill="url(#goldFill)" stroke="#855716" stroke-width="4"/>
+    <path d="M612 586C631 586 646 601 646 620V675C646 694 631 709 612 709C593 709 578 694 578 675V620C578 601 593 586 612 586Z" fill="url(#goldFill)" stroke="#855716" stroke-width="4"/>
+    <path d="M324 423C324 442 309 457 290 457H235C216 457 201 442 201 423C201 404 216 389 235 389H290C309 389 324 404 324 423Z" fill="url(#goldFill)" stroke="#855716" stroke-width="4"/>
+    <path d="M1023 423C1023 442 1008 457 989 457H934C915 457 900 442 900 423C900 404 915 389 934 389H989C1008 389 1023 404 1023 423Z" fill="url(#goldFill)" stroke="#855716" stroke-width="4"/>
+
+    <g stroke="#FF3B2E" stroke-width="5" stroke-linecap="round" opacity="0.9">
+      <path d="M612 218V628"/>
+      <path d="M404 423H820"/>
+      <path d="M612 293V383"/>
+      <path d="M612 463V553"/>
+      <path d="M482 423H572"/>
+      <path d="M652 423H742"/>
+      <circle cx="612" cy="423" r="14"/>
+    </g>
+
+    <g fill="#07120A">
+      <circle cx="612" cy="330" r="38"/>
+      <rect x="574" y="365" width="76" height="162" rx="28"/>
+      <rect x="546" y="398" width="26" height="124" rx="12" transform="rotate(10 546 398)"/>
+      <rect x="653" y="395" width="26" height="124" rx="12" transform="rotate(-10 653 395)"/>
+      <rect x="572" y="520" width="28" height="140" rx="12" transform="rotate(8 572 520)"/>
+      <rect x="624" y="520" width="28" height="140" rx="12" transform="rotate(-8 624 520)"/>
+    </g>
+
+    <path d="M235 423C235 216 403 48 612 48C821 48 989 216 989 423C989 630 821 798 612 798C403 798 235 630 235 423Z" stroke="url(#goldFill)" stroke-width="16"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <text x="86" y="542" fill="url(#goldFill)" stroke="#36210B" stroke-width="9" style="font: italic 146px 'Brush Script MT', 'URW Chancery L', cursive; letter-spacing: -4px;">Night Ops Edition</text>
+    <text x="86" y="542" fill="url(#goldStroke)" style="font: italic 146px 'Brush Script MT', 'URW Chancery L', cursive; letter-spacing: -4px;">Night Ops Edition</text>
+  </g>
+</svg>

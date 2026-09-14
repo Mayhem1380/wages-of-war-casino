@@ -13,33 +13,33 @@ import { useCinematicScore } from "@/lib/cinematicScore";
 // with a slow Ken-Burns move + fade, timed to build a ~28s marketing sequence.
 const SCENES = [
   {
-    img: "/brand/coin-nightops.png",
-    kicker: "// NIGHT OPS EDITION",
+    img: "/brand/cine_carrier.jpg",
+    kicker: "// STRIKE GROUP LAUNCH",
     title: "WAGES OF WAR",
-    sub: "A cinematic casino operation beneath the surface",
+    sub: "Apaches and Black Hawks launch into a night mission from the carrier deck",
     anim: "kb-zoom-in",
     gold: true,
   },
   {
-    img: "/brand/cine_carrier.jpg",
-    kicker: "// NIGHT OPS COMMAND",
-    title: "WAGES OF WAR",
-    sub: "The world's most elite military casino",
-    anim: "kb-zoom-in",
-  },
-  {
     img: "/brand/cine_blackhawk.jpg",
-    kicker: "// SPECIAL FORCES DEPLOYED",
-    title: "ELITE NIGHT OPS",
-    sub: "Enlist. Deploy. Dominate.",
+    kicker: "// BLACK HAWKS AIRBORNE",
+    title: "NIGHT OPS DEPLOYED",
+    sub: "Rotor wash, deck lights, and a live strike package cutting into the dark",
     anim: "kb-pan-left",
   },
   {
     img: "/brand/cine_apache.jpg",
+    kicker: "// APACHES ON TARGET",
+    title: "FULL MISSION OPEN",
+    sub: "Aerial firepower leads the cinematic welcome before the casino floor opens",
+    anim: "kb-zoom-out",
+  },
+  {
+    img: "/brand/coin-nightops.png",
     kicker: "// FULL ARSENAL",
     title: "146 AAA SLOTS",
     sub: "146 AAA MACHINES · WARKINO · CARNIVAL 3D",
-    anim: "kb-zoom-out",
+    anim: "kb-zoom-in",
   },
   {
     img: "/brand/cine_carrier.jpg",
