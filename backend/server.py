@@ -1542,7 +1542,7 @@ async def slot_detail(machine_id: str):
 
 @api.post("/games/slots/spin")
 async def slots_spin(payload: SpinInput, user: dict = Depends(require_user)):
-    get_public_slot_machine(payload.machine_id)
+    machine = get_public_slot_machine(payload.machine_id)
     if payload.bet < 20:
         raise HTTPException(status_code=400, detail="Minimum bet is 20 credits")
     if payload.bet > 100000:
@@ -1551,9 +1551,9 @@ async def slots_spin(payload: SpinInput, user: dict = Depends(require_user)):
         raise HTTPException(status_code=400, detail="Insufficient credits")
 
     result = (
-        spin_flagship(payload.machine_id, payload.bet)
-        if payload.machine_id in FLAGSHIP_IDS
-        else spin_slot(payload.machine_id, payload.bet)
+        spin_flagship(machine["id"], payload.bet)
+        if machine["id"] in FLAGSHIP_IDS
+        else spin_slot(machine["id"], payload.bet)
     )
     net = result["total_win"] - payload.bet
     updated = await adjust_balance(
