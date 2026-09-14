@@ -277,6 +277,7 @@ export default function Landing() {
                 }}
               />
               <span
+                aria-hidden="true"
                 className="block font-display text-5xl sm:text-7xl lg:text-8xl leading-[0.85] tracking-tight"
               >
                 <span className="gold-gradient">WAGES OF WAR</span>
@@ -285,7 +286,9 @@ export default function Landing() {
                   CASINO
                 </span>
               </span>
-              <span className="sr-only">Night Ops Edition</span>
+              <span className="sr-only">
+                Wages of War Casino — Night Ops Edition
+              </span>
             </h1>
             <p
               className="hero-copy mx-auto mt-6 max-w-xl text-base text-foreground/80 leading-relaxed animate-pop sm:mx-0 sm:text-lg"

@@ -20,10 +20,12 @@ jest.mock("@/lib/cinematicScore", () => ({
 describe("CinematicReel", () => {
   let container;
   let root;
+  let originalMatchMedia;
 
   beforeEach(() => {
     jest.useFakeTimers();
     global.IS_REACT_ACT_ENVIRONMENT = true;
+    originalMatchMedia = window.matchMedia;
     container = document.createElement("div");
     document.body.appendChild(container);
     window.matchMedia = jest.fn().mockReturnValue({
@@ -43,6 +45,7 @@ describe("CinematicReel", () => {
     jest.runOnlyPendingTimers();
     jest.useRealTimers();
     global.IS_REACT_ACT_ENVIRONMENT = false;
+    window.matchMedia = originalMatchMedia;
   });
 
   it("opens with the carrier launch and cycles through Black Hawk and Apache scenes first", () => {
