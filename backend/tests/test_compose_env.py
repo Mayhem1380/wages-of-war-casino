@@ -1,3 +1,4 @@
+import importlib
 import os
 from pathlib import Path
 import sys
@@ -6,7 +7,9 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from games import PUBLIC_SLOT_IDS, SLOT_MACHINES
+games = importlib.import_module("games")
+PUBLIC_SLOT_IDS = games.PUBLIC_SLOT_IDS
+SLOT_MACHINES = games.SLOT_MACHINES
 
 
 def test_backend_service_keeps_runtime_env_in_explicit_overrides():

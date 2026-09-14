@@ -1,3 +1,4 @@
+import importlib
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -6,7 +7,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-import media_release
+media_release = importlib.import_module("media_release")
 
 VALID = {
     "filename": "george-v1.mp4",

@@ -1,7 +1,8 @@
-from dotenv import load_dotenv
-import os
-import logging
+import asyncio
+import importlib
 import json
+import logging
+import os
 import re
 import secrets
 import urllib.request
@@ -9,13 +10,13 @@ import uuid
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from urllib.parse import urlparse
 from typing import Dict, List, Optional
 
-import asyncio
 import bcrypt
+from dotenv import load_dotenv
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request, Response
 import jwt
-from urllib.parse import urlparse
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, EmailStr, Field
 from pymongo.errors import OperationFailure
@@ -25,25 +26,25 @@ from starlette.middleware.cors import CORSMiddleware
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / ".env")
 
-from games import (
-    SLOT_MACHINES,
-    PUBLIC_SLOT_IDS,
-    spin_slot,
-    play_keno,
-    play_wow_keno,
-    play_side_keno,
-    KENO_PAYTABLE,
-    VIP_TIERS,
-    tier_for_wagered,
-    CREDIT_PACKAGES,
-    FLAGSHIP_IDS,
-    JACKPOT_LADDER,
-    spin_flagship,
-    play_holdwin,
-)
-import cashier
-import operations
-import media_release
+games = importlib.import_module("games")
+cashier = importlib.import_module("cashier")
+operations = importlib.import_module("operations")
+media_release = importlib.import_module("media_release")
+
+SLOT_MACHINES = games.SLOT_MACHINES
+PUBLIC_SLOT_IDS = games.PUBLIC_SLOT_IDS
+spin_slot = games.spin_slot
+play_keno = games.play_keno
+play_wow_keno = games.play_wow_keno
+play_side_keno = games.play_side_keno
+KENO_PAYTABLE = games.KENO_PAYTABLE
+VIP_TIERS = games.VIP_TIERS
+tier_for_wagered = games.tier_for_wagered
+CREDIT_PACKAGES = games.CREDIT_PACKAGES
+FLAGSHIP_IDS = games.FLAGSHIP_IDS
+JACKPOT_LADDER = games.JACKPOT_LADDER
+spin_flagship = games.spin_flagship
+play_holdwin = games.play_holdwin
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
