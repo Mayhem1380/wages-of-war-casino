@@ -1,31 +1,29 @@
 from dotenv import load_dotenv
-from pathlib import Path
 import os
+import logging
+import json
+import re
+import secrets
+import urllib.request
+import uuid
 from collections import defaultdict
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from typing import Dict, List, Optional
+
+import asyncio
+import bcrypt
+from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request, Response
+import jwt
+from urllib.parse import urlparse
+from motor.motor_asyncio import AsyncIOMotorClient
+from pydantic import BaseModel, EmailStr, Field
+from pymongo.errors import OperationFailure
+import stripe
+from starlette.middleware.cors import CORSMiddleware
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / ".env")
-
-from fastapi import FastAPI, APIRouter, HTTPException, Request, Response, Depends
-from starlette.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
-from pymongo.errors import OperationFailure
-import logging
-from pydantic import BaseModel, Field, EmailStr
-from typing import List, Optional, Dict
-import uuid
-import bcrypt
-import jwt
-import secrets
-import urllib.request
-from urllib.parse import urlparse
-import json
-from datetime import datetime, timezone, timedelta
-import asyncio
-import shutil
-import re
-
-import stripe
 
 from games import (
     SLOT_MACHINES,
@@ -35,7 +33,6 @@ from games import (
     play_wow_keno,
     play_side_keno,
     KENO_PAYTABLE,
-    PAYLINES,
     VIP_TIERS,
     tier_for_wagered,
     CREDIT_PACKAGES,
@@ -95,6 +92,7 @@ STRIPE_WEBHOOK_SECRETS = [
 TAX_MODE = "full"  # US + digital credits -> Stripe managed payments
 
 if STRIPE_USE_MOCK:
+
     class _MockListResult(dict):
         def __init__(self, data=None):
             self.data = list(data or [])
@@ -119,13 +117,21 @@ if STRIPE_USE_MOCK:
             obj = _MockSession(
                 id=sid,
                 url=f"https://checkout.stripe.com/pay/{sid}",
-                status="complete" if metadata.get("kind") == "cashier_deposit" else "open",
-                payment_status="paid" if metadata.get("kind") == "cashier_deposit" else "unpaid",
+                status=(
+                    "complete" if metadata.get("kind") == "cashier_deposit" else "open"
+                ),
+                payment_status=(
+                    "paid" if metadata.get("kind") == "cashier_deposit" else "unpaid"
+                ),
             )
             obj.id = sid
             obj.url = f"https://checkout.stripe.com/pay/{sid}"
-            obj.status = "complete" if metadata.get("kind") == "cashier_deposit" else "open"
-            obj.payment_status = "paid" if metadata.get("kind") == "cashier_deposit" else "unpaid"
+            obj.status = (
+                "complete" if metadata.get("kind") == "cashier_deposit" else "open"
+            )
+            obj.payment_status = (
+                "paid" if metadata.get("kind") == "cashier_deposit" else "unpaid"
+            )
             return obj
 
         @staticmethod
@@ -140,7 +146,9 @@ if STRIPE_USE_MOCK:
         @staticmethod
         def create(**kwargs):
             sid = "vs_" + uuid.uuid4().hex[:16]
-            obj = _MockVerification(id=sid, url=f"https://verify.stripe.com/{sid}", status="requires_input")
+            obj = _MockVerification(
+                id=sid, url=f"https://verify.stripe.com/{sid}", status="requires_input"
+            )
             obj.id = sid
             obj.url = f"https://verify.stripe.com/{sid}"
             obj.status = "requires_input"
@@ -188,7 +196,9 @@ if STRIPE_USE_MOCK:
         def construct_event(payload, sig, secret):
             return {
                 "type": "checkout.session.completed",
-                "data": {"object": {"id": "cs_mock_placeholder", "payment_status": "paid"}},
+                "data": {
+                    "object": {"id": "cs_mock_placeholder", "payment_status": "paid"}
+                },
             }
 
     stripe.checkout.Session = _MockStripeSession
@@ -293,7 +303,11 @@ def _trusted_return_origin(candidate: str) -> str:
         or host.endswith(".emergent.host")
         or host in {"wagesofwarcasin0.online", "www.wagesofwarcasin0.online"}
     )
-    if parsed.scheme not in {"http", "https"} or not trusted_host or parsed.path not in {"", "/"}:
+    if (
+        parsed.scheme not in {"http", "https"}
+        or not trusted_host
+        or parsed.path not in {"", "/"}
+    ):
         raise HTTPException(status_code=400, detail="Return URL origin is not allowed")
     return origin
 
@@ -312,6 +326,7 @@ def _safe_frontend_origin(candidate: Optional[str]) -> str:
 def _mask_financial_value(value: Optional[str]) -> Optional[str]:
     cleaned = "".join(ch for ch in (value or "") if ch.isalnum())
     return f"****{cleaned[-4:]}" if cleaned else None
+
 
 app = FastAPI(title="Wages of War Casino API")
 api = APIRouter(prefix="/api")
@@ -437,17 +452,25 @@ def validate_runtime_config() -> None:
     if not FRONTEND_URL:
         issues.append("FRONTEND_URL is missing")
 
-    if not JWT_SECRET or "change-me" in JWT_SECRET.lower() or "replace" in JWT_SECRET.lower():
+    if (
+        not JWT_SECRET
+        or "change-me" in JWT_SECRET.lower()
+        or "replace" in JWT_SECRET.lower()
+    ):
         issues.append("JWT_SECRET is missing or placeholder")
 
     if cashier._is_placeholder_np():
-        warnings.append("NOWPAYMENTS_API_KEY is placeholder/missing; crypto deposits run in sandbox")
+        warnings.append(
+            "NOWPAYMENTS_API_KEY is placeholder/missing; crypto deposits run in sandbox"
+        )
 
     if "sandbox" in cashier.NOWPAYMENTS_BASE_URL.lower():
         warnings.append("NOWPAYMENTS_BASE_URL points to sandbox")
 
     if cashier.is_placeholder_vault():
-        warnings.append("VAULT_API_KEY is placeholder/test; withdrawals stay in local pending flow")
+        warnings.append(
+            "VAULT_API_KEY is placeholder/test; withdrawals stay in local pending flow"
+        )
 
     for msg in warnings:
         logger.warning("CONFIG WARNING: %s", msg)
@@ -542,7 +565,11 @@ def _reset_login_failures(email: str):
 def _login_failure_count(email: str) -> int:
     now = datetime.now(timezone.utc)
     attempts = _AUTH_FAILURES.get(email, [])
-    attempts = [ts for ts in attempts if (now - ts).total_seconds() < AUTH_FAILURE_WINDOW_SECONDS]
+    attempts = [
+        ts
+        for ts in attempts
+        if (now - ts).total_seconds() < AUTH_FAILURE_WINDOW_SECONDS
+    ]
     if len(attempts) != len(_AUTH_FAILURES.get(email, [])):
         _AUTH_FAILURES[email] = attempts
     return len(attempts)
@@ -709,7 +736,10 @@ def safe_support_reply(text: str) -> str:
     """
     cleaned = (text or "").strip()
     if not cleaned:
-        return "Hi — I'm the 24/7 assistant. Try 'deposit', 'withdraw', or 'verify'. For urgent support contact admin@wow.local"
+        return (
+            "Hi — I'm the 24/7 assistant. Try 'deposit', 'withdraw', or 'verify'. "
+            "For urgent support contact admin@wow.local"
+        )
 
     lower = cleaned.lower()
 
@@ -740,17 +770,32 @@ def safe_support_reply(text: str) -> str:
         )
 
     if "deposit" in lower or "cashier" in lower:
-        return "To deposit, open Wallet → Cashier. We accept Card (Stripe) and Crypto. For help, tell me which you want."
+        return (
+            "To deposit, open Wallet → Cashier. We accept Card (Stripe) and Crypto. "
+            "For help, tell me which you want."
+        )
     if "withdraw" in lower or "payout" in lower:
         return "Withdrawals route via the approval vault. Check /profile or /wallet → Transactions for status."
     if "kyc" in lower or "id" in lower or "verify" in lower:
-        return "KYC is required before large withdrawals. Use the Verification page to upload documents and complete your banking verification."
+        return (
+            "KYC is required before large withdrawals. Use the Verification page to "
+            "upload documents and complete your banking verification."
+        )
     if "balance" in lower or "wallet" in lower or "account" in lower:
-        return "For wallet or account help, open your profile and check the balance, transactions, and verification status."
+        return (
+            "For wallet or account help, open your profile and check the balance, "
+            "transactions, and verification status."
+        )
     if "support" in lower or "help" in lower:
-        return "I can assist with deposits, withdrawals, verification, and basic account questions. For sensitive cases, an admin review can be requested."
+        return (
+            "I can assist with deposits, withdrawals, verification, and basic account "
+            "questions. For sensitive cases, an admin review can be requested."
+        )
 
-    return "Hi — I'm the 24/7 assistant. Try 'deposit', 'withdraw', or 'verify'. For urgent support contact admin@wow.local"
+    return (
+        "Hi — I'm the 24/7 assistant. Try 'deposit', 'withdraw', or 'verify'. "
+        "For urgent support contact admin@wow.local"
+    )
 
 
 @api.post("/support/message")
@@ -791,8 +836,10 @@ def _is_18_or_older(dob) -> bool:
 
         birth = date(int(dob["year"]), int(dob["month"]), int(dob["day"]))
         today = date.today()
-        age = today.year - birth.year - (
-            (today.month, today.day) < (birth.month, birth.day)
+        age = (
+            today.year
+            - birth.year
+            - ((today.month, today.day) < (birth.month, birth.day))
         )
         return age >= 18
     except (KeyError, TypeError, ValueError):
@@ -880,7 +927,9 @@ class KycBankingDetailsInput(BaseModel):
 
 
 @api.post("/kyc/banking")
-async def kyc_banking(payload: KycBankingDetailsInput, user: dict = Depends(require_user)):
+async def kyc_banking(
+    payload: KycBankingDetailsInput, user: dict = Depends(require_user)
+):
     try:
         KycBankingDetailsInput.validate_details(payload)
     except ValueError as exc:
@@ -898,11 +947,13 @@ async def kyc_banking(payload: KycBankingDetailsInput, user: dict = Depends(requ
     }
     await db.users.update_one(
         {"user_id": user["user_id"]},
-        {"$set": {
-            "kyc_banking_details": masked,
-            "kyc_banking_verified": False,
-            "kyc_banking_status": "submitted",
-        }},
+        {
+            "$set": {
+                "kyc_banking_details": masked,
+                "kyc_banking_verified": False,
+                "kyc_banking_status": "submitted",
+            }
+        },
     )
     return {"ok": True, "banking_verified": False, "banking_status": "submitted"}
 
@@ -938,7 +989,8 @@ async def kyc_session(payload: KycSessionInput, user: dict = Depends(require_use
         msg = str(e).lower()
         if (
             "not set up to use identity" in msg
-            or "identity" in msg and "not set up" in msg
+            or "identity" in msg
+            and "not set up" in msg
             or "identity is not enabled" in msg
             or "does not support identity" in msg
         ):
@@ -1029,7 +1081,11 @@ async def games_gamble(payload: GambleInput, user: dict = Depends(require_user))
             payout,
             "player_payout",
             "gamble_win",
-            {"user_id": user["user_id"], "mode": payload.mode, "choice": payload.choice},
+            {
+                "user_id": user["user_id"],
+                "mode": payload.mode,
+                "choice": payload.choice,
+            },
         )
         await record_transaction(
             user["user_id"],
@@ -1042,7 +1098,11 @@ async def games_gamble(payload: GambleInput, user: dict = Depends(require_user))
             amt,
             "house_win",
             "gamble_loss",
-            {"user_id": user["user_id"], "mode": payload.mode, "choice": payload.choice},
+            {
+                "user_id": user["user_id"],
+                "mode": payload.mode,
+                "choice": payload.choice,
+            },
         )
         await record_transaction(
             user["user_id"],
@@ -1069,7 +1129,9 @@ async def _process_withdrawals_loop():
             # SOLVENCY GUARD: never release more than the vault can cover.
             # VAULT_MIN_RESERVE_USD keeps a float in the bank so the casino
             # stays solvent while still paying genuine wins.
-            reserve_cents = int(round(float(os.environ.get("VAULT_MIN_RESERVE_USD", "0")) * 100))
+            reserve_cents = int(
+                round(float(os.environ.get("VAULT_MIN_RESERVE_USD", "0")) * 100)
+            )
             summary = await get_house_bankroll_summary()
             available_cents = int(summary.get("available_cents", 0))
 
@@ -1081,12 +1143,14 @@ async def _process_withdrawals_loop():
                 if available_cents - amt_cents < reserve_cents:
                     await db.cashier_transactions.update_one(
                         {"id": t["id"]},
-                        {"$set": {
-                            "status": "pending",
-                            "vault_hold": True,
-                            "hold_reason": "insufficient_vault_balance",
-                            "updated_at": now_iso,
-                        }},
+                        {
+                            "$set": {
+                                "status": "pending",
+                                "vault_hold": True,
+                                "hold_reason": "insufficient_vault_balance",
+                                "updated_at": now_iso,
+                            }
+                        },
                     )
                     logger.warning(
                         "WITHDRAWAL HELD id=%s amount_usd=%.2f vault_available_usd=%.2f (insufficient vault funds)",
@@ -1260,7 +1324,11 @@ async def login(payload: LoginInput, response: Response):
     email = payload.email.lower().strip()
     u = await db.users.find_one({"email": email})
 
-    valid = bool(u and u.get("password_hash") and verify_password(payload.password, u["password_hash"]))
+    valid = bool(
+        u
+        and u.get("password_hash")
+        and verify_password(payload.password, u["password_hash"])
+    )
     if valid:
         _reset_login_failures(email)
         token = create_access_token(u["user_id"], email)
@@ -1269,7 +1337,11 @@ async def login(payload: LoginInput, response: Response):
 
     attempts = _AUTH_FAILURES.get(email, [])
     now = datetime.now(timezone.utc)
-    attempts = [ts for ts in attempts if (now - ts).total_seconds() < AUTH_FAILURE_WINDOW_SECONDS]
+    attempts = [
+        ts
+        for ts in attempts
+        if (now - ts).total_seconds() < AUTH_FAILURE_WINDOW_SECONDS
+    ]
     attempts.append(now)
     _AUTH_FAILURES[email] = attempts
     if len(attempts) >= AUTH_FAILURE_LIMIT:
@@ -1303,9 +1375,7 @@ async def referral_me(user: dict = Depends(require_user)):
     code = fresh.get("referral_code")
     if not code:
         code = await _ensure_referral_code(user["user_id"])
-    total_signups = await db.users.count_documents(
-        {"referred_by": user["user_id"]}
-    )
+    total_signups = await db.users.count_documents({"referred_by": user["user_id"]})
     converted = await db.users.count_documents(
         {"referred_by": user["user_id"], "referral_reward_paid": True}
     )
@@ -1472,7 +1542,7 @@ async def slot_detail(machine_id: str):
 
 @api.post("/games/slots/spin")
 async def slots_spin(payload: SpinInput, user: dict = Depends(require_user)):
-    m = get_public_slot_machine(payload.machine_id)
+    get_public_slot_machine(payload.machine_id)
     if payload.bet < 20:
         raise HTTPException(status_code=400, detail="Minimum bet is 20 credits")
     if payload.bet > 100000:
@@ -1739,14 +1809,22 @@ async def keno_play(payload: KenoInput, user: dict = Depends(require_user)):
             result["win"] - payload.stake,
             "player_payout",
             "keno_win",
-            {"user_id": user["user_id"], "picks": result["picks"], "stake": payload.stake},
+            {
+                "user_id": user["user_id"],
+                "picks": result["picks"],
+                "stake": payload.stake,
+            },
         )
     elif payload.stake > 0:
         await record_house_cashflow(
             payload.stake,
             "house_win",
             "keno_loss",
-            {"user_id": user["user_id"], "picks": result["picks"], "stake": payload.stake},
+            {
+                "user_id": user["user_id"],
+                "picks": result["picks"],
+                "stake": payload.stake,
+            },
         )
     await record_transaction(
         user["user_id"],
@@ -1784,14 +1862,22 @@ async def wow_keno_play(payload: WowKenoInput, user: dict = Depends(require_user
             result["win"] - payload.stake,
             "player_payout",
             "keno_wow_win",
-            {"user_id": user["user_id"], "picks": result["picks"], "stake": payload.stake},
+            {
+                "user_id": user["user_id"],
+                "picks": result["picks"],
+                "stake": payload.stake,
+            },
         )
     elif payload.stake > 0:
         await record_house_cashflow(
             payload.stake,
             "house_win",
             "keno_wow_loss",
-            {"user_id": user["user_id"], "picks": result["picks"], "stake": payload.stake},
+            {
+                "user_id": user["user_id"],
+                "picks": result["picks"],
+                "stake": payload.stake,
+            },
         )
     await record_transaction(
         user["user_id"],
@@ -1808,7 +1894,9 @@ async def wow_keno_play(payload: WowKenoInput, user: dict = Depends(require_user
 @api.post("/games/keno/side")
 async def side_keno_play(payload: SideKenoInput, user: dict = Depends(require_user)):
     if payload.stake < 10:
-        raise HTTPException(status_code=400, detail="Minimum stake is 10 credits per bet")
+        raise HTTPException(
+            status_code=400, detail="Minimum stake is 10 credits per bet"
+        )
     try:
         result = play_side_keno(payload.bets)
     except ValueError as e:
@@ -1818,7 +1906,9 @@ async def side_keno_play(payload: SideKenoInput, user: dict = Depends(require_us
     if user.get("balance", 0) < total_stake:
         raise HTTPException(status_code=400, detail="Insufficient credits")
     total_win = round(
-        sum(payload.stake * result["leg_payout"] for leg in result["legs"] if leg["won"]),
+        sum(
+            payload.stake * result["leg_payout"] for leg in result["legs"] if leg["won"]
+        ),
         2,
     )
     net = round(total_win - total_stake, 2)
@@ -1987,6 +2077,7 @@ async def shark_flip(payload: SharkFlipInput, user: dict = Depends(require_user)
 # ---------------------------------------------------------------------------
 SIGNUP_VERIFY_BONUS_AMOUNT = 10.0
 
+
 @api.get("/bonus/verify-status")
 async def signup_verify_bonus_status(user: dict = Depends(require_user)):
     fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
@@ -2013,7 +2104,9 @@ async def signup_verify_bonus_status(user: dict = Depends(require_user)):
 async def signup_verify_bonus_claim(user: dict = Depends(require_user)):
     fresh = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
     if fresh.get("signup_verification_bonus_claimed", False):
-        raise HTTPException(status_code=400, detail="Signup verification bonus already claimed")
+        raise HTTPException(
+            status_code=400, detail="Signup verification bonus already claimed"
+        )
     if not fresh.get("kyc_approved", False):
         raise HTTPException(
             status_code=403,
@@ -2022,7 +2115,10 @@ async def signup_verify_bonus_claim(user: dict = Depends(require_user)):
 
     await db.users.update_one(
         {"user_id": user["user_id"]},
-        {"$inc": {"balance": SIGNUP_VERIFY_BONUS_AMOUNT}, "$set": {"signup_verification_bonus_claimed": True}},
+        {
+            "$inc": {"balance": SIGNUP_VERIFY_BONUS_AMOUNT},
+            "$set": {"signup_verification_bonus_claimed": True},
+        },
     )
     await record_transaction(
         user["user_id"],
@@ -2176,7 +2272,9 @@ async def wheel_status(user: dict = Depends(require_user)):
         cooldown_active = False
     else:
         now = datetime.now(timezone.utc)
-        seconds_left = max(0, int((last_spin_dt + timedelta(days=1) - now).total_seconds()))
+        seconds_left = max(
+            0, int((last_spin_dt + timedelta(days=1) - now).total_seconds())
+        )
         cooldown_active = seconds_left > 0
 
     streak = int(fresh.get("wheel_streak", fresh.get("daily_wheel_streak", 0)) or 0)
@@ -2217,7 +2315,10 @@ async def wheel_spin(user: dict = Depends(require_user)):
         if not claimed:
             raise HTTPException(
                 status_code=400,
-                detail="No wheel spins available. Deposit at least $500, or reach $1000 in total deposits, to earn a Wheel of Wealth spin.",
+                detail=(
+                    "No wheel spins available. Deposit at least $500, or reach $1000 "
+                    "in total deposits, to earn a Wheel of Wealth spin."
+                ),
             )
         wts = WHEEL_OF_WEALTH_WEIGHTS
         total = sum(wts)
@@ -2267,7 +2368,9 @@ async def wheel_spin(user: dict = Depends(require_user)):
     if last_spin_dt is not None:
         now = datetime.now(timezone.utc)
         if now - last_spin_dt < timedelta(days=1):
-            remaining = max(0, int((last_spin_dt + timedelta(days=1) - now).total_seconds()))
+            remaining = max(
+                0, int((last_spin_dt + timedelta(days=1) - now).total_seconds())
+            )
             raise HTTPException(
                 status_code=400,
                 detail=f"Wheel is on cooldown for {remaining} seconds.",
@@ -2292,7 +2395,10 @@ async def wheel_spin(user: dict = Depends(require_user)):
         },
     )
     await record_transaction(
-        user["user_id"], "wheel_win", adjusted_amount, {"segment_index": idx, "streak": streak}
+        user["user_id"],
+        "wheel_win",
+        adjusted_amount,
+        {"segment_index": idx, "streak": streak},
     )
 
     updated = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
@@ -2426,9 +2532,11 @@ async def tournament_current(request: Request):
             "rank": i + 1,
             "name": s.get("name", "Operative"),
             "score": round(s.get("score", 0), 2),
-            "prize": int(t["prize_pool"] * TOURNAMENT_SPLIT[i])
-            if i < len(TOURNAMENT_SPLIT)
-            else 0,
+            "prize": (
+                int(t["prize_pool"] * TOURNAMENT_SPLIT[i])
+                if i < len(TOURNAMENT_SPLIT)
+                else 0
+            ),
         }
         for i, s in enumerate(top)
     ]
@@ -2592,7 +2700,12 @@ async def _load_upgrade_catalog():
         return doc["packages"]
     await db.upgrades.update_one(
         {"_id": "catalog"},
-        {"$setOnInsert": {"packages": DEFAULT_UPGRADES, "updated_at": datetime.now(timezone.utc).isoformat()}},
+        {
+            "$setOnInsert": {
+                "packages": DEFAULT_UPGRADES,
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+            }
+        },
         upsert=True,
     )
     return DEFAULT_UPGRADES
@@ -2611,11 +2724,11 @@ async def admin_get_upgrades(admin: dict = Depends(require_admin)):
 
 
 @api.post("/admin/upgrades")
-async def admin_set_upgrades(
-    payload: List[dict], admin: dict = Depends(require_admin)
-):
+async def admin_set_upgrades(payload: List[dict], admin: dict = Depends(require_admin)):
     if not isinstance(payload, list):
-        raise HTTPException(status_code=400, detail="Expected a list of upgrade packages")
+        raise HTTPException(
+            status_code=400, detail="Expected a list of upgrade packages"
+        )
     cleaned = []
     for entry in payload:
         if not isinstance(entry, dict):
@@ -2634,10 +2747,17 @@ async def admin_set_upgrades(
             }
         )
     if not cleaned:
-        raise HTTPException(status_code=400, detail="No valid upgrade packages supplied")
+        raise HTTPException(
+            status_code=400, detail="No valid upgrade packages supplied"
+        )
     await db.upgrades.update_one(
         {"_id": "catalog"},
-        {"$set": {"packages": cleaned, "updated_at": datetime.now(timezone.utc).isoformat()}},
+        {
+            "$set": {
+                "packages": cleaned,
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+            }
+        },
         upsert=True,
     )
     return cleaned
@@ -2729,8 +2849,11 @@ async def operations_create_job(
 ):
     try:
         job, created = await operations.create_job(
-            db, job_type=payload.job_type, payload=payload.payload,
-            actor=admin, idempotency_key=payload.idempotency_key,
+            db,
+            job_type=payload.job_type,
+            payload=payload.payload,
+            actor=admin,
+            idempotency_key=payload.idempotency_key,
         )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc))
@@ -2739,20 +2862,24 @@ async def operations_create_job(
 
 @api.get("/admin/operations/jobs")
 async def operations_list_jobs(
-    status: Optional[str] = None, limit: int = 100,
+    status: Optional[str] = None,
+    limit: int = 100,
     admin: dict = Depends(require_admin),
 ):
     if status and status not in {"queued", "leased", "completed", "failed"}:
         raise HTTPException(status_code=400, detail="Invalid job status")
-    rows = await db.operations_jobs.find(
-        {"status": status} if status else {}, {"_id": 0}
-    ).sort("created_at", -1).to_list(max(1, min(limit, 200)))
+    rows = (
+        await db.operations_jobs.find({"status": status} if status else {}, {"_id": 0})
+        .sort("created_at", -1)
+        .to_list(max(1, min(limit, 200)))
+    )
     return [operations._public(row, include_lease=False) for row in rows]
 
 
 @api.post("/admin/operations/jobs/{job_id}/claim")
 async def operations_claim_job(
-    job_id: str, payload: OperationsLeaseInput = OperationsLeaseInput(),
+    job_id: str,
+    payload: OperationsLeaseInput = OperationsLeaseInput(),
     admin: dict = Depends(require_admin),
 ):
     job = await operations.claim_job(
@@ -2765,12 +2892,17 @@ async def operations_claim_job(
 
 @api.post("/admin/operations/jobs/{job_id}/complete")
 async def operations_complete_job(
-    job_id: str, payload: OperationsFinishInput,
+    job_id: str,
+    payload: OperationsFinishInput,
     admin: dict = Depends(require_admin),
 ):
     job = await operations.finish_job(
-        db, job_id=job_id, lease_token=payload.lease_token, actor=admin,
-        success=True, result=payload.result,
+        db,
+        job_id=job_id,
+        lease_token=payload.lease_token,
+        actor=admin,
+        success=True,
+        result=payload.result,
     )
     if not job:
         raise HTTPException(status_code=409, detail="Invalid or expired job lease")
@@ -2779,14 +2911,20 @@ async def operations_complete_job(
 
 @api.post("/admin/operations/jobs/{job_id}/fail")
 async def operations_fail_job(
-    job_id: str, payload: OperationsFinishInput,
+    job_id: str,
+    payload: OperationsFinishInput,
     admin: dict = Depends(require_admin),
 ):
     if not payload.error:
         raise HTTPException(status_code=422, detail="error is required")
     job = await operations.finish_job(
-        db, job_id=job_id, lease_token=payload.lease_token, actor=admin,
-        success=False, result=payload.result, error=payload.error,
+        db,
+        job_id=job_id,
+        lease_token=payload.lease_token,
+        actor=admin,
+        success=False,
+        result=payload.result,
+        error=payload.error,
     )
     if not job:
         raise HTTPException(status_code=409, detail="Invalid or expired job lease")
@@ -2795,9 +2933,11 @@ async def operations_fail_job(
 
 @api.get("/admin/operations/audit")
 async def operations_audit(limit: int = 100, admin: dict = Depends(require_admin)):
-    rows = await db.operations_audit.find({}, {"_id": 0}).sort(
-        "created_at", -1
-    ).to_list(max(1, min(limit, 200)))
+    rows = (
+        await db.operations_audit.find({}, {"_id": 0})
+        .sort("created_at", -1)
+        .to_list(max(1, min(limit, 200)))
+    )
     return [operations._public(row) for row in rows]
 
 
@@ -2806,9 +2946,11 @@ async def george_media_status(admin: dict = Depends(require_admin)):
     active = await db.media_active.find_one(
         {"media_key": media_release.MEDIA_KEY}, {"_id": 0}
     )
-    releases = await db.media_releases.find(
-        {"media_key": media_release.MEDIA_KEY}, {"_id": 0}
-    ).sort("created_at", -1).to_list(100)
+    releases = (
+        await db.media_releases.find({"media_key": media_release.MEDIA_KEY}, {"_id": 0})
+        .sort("created_at", -1)
+        .to_list(100)
+    )
     return {
         "media_key": media_release.MEDIA_KEY,
         "active": media_release.public(active),
@@ -2829,29 +2971,44 @@ async def george_register_release(
         {"_id": 0},
     )
     if duplicate:
-        raise HTTPException(status_code=409, detail="That George version is already registered")
+        raise HTTPException(
+            status_code=409, detail="That George version is already registered"
+        )
     now = media_release.now_utc()
     doc = {
-        **metadata, "release_id": uuid.uuid4().hex, "status": "registered",
+        **metadata,
+        "release_id": uuid.uuid4().hex,
+        "status": "registered",
         "owner_confirmed": False,
         "checklist": {key: False for key in media_release.CHECKLIST_KEYS},
-        "created_by": admin.get("user_id"), "created_at": now, "updated_at": now,
+        "created_by": admin.get("user_id"),
+        "created_at": now,
+        "updated_at": now,
     }
     await db.media_releases.insert_one(doc)
     await operations.audit(
-        db, action="george_media_registered", actor=admin,
-        details={"release_id": doc["release_id"], "version": doc["version"], "sha256": doc["sha256"]},
+        db,
+        action="george_media_registered",
+        actor=admin,
+        details={
+            "release_id": doc["release_id"],
+            "version": doc["version"],
+            "sha256": doc["sha256"],
+        },
     )
     return media_release.public(doc)
 
 
 @api.post("/admin/media/george/releases/{release_id}/publish")
 async def george_publish_release(
-    release_id: str, payload: MediaPublishInput,
+    release_id: str,
+    payload: MediaPublishInput,
     admin: dict = Depends(require_admin),
 ):
     if payload.owner_confirmed is not True:
-        raise HTTPException(status_code=422, detail="Explicit owner confirmation is required")
+        raise HTTPException(
+            status_code=422, detail="Explicit owner confirmation is required"
+        )
     try:
         checklist = media_release.validate_checklist(payload.checklist)
     except ValueError as exc:
@@ -2862,38 +3019,67 @@ async def george_publish_release(
     if not release:
         raise HTTPException(status_code=404, detail="George release not found")
     if release.get("status") != "registered":
-        raise HTTPException(status_code=409, detail="Release is not publishable in its current state")
+        raise HTTPException(
+            status_code=409, detail="Release is not publishable in its current state"
+        )
     now = media_release.now_utc()
     current = await db.media_active.find_one(
         {"media_key": media_release.MEDIA_KEY}, {"_id": 0}
     )
     updated = await db.media_releases.find_one_and_update(
         {"release_id": release_id, "status": "registered"},
-        {"$set": {"status": "published", "owner_confirmed": True,
-                   "owner_confirmed_by": admin.get("user_id"), "checklist": checklist,
-                   "published_by": admin.get("user_id"), "published_at": now,
-                   "updated_at": now, "previous_active": current}},
-        projection={"_id": 0}, return_document=True,
+        {
+            "$set": {
+                "status": "published",
+                "owner_confirmed": True,
+                "owner_confirmed_by": admin.get("user_id"),
+                "checklist": checklist,
+                "published_by": admin.get("user_id"),
+                "published_at": now,
+                "updated_at": now,
+                "previous_active": current,
+            }
+        },
+        projection={"_id": 0},
+        return_document=True,
     )
     if not updated:
-        raise HTTPException(status_code=409, detail="Release was changed by another operator")
-    active = {key: updated[key] for key in (
-        "media_key", "release_id", "filename", "content_type", "size_bytes", "sha256", "version"
-    )}
+        raise HTTPException(
+            status_code=409, detail="Release was changed by another operator"
+        )
+    active = {
+        key: updated[key]
+        for key in (
+            "media_key",
+            "release_id",
+            "filename",
+            "content_type",
+            "size_bytes",
+            "sha256",
+            "version",
+        )
+    }
     active["activated_at"] = now
     await db.media_active.replace_one(
         {"media_key": media_release.MEDIA_KEY}, active, upsert=True
     )
     await operations.audit(
-        db, action="george_media_published", actor=admin,
-        details={"release_id": release_id, "version": updated["version"], "checklist": checklist},
+        db,
+        action="george_media_published",
+        actor=admin,
+        details={
+            "release_id": release_id,
+            "version": updated["version"],
+            "checklist": checklist,
+        },
     )
     return media_release.public(updated)
 
 
 @api.post("/admin/media/george/releases/{release_id}/rollback")
 async def george_rollback_release(
-    release_id: str, payload: MediaRollbackInput,
+    release_id: str,
+    payload: MediaRollbackInput,
     admin: dict = Depends(require_admin),
 ):
     release = await db.media_releases.find_one(
@@ -2905,7 +3091,9 @@ async def george_rollback_release(
     if not release:
         raise HTTPException(status_code=404, detail="George release not found")
     if not active or active.get("release_id") != release_id:
-        raise HTTPException(status_code=409, detail="That release is not currently active")
+        raise HTTPException(
+            status_code=409, detail="That release is not currently active"
+        )
     previous = release.get("previous_active")
     if previous:
         await db.media_active.replace_one(
@@ -2915,18 +3103,31 @@ async def george_rollback_release(
         await db.media_active.delete_one({"media_key": media_release.MEDIA_KEY})
     updated = await db.media_releases.find_one_and_update(
         {"release_id": release_id, "status": "published"},
-        {"$set": {"status": "rolled_back", "rollback_reason": payload.reason,
-                   "rolled_back_by": admin.get("user_id"),
-                   "rolled_back_at": media_release.now_utc(),
-                   "updated_at": media_release.now_utc()}},
-        projection={"_id": 0}, return_document=True,
+        {
+            "$set": {
+                "status": "rolled_back",
+                "rollback_reason": payload.reason,
+                "rolled_back_by": admin.get("user_id"),
+                "rolled_back_at": media_release.now_utc(),
+                "updated_at": media_release.now_utc(),
+            }
+        },
+        projection={"_id": 0},
+        return_document=True,
     )
     if not updated:
-        raise HTTPException(status_code=409, detail="Release was changed by another operator")
+        raise HTTPException(
+            status_code=409, detail="Release was changed by another operator"
+        )
     await operations.audit(
-        db, action="george_media_rolled_back", actor=admin,
-        details={"release_id": release_id, "reason": payload.reason,
-                 "restored_release_id": previous.get("release_id") if previous else None},
+        db,
+        action="george_media_rolled_back",
+        actor=admin,
+        details={
+            "release_id": release_id,
+            "reason": payload.reason,
+            "restored_release_id": previous.get("release_id") if previous else None,
+        },
     )
     return media_release.public(updated)
 
@@ -3001,7 +3202,12 @@ async def support_resolve(
     _check_hq_pin(request)
     res = await db.support_tickets.update_one(
         {"id": ticket_id},
-        {"$set": {"status": "resolved", "resolved_at": datetime.now(timezone.utc).isoformat()}},
+        {
+            "$set": {
+                "status": "resolved",
+                "resolved_at": datetime.now(timezone.utc).isoformat(),
+            }
+        },
     )
     if res.matched_count == 0:
         raise HTTPException(status_code=404, detail="Ticket not found")
@@ -3148,9 +3354,7 @@ async def _generate_unique_referral_code():
 
 async def _ensure_referral_code(user_id: str) -> str:
     code = await _generate_unique_referral_code()
-    await db.users.update_one(
-        {"user_id": user_id}, {"$set": {"referral_code": code}}
-    )
+    await db.users.update_one({"user_id": user_id}, {"$set": {"referral_code": code}})
     return code
 
 
@@ -3264,13 +3468,13 @@ async def _credit_if_paid(record):
             },
         )
         await _maybe_pay_referral(record["user_id"])
-        await _grant_wheel_spins_on_deposit(
-            record["user_id"], record["amount"] / 100.0
-        )
+        await _grant_wheel_spins_on_deposit(record["user_id"], record["amount"] / 100.0)
 
 
 @api.get("/payments/status/{session_id}")
-async def payment_status(session_id: str, request: Request, user: Optional[dict] = Depends(resolve_user)):
+async def payment_status(
+    session_id: str, request: Request, user: Optional[dict] = Depends(resolve_user)
+):
     query = {"session_id": session_id}
     if user:
         query["user_id"] = user["user_id"]
@@ -3396,7 +3600,11 @@ async def cashier_currencies():
         "max_withdraw_usd": round(cashier.MAX_WITHDRAW_USD_CENTS / 100.0, 2),
         "wagering_requirement_multiplier": cashier.WAGERING_REQUIREMENT_MULTIPLIER,
         "cashout_tiers": [
-            {"min_deposit": lo, "max_deposit": (hi if hi != float("inf") else None), "max_cashout": cap}
+            {
+                "min_deposit": lo,
+                "max_deposit": (hi if hi != float("inf") else None),
+                "max_cashout": cap,
+            }
             for lo, hi, cap in cashier.CASHOUT_TIERS
         ],
     }
@@ -3527,7 +3735,10 @@ async def cashier_deposit_crypto(
             detail=f"Maximum deposit is {cashier.MAX_DEPOSIT_AUD} AUD per transaction",
         )
     order_id = f"wow:{user['user_id']}:{uuid.uuid4().hex[:10]}"
-    ipn_url = f"{os.environ.get('FRONTEND_URL','').replace('http://','https://')}/api/webhooks/nowpayments"
+    ipn_url = (
+        f"{os.environ.get('FRONTEND_URL', '').replace('http://', 'https://')}"
+        "/api/webhooks/nowpayments"
+    )
     try:
         pay = await cashier.np_create_payment(
             payload.amount_usd, code, order_id, ipn_url
@@ -3608,9 +3819,7 @@ async def _credit_crypto_deposit(payment_id: str):
             {"user_id": t["user_id"], "payment_id": payment_id},
         )
         await _maybe_pay_referral(t["user_id"])
-        await _grant_wheel_spins_on_deposit(
-            t["user_id"], t["amount_usd_cents"] / 100.0
-        )
+        await _grant_wheel_spins_on_deposit(t["user_id"], t["amount_usd_cents"] / 100.0)
 
 
 @api.post("/webhooks/nowpayments")
@@ -3876,13 +4085,19 @@ async def admin_cashier_withdrawal_action(
             and current_bankroll < 0
             and available <= 0
         ):
-            raise HTTPException(status_code=503, detail="Payout coverage is currently below the protected reserve")
+            raise HTTPException(
+                status_code=503,
+                detail="Payout coverage is currently below the protected reserve",
+            )
         await db.cashier_transactions.update_one(
             {"id": txn_id}, {"$set": {"status": "completed", "updated_at": now_iso}}
         )
         await db.house_bankroll.update_one(
             {"_id": "house"},
-            {"$inc": {"pending_payout_cents": -int(t["amount_usd_cents"])}, "$set": {"updated_at": now_iso}},
+            {
+                "$inc": {"pending_payout_cents": -int(t["amount_usd_cents"])},
+                "$set": {"updated_at": now_iso},
+            },
             upsert=True,
         )
         await record_house_cashflow(
@@ -3908,7 +4123,10 @@ async def admin_cashier_withdrawal_action(
     )
     await db.house_bankroll.update_one(
         {"_id": "house"},
-        {"$inc": {"pending_payout_cents": -int(t["amount_usd_cents"])}, "$set": {"updated_at": now_iso}},
+        {
+            "$inc": {"pending_payout_cents": -int(t["amount_usd_cents"])},
+            "$set": {"updated_at": now_iso},
+        },
         upsert=True,
     )
     await record_transaction(
@@ -3937,7 +4155,11 @@ async def _safe_create_index(collection, field_name, **kwargs):
     try:
         await collection.create_index(field_name, **kwargs)
     except OperationFailure as exc:
-        if exc.code == 13 or "not authorized" in str(exc).lower() or "createindex" in str(exc).lower():
+        if (
+            exc.code == 13
+            or "not authorized" in str(exc).lower()
+            or "createindex" in str(exc).lower()
+        ):
             logger.warning(
                 "Skipping Mongo index creation for %s on %s because the DB user is not authorized: %s",
                 getattr(collection, "name", type(collection).__name__),

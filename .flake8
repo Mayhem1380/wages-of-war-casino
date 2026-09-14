@@ -1,3 +1,9 @@
 [flake8]
 max-line-length = 120
 exclude = .git,__pycache__,tmp_small_build,frontend,build
+extend-ignore = E203
+per-file-ignores =
+    backend/server.py:E402
+    backend/tests/test_compose_env.py:E402
+    backend/tests/test_media_release.py:E402
+    backend/tests/test_operations.py:E402
