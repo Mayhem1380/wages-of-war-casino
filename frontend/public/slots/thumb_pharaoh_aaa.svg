@@ -1,19 +1,60 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
   <defs>
-    <linearGradient id="g" x1="0" x2="1">
-      <stop offset="0" stop-color="#2b1607" />
-      <stop offset="1" stop-color="#4b2a0f" />
+    <linearGradient id="bg" x1="0" x2="1">
+      <stop offset="0" stop-color="#1a110b"/>
+      <stop offset="0.5" stop-color="#3a210d"/>
+      <stop offset="1" stop-color="#120b06"/>
     </linearGradient>
-    <filter id="grain"><feTurbulence baseFrequency="0.8" numOctaves="2" stitchTiles="stitch" result="t"/><feColorMatrix in="t" type="saturate" values="0"/><feBlend in2="SourceGraphic" mode="overlay"/></filter>
+    <radialGradient id="glow" cx="50%" cy="40%" r="55%">
+      <stop offset="0" stop-color="#f8d57a" stop-opacity="0.85"/>
+      <stop offset="0.35" stop-color="#dba63f" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" x2="1">
+      <stop offset="0" stop-color="#fff2c7"/>
+      <stop offset="0.17" stop-color="#f9d976"/>
+      <stop offset="0.5" stop-color="#d8a12f"/>
+      <stop offset="0.8" stop-color="#f1d069"/>
+      <stop offset="1" stop-color="#7a4d16"/>
+    </linearGradient>
+    <linearGradient id="shadow" x1="0" x2="1">
+      <stop offset="0" stop-color="#2b1705"/>
+      <stop offset="1" stop-color="#0d0907"/>
+    </linearGradient>
   </defs>
-  <rect width="100%" height="100%" fill="url(#g)"/>
-  <g transform="translate(120,80)">
-    <circle cx="1200" cy="420" r="420" fill="rgba(255,200,120,0.06)" />
-    <rect x="0" y="120" width="1360" height="560" rx="28" fill="rgba(0,0,0,0.28)" />
-    <g transform="translate(80,40)">
-      <path d="M260 40 C380 -10 820 -10 980 40 C1150 90 1240 220 1180 360 C1120 500 820 520 520 520 C220 520 120 400 120 260 C120 160 180 80 260 40 Z" fill="#d4af37" opacity="0.9" filter="url(#grain)"/>
-      <text x="420" y="360" font-family="Bebas Neue, sans-serif" font-size="220" fill="#1a0b00">PHARAOH'S</text>
-      <text x="420" y="500" font-family="Barlow Condensed, sans-serif" font-size="120" fill="#fff8e6">ARSENAL</text>
-    </g>
+
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <rect width="1600" height="900" fill="url(#glow)"/>
+
+  <g opacity="0.26">
+    <circle cx="1110" cy="410" r="320" fill="#f5c65e"/>
+    <circle cx="1110" cy="410" r="220" fill="#0e0a07"/>
+  </g>
+
+  <g transform="translate(180 90)">
+    <path d="M399 676C336 622 326 568 344 526C358 492 392 462 440 448C471 438 514 434 560 430C591 427 616 420 635 392C657 360 674 311 693 285C725 242 820 233 875 253C920 269 947 300 966 334C987 373 1000 430 998 470C996 524 962 578 916 618L860 676H399Z" fill="url(#shadow)" opacity="0.9"/>
+
+    <path d="M470 606C445 552 448 492 469 447C490 400 537 361 591 351C622 345 657 346 690 352C751 363 791 390 816 435C840 478 844 546 819 590C795 632 752 671 702 687C653 703 590 698 548 678C517 662 490 634 470 606Z" fill="url(#gold)"/>
+
+    <path d="M566 294C603 277 641 273 675 281C721 292 754 327 760 371C765 410 744 447 706 468C671 488 626 485 592 467C553 449 528 410 527 370C525 338 538 313 566 294Z" fill="#f7d57d" opacity="0.88"/>
+
+    <path d="M476 373C437 344 401 335 367 337C317 340 274 363 258 405C242 446 253 495 284 525C323 562 387 567 425 542C455 522 469 487 470 448C471 425 474 401 476 373Z" fill="url(#gold)"/>
+    <path d="M844 422C892 392 937 383 983 388C1028 393 1066 415 1081 456C1097 500 1091 551 1059 585C1022 624 956 637 907 620C874 607 847 580 834 543C822 508 822 466 844 422Z" fill="url(#gold)"/>
+
+    <path d="M534 244L548 393L489 498L466 405L495 245L534 244Z" fill="#f3d174"/>
+    <path d="M609 214L639 399L602 514L575 412L579 228L609 214Z" fill="#efc85d"/>
+    <path d="M684 213L725 391L713 522L674 417L660 229L684 213Z" fill="#f7d57d"/>
+    <path d="M754 241L790 391L818 520L783 411L765 245L754 241Z" fill="#e5b64a"/>
+
+    <path d="M511 490C558 509 601 522 650 526C698 530 747 525 791 503" stroke="#fff7da" stroke-width="18" stroke-linecap="round" opacity="0.85"/>
+    <path d="M512 562C533 596 574 624 620 635C676 648 731 643 784 613" stroke="#f8d57a" stroke-width="12" stroke-linecap="round" opacity="0.85"/>
+
+    <path d="M313 490C216 533 166 615 175 686C180 729 206 757 244 769C277 780 314 770 348 741C390 706 421 654 436 606L313 490Z" fill="#d6a03c" opacity="0.8"/>
+    <path d="M1042 522C1116 528 1170 573 1197 644C1217 697 1215 748 1192 780C1168 812 1124 821 1087 810C1049 800 1018 776 991 737C964 698 948 660 931 611L1042 522Z" fill="#d6a03c" opacity="0.78"/>
+  </g>
+
+  <g fill="#f7d57a" font-family="Impact, Arial Black, sans-serif" letter-spacing="10">
+    <text x="160" y="190" font-size="108">PHARAOH</text>
+    <text x="170" y="290" font-size="130">HAND</text>
   </g>
 </svg>

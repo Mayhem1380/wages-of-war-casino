@@ -1,17 +1,48 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
   <defs>
-    <linearGradient id="goldgrad" x1="0" x2="1">
-      <stop offset="0" stop-color="#4b2a12" />
-      <stop offset="1" stop-color="#2a0a06" />
+    <linearGradient id="bg" x1="0" x2="1">
+      <stop offset="0" stop-color="#2a1308"/>
+      <stop offset="0.55" stop-color="#593510"/>
+      <stop offset="1" stop-color="#120b0a"/>
+    </linearGradient>
+    <radialGradient id="halo" cx="60%" cy="30%" r="60%">
+      <stop offset="0" stop-color="#ffe4a1" stop-opacity="0.9"/>
+      <stop offset="0.25" stop-color="#ffc863" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" x2="1">
+      <stop offset="0" stop-color="#fff0b0"/>
+      <stop offset="0.18" stop-color="#f5d06c"/>
+      <stop offset="0.48" stop-color="#d7a23a"/>
+      <stop offset="0.8" stop-color="#ffe39d"/>
+      <stop offset="1" stop-color="#7a4a14"/>
     </linearGradient>
   </defs>
-  <rect width="100%" height="100%" fill="url(#goldgrad)"/>
-  <g transform="translate(100,60)">
-    <rect x="20" y="100" width="1460" height="620" rx="30" fill="rgba(0,0,0,0.28)" />
-    <g transform="translate(120,120)">
-      <rect x="0" y="0" width="1120" height="420" rx="18" fill="#140804" opacity="0.6" />
-      <text x="40" y="220" font-family="Bebas Neue, sans-serif" font-size="200" fill="#ffc04a">GOLDEN</text>
-      <text x="40" y="360" font-family="Barlow Condensed, sans-serif" font-size="110" fill="#ffd7a8">DYNASTY</text>
-    </g>
+
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <rect width="1600" height="900" fill="url(#halo)"/>
+
+  <g transform="translate(170 100)">
+    <path d="M395 666C341 606 329 551 348 505C367 459 410 402 468 387C523 372 574 382 621 395C671 409 718 442 749 490C778 534 789 593 761 640C730 693 673 723 611 734C531 748 451 722 395 666Z" fill="#190d09" opacity="0.7"/>
+
+    <path d="M439 618C404 563 407 505 435 456C463 406 516 360 573 349C610 342 646 345 680 358C742 381 785 433 797 495C809 558 787 620 736 665C687 707 621 727 563 718C511 709 474 676 439 618Z" fill="url(#gold)"/>
+
+    <path d="M544 263C596 242 650 241 695 257C744 274 778 315 785 366C790 404 774 441 738 471C706 498 660 509 616 503C567 497 519 471 499 424C479 377 495 310 544 263Z" fill="#f7d67c" opacity="0.9"/>
+
+    <path d="M436 396C393 366 345 356 300 359C257 362 218 382 193 418C169 452 167 500 194 536C225 580 286 598 335 587C381 576 417 544 437 500C454 464 454 424 436 396Z" fill="url(#gold)"/>
+    <path d="M850 418C907 389 965 383 1013 395C1057 406 1097 433 1116 473C1134 512 1134 565 1106 603C1073 647 1014 675 959 675C905 675 854 647 824 604C794 560 793 470 850 418Z" fill="url(#gold)"/>
+
+    <path d="M533 230L549 392L492 499L470 406L495 240L533 230Z" fill="#f4d373"/>
+    <path d="M611 205L655 394L620 516L583 412L585 224L611 205Z" fill="#efc96e"/>
+    <path d="M689 205L731 392L718 522L679 416L667 223L689 205Z" fill="#f9dc91"/>
+    <path d="M761 239L799 394L822 519L789 412L772 251L761 239Z" fill="#e8b551"/>
+
+    <path d="M513 497C562 520 615 533 665 534C715 535 766 521 812 495" stroke="#fff3d5" stroke-width="18" stroke-linecap="round" opacity="0.9"/>
+    <path d="M524 573C549 604 590 628 636 640C685 653 737 651 787 628" stroke="#f7d97a" stroke-width="12" stroke-linecap="round" opacity="0.86"/>
+  </g>
+
+  <g fill="#f8d779" font-family="Impact, Arial Black, sans-serif" letter-spacing="10">
+    <text x="155" y="190" font-size="104">DYNASTY</text>
+    <text x="165" y="286" font-size="128">HAND</text>
   </g>
 </svg>
