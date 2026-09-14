@@ -1,0 +1,110 @@
+<svg width="1229" height="848" viewBox="0 0 1229 848" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="scopeCore" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(611 424) rotate(90) scale(219)">
+      <stop stop-color="#6DFF7C"/>
+      <stop offset="0.24" stop-color="#38BF4E"/>
+      <stop offset="0.54" stop-color="#185F2D"/>
+      <stop offset="0.82" stop-color="#0B2714"/>
+      <stop offset="1" stop-color="#06130C"/>
+    </radialGradient>
+    <radialGradient id="scopeFog" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(611 436) rotate(90) scale(228 205)">
+      <stop stop-color="#84FF8D" stop-opacity="0.42"/>
+      <stop offset="1" stop-color="#84FF8D" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="outerGold" x1="240" y1="164" x2="976" y2="689" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF6D8"/>
+      <stop offset="0.15" stop-color="#F1D18C"/>
+      <stop offset="0.38" stop-color="#D1993B"/>
+      <stop offset="0.66" stop-color="#925518"/>
+      <stop offset="1" stop-color="#412206"/>
+    </linearGradient>
+    <linearGradient id="innerGold" x1="322" y1="226" x2="889" y2="625" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF2C7"/>
+      <stop offset="0.32" stop-color="#E0AF59"/>
+      <stop offset="0.64" stop-color="#985816"/>
+      <stop offset="1" stop-color="#3D2006"/>
+    </linearGradient>
+    <linearGradient id="rimShadow" x1="334" y1="208" x2="880" y2="629" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5A310C"/>
+      <stop offset="1" stop-color="#0D0602"/>
+    </linearGradient>
+    <filter id="shadow" x="12" y="92" width="1205" height="645" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#000000" flood-opacity="0.55"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#shadow)">
+    <circle cx="611" cy="424" r="289" fill="url(#rimShadow)"/>
+    <circle cx="611" cy="424" r="278" fill="url(#outerGold)"/>
+    <circle cx="611" cy="424" r="248" fill="url(#rimShadow)"/>
+    <circle cx="611" cy="424" r="238" fill="url(#innerGold)"/>
+    <circle cx="611" cy="424" r="221" fill="url(#scopeCore)"/>
+    <circle cx="611" cy="424" r="221" fill="url(#scopeFog)"/>
+
+    <g opacity="0.95" stroke="#FF3A2B" stroke-width="5" stroke-linecap="round">
+      <path d="M611 203V326"/>
+      <path d="M611 523V646"/>
+      <path d="M390 424H514"/>
+      <path d="M708 424H832"/>
+      <path d="M611 292V554"/>
+      <path d="M478 424H744"/>
+      <path d="M552 424H669"/>
+      <path d="M611 358V390"/>
+      <path d="M611 458V490"/>
+      <circle cx="611" cy="424" r="14"/>
+    </g>
+
+    <g fill="#09120D" opacity="0.95">
+      <ellipse cx="612" cy="327" rx="35" ry="41"/>
+      <path d="M567 371C567 352.774 581.774 338 600 338H624C642.226 338 657 352.774 657 371V552H567V371Z"/>
+      <rect x="547" y="386" width="26" height="141" rx="13" transform="rotate(8 547 386)"/>
+      <rect x="653" y="384" width="28" height="168" rx="14" transform="rotate(-11 653 384)"/>
+      <rect x="579" y="544" width="28" height="134" rx="14" transform="rotate(5 579 544)"/>
+      <rect x="618" y="544" width="28" height="134" rx="14" transform="rotate(-5 618 544)"/>
+    </g>
+
+    <rect x="710" y="261" width="72" height="34" rx="6" fill="#95FF9D" opacity="0.45"/>
+
+    <g fill="#8D5A1D">
+      <circle cx="611" cy="137" r="9"/>
+      <circle cx="611" cy="711" r="9"/>
+      <circle cx="324" cy="424" r="9"/>
+      <circle cx="898" cy="424" r="9"/>
+      <circle cx="408" cy="171" r="9"/>
+      <circle cx="814" cy="171" r="9"/>
+      <circle cx="408" cy="677" r="9"/>
+      <circle cx="814" cy="677" r="9"/>
+      <circle cx="205" cy="289" r="9"/>
+      <circle cx="1017" cy="289" r="9"/>
+      <circle cx="205" cy="559" r="9"/>
+      <circle cx="1017" cy="559" r="9"/>
+      <circle cx="284" cy="211" r="9"/>
+      <circle cx="938" cy="211" r="9"/>
+      <circle cx="284" cy="637" r="9"/>
+      <circle cx="938" cy="637" r="9"/>
+    </g>
+    <g fill="url(#outerGold)">
+      <circle cx="611" cy="137" r="7"/>
+      <circle cx="611" cy="711" r="7"/>
+      <circle cx="324" cy="424" r="7"/>
+      <circle cx="898" cy="424" r="7"/>
+      <circle cx="408" cy="171" r="7"/>
+      <circle cx="814" cy="171" r="7"/>
+      <circle cx="408" cy="677" r="7"/>
+      <circle cx="814" cy="677" r="7"/>
+      <circle cx="205" cy="289" r="7"/>
+      <circle cx="1017" cy="289" r="7"/>
+      <circle cx="205" cy="559" r="7"/>
+      <circle cx="1017" cy="559" r="7"/>
+      <circle cx="284" cy="211" r="7"/>
+      <circle cx="938" cy="211" r="7"/>
+      <circle cx="284" cy="637" r="7"/>
+      <circle cx="938" cy="637" r="7"/>
+    </g>
+
+    <g>
+      <text x="40" y="557" fill="#231105" stroke="#231105" stroke-width="24" style="font: italic 154px 'Brush Script MT', 'Snell Roundhand', 'URW Chancery L', cursive;">Night Ops Edition</text>
+      <text x="40" y="557" fill="url(#outerGold)" stroke="#F9E2A7" stroke-width="5" style="font: italic 154px 'Brush Script MT', 'Snell Roundhand', 'URW Chancery L', cursive;">Night Ops Edition</text>
+    </g>
+  </g>
+</svg>

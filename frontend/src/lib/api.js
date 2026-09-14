@@ -52,10 +52,7 @@ function request(configOrUrl, config) {
       : { ...(configOrUrl || {}) };
 
   const normalizedConfig = normalizeRequestConfig(requestConfig);
-  if (
-    normalizedConfig.method !== "get" ||
-    !canDedupeGet(normalizedConfig)
-  ) {
+  if (normalizedConfig.method !== "get" || !canDedupeGet(normalizedConfig)) {
     return typeof configOrUrl === "string"
       ? baseRequest({ ...(config || {}), url: configOrUrl })
       : baseRequest(configOrUrl);

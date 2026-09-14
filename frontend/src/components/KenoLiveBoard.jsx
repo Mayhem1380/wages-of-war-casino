@@ -104,7 +104,10 @@ export function KenoLiveBoard({ picks = [] }) {
               DRAWING… {revealCount}/{DRAW_SIZE}
             </span>
           ) : (
-            <span data-testid="keno-live-countdown" className="text-gold tracking-widest">
+            <span
+              data-testid="keno-live-countdown"
+              className="text-gold tracking-widest"
+            >
               NEXT DRAW {mins}:{secs}
             </span>
           )}

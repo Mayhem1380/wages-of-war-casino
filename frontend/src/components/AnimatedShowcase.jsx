@@ -216,8 +216,9 @@ function FloatingCoins() {
   );
 }
 
-export function AnimatedShowcase({ variant = "promo", testId }) {
-  const slides = SLIDES[variant] || SLIDES.promo;
+export function AnimatedShowcase({ variant = "promo", testId, slides: customSlides }) {
+  const slides =
+    customSlides && customSlides.length ? customSlides : (SLIDES[variant] || SLIDES.promo);
   const [i, setI] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(false);
 

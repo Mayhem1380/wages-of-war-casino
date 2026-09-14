@@ -1,3 +1,4 @@
+import importlib
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -6,7 +7,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-import operations
+operations = importlib.import_module("operations")
 
 
 def test_job_type_is_a_safe_operation_identifier():

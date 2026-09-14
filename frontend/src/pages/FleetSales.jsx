@@ -26,24 +26,45 @@ function GiveawayCountdown() {
   const mins = Math.floor((s % 3600) / 60);
   const secs = s % 60;
   const near = diff > 0 && diff < 7 * 86400 * 1000;
-  const drawDate = new Date(GIVEAWAY_END).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+  const drawDate = new Date(GIVEAWAY_END).toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
   const cell = (v, l) => (
     <div className="flex flex-col items-center">
-      <span className="font-display text-3xl sm:text-4xl text-gold leading-none tabular-nums">{String(v).padStart(2, "0")}</span>
-      <span className="font-mono text-[9px] tracking-[0.3em] text-muted-foreground mt-1">{l}</span>
+      <span className="font-display text-3xl sm:text-4xl text-gold leading-none tabular-nums">
+        {String(v).padStart(2, "0")}
+      </span>
+      <span className="font-mono text-[9px] tracking-[0.3em] text-muted-foreground mt-1">
+        {l}
+      </span>
     </div>
   );
   return (
-    <div data-testid="giveaway-countdown" className={`mt-5 border bg-black/50 p-4 ${near ? "border-alert animate-pulse" : "border-gold/30"}`}>
-      <p className={`font-mono text-[10px] tracking-[0.4em] animate-flicker mb-3 ${near ? "text-alert" : "text-nvg"}`}>// DRAW CLOSES IN</p>
+    <div
+      data-testid="giveaway-countdown"
+      className={`mt-5 border bg-black/50 p-4 ${near ? "border-alert animate-pulse" : "border-gold/30"}`}
+    >
+      <p
+        className={`font-mono text-[10px] tracking-[0.4em] animate-flicker mb-3 ${near ? "text-alert" : "text-nvg"}`}
+      >
+        // DRAW CLOSES IN
+      </p>
       <div className="flex items-center gap-3 sm:gap-5">
-        {cell(months, "MONTHS")}<span className="text-gold/40 text-2xl">:</span>
-        {cell(days, "DAYS")}<span className="text-gold/40 text-2xl">:</span>
-        {cell(hrs, "HRS")}<span className="text-gold/40 text-2xl">:</span>
-        {cell(mins, "MIN")}<span className="text-gold/40 text-2xl">:</span>
+        {cell(months, "MONTHS")}
+        <span className="text-gold/40 text-2xl">:</span>
+        {cell(days, "DAYS")}
+        <span className="text-gold/40 text-2xl">:</span>
+        {cell(hrs, "HRS")}
+        <span className="text-gold/40 text-2xl">:</span>
+        {cell(mins, "MIN")}
+        <span className="text-gold/40 text-2xl">:</span>
         {cell(secs, "SEC")}
       </div>
-      <p className="font-mono text-[10px] tracking-[0.25em] text-muted-foreground mt-3">DRAW DATE — {drawDate}</p>
+      <p className="font-mono text-[10px] tracking-[0.25em] text-muted-foreground mt-3">
+        DRAW DATE — {drawDate}
+      </p>
     </div>
   );
 }
@@ -196,8 +217,8 @@ export default function FleetSales() {
           </h1>
           <p className="text-muted-foreground mt-4 max-w-xl leading-relaxed">
             Nexus Studio Master builds elite, ready-to-deploy gaming platforms
-            for operators worldwide. Wages of War Casino is our flagship;
-            your fleet starts here.
+            for operators worldwide. Wages of War Casino is our flagship; your
+            fleet starts here.
           </p>
           <a
             href="#enquiry"
@@ -234,9 +255,18 @@ export default function FleetSales() {
             the audio-visual polish that makes every launch feel significant.
           </p>
           <div className="hq-stat-grid mt-6">
-            <div className="hq-stat-card"><div className="hq-stat-value">146</div><div className="hq-stat-label">Game worlds</div></div>
-            <div className="hq-stat-card"><div className="hq-stat-value">24/7</div><div className="hq-stat-label">Ops support</div></div>
-            <div className="hq-stat-card"><div className="hq-stat-value">1</div><div className="hq-stat-label">Master system</div></div>
+            <div className="hq-stat-card">
+              <div className="hq-stat-value">146</div>
+              <div className="hq-stat-label">Game worlds</div>
+            </div>
+            <div className="hq-stat-card">
+              <div className="hq-stat-value">24/7</div>
+              <div className="hq-stat-label">Ops support</div>
+            </div>
+            <div className="hq-stat-card">
+              <div className="hq-stat-value">1</div>
+              <div className="hq-stat-label">Master system</div>
+            </div>
           </div>
         </div>
       </section>
@@ -355,7 +385,7 @@ export default function FleetSales() {
                   src={p.img}
                   alt={p.name}
                   className="w-20 h-14 object-cover rounded-sm border border-gold/30 shrink-0 shadow-[0_2px_10px_rgba(0,0,0,0.6)]"
-                  data-testid={`fleet-ship-${p.name.toLowerCase().replace(/\s+/g, '-')}`}
+                  data-testid={`fleet-ship-${p.name.toLowerCase().replace(/\s+/g, "-")}`}
                 />
                 <div className="min-w-0 flex-1">
                   <div className="font-stencil tracking-wide text-foreground uppercase text-sm truncate">

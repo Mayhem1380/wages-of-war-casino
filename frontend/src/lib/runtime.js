@@ -36,6 +36,13 @@ function normalizePath(path) {
   return clean === "/" ? "" : clean;
 }
 
+function isPreviewHost(hostname) {
+  return (
+    hostname.endsWith(".preview.emergentagent.com") ||
+    hostname.endsWith(".emergent.host")
+  );
+}
+
 function inferBasePathFromLocation(pathname) {
   const cleanPath = trimTrailingSlash(pathname || "") || "/";
   if (cleanPath === "/") return "";
@@ -87,16 +94,31 @@ export function getBackendOriginUrl() {
   const explicit = (process.env.REACT_APP_BACKEND_URL || "").trim();
   if (explicit) {
     try {
-      const explicitOrigin = new URL(explicit).origin;
+      const explicitUrl = new URL(explicit);
+      const explicitOrigin = explicitUrl.origin;
       if (
         typeof window !== "undefined" &&
-        window.location.hostname.endsWith(".preview.emergentagent.com") &&
+        explicitUrl.hostname === "your-backend-host.example.com"
+      ) {
+        return window.location.origin;
+      }
+      if (
+        typeof window !== "undefined" &&
+        isPreviewHost(explicitUrl.hostname) &&
+        !isPreviewHost(window.location.hostname)
+      ) {
+        return window.location.origin;
+      }
+      if (
+        typeof window !== "undefined" &&
+        isPreviewHost(window.location.hostname) &&
         explicitOrigin !== window.location.origin
       ) {
         return window.location.origin;
       }
     } catch (error) {
-      // Ignore malformed values and fall through to the current origin below.
+      console.warn("Ignoring malformed REACT_APP_BACKEND_URL", error);
+      return trimTrailingSlash(explicit);
     }
     return trimTrailingSlash(explicit);
   }

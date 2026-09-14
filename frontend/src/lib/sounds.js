@@ -151,6 +151,18 @@ function coinVoice(start = 0, base = 1180, gain = 0.26) {
   });
 }
 
+function resolveProfile(profile = {}) {
+  return {
+    texture: profile.texture || "sawtooth",
+    sparkle: profile.sparkle || "triangle",
+    baseFreq: profile.baseFreq || 150,
+    accentFreq: profile.accentFreq || 620,
+    shimmerFreq: profile.shimmerFreq || 1180,
+    gain: profile.gain || 0.14,
+    reverb: profile.reverb || 0.35,
+  };
+}
+
 const CHORD = [523, 659, 784, 1046, 1318, 1568];
 function arp(
   notes,
@@ -170,72 +182,125 @@ export const sfx = {
   prime: () => ensure(),
   click: () => tone({ freq: 620, dur: 0.04, type: "square", gain: 0.15 }),
 
-  spin: () => {
-    tone({ freq: 150, dur: 0.55, type: "sawtooth", gain: 0.14, glideTo: 480 });
-    tone({ freq: 90, dur: 0.55, type: "square", gain: 0.06, glideTo: 240 });
+  spin: (profile) => {
+    const p = resolveProfile(profile);
+    tone({
+      freq: p.baseFreq,
+      dur: 0.55,
+      type: p.texture,
+      gain: p.gain,
+      glideTo: p.accentFreq,
+      send: p.reverb,
+    });
+    tone({
+      freq: Math.max(60, p.baseFreq - 60),
+      dur: 0.55,
+      type: "square",
+      gain: Math.max(0.05, p.gain * 0.45),
+      glideTo: Math.max(120, p.accentFreq * 0.5),
+    });
     noiseBurst({ dur: 0.55, gain: 0.05, hp: 1200, lp: 6000 });
   },
-  reelStop: () => {
-    tone({ freq: 220, dur: 0.05, type: "square", gain: 0.2 });
-    tone({ freq: 110, dur: 0.07, type: "sine", gain: 0.16 });
+  reelStop: (profile) => {
+    const p = resolveProfile(profile);
+    tone({ freq: p.baseFreq + 70, dur: 0.05, type: "square", gain: 0.2 });
+    tone({
+      freq: Math.max(90, p.baseFreq - 10),
+      dur: 0.07,
+      type: "sine",
+      gain: 0.16,
+    });
     noiseBurst({ dur: 0.05, gain: 0.12, hp: 1500 });
   },
 
-  win: () => {
-    arp(CHORD.slice(0, 3), 0.07, 0.16, 0.26, "triangle", 0.4);
+  win: (profile) => {
+    const p = resolveProfile(profile);
+    arp(CHORD.slice(0, 3), 0.07, 0.16, 0.26, p.sparkle, p.reverb);
     tone({
-      freq: 1568,
+      freq: p.shimmerFreq,
       dur: 0.5,
       type: "sine",
       gain: 0.08,
       start: 0.22,
-      send: 0.6,
+      send: Math.min(0.7, p.reverb + 0.1),
     });
   },
 
-  bigWin: () => {
-    arp(CHORD, 0.09, 0.22, 0.3, "triangle", 0.45);
+  bigWin: (profile) => {
+    const p = resolveProfile(profile);
+    arp(CHORD, 0.09, 0.22, 0.3, p.sparkle, Math.min(0.65, p.reverb + 0.1));
     tone({
-      freq: 130.8,
+      freq: Math.max(90, p.baseFreq * 0.88),
       dur: 0.9,
-      type: "sawtooth",
+      type: p.texture,
       gain: 0.12,
       start: 0,
       send: 0.3,
     });
     tone({
-      freq: 261.6,
+      freq: Math.max(140, p.baseFreq * 1.75),
       dur: 0.9,
-      type: "sawtooth",
+      type: p.texture,
       gain: 0.1,
       start: 0,
       send: 0.3,
     });
     noiseBurst({ dur: 0.5, gain: 0.06, start: 0.15, hp: 2500 });
-    for (let i = 0; i < 5; i++) coinVoice(0.4 + i * 0.06, 1200 + i * 60, 0.16);
+    for (let i = 0; i < 5; i++)
+      coinVoice(0.4 + i * 0.06, p.shimmerFreq + i * 40, 0.16);
   },
 
-  jackpot: () => {
+  jackpot: (profile) => {
+    const p = resolveProfile(profile);
     arp(
       [523, 659, 784, 1046, 1318, 1568, 2093],
       0.08,
       0.26,
       0.3,
-      "triangle",
-      0.5,
+      p.sparkle,
+      Math.min(0.7, p.reverb + 0.15),
     );
-    tone({ freq: 65.4, dur: 1.4, type: "sawtooth", gain: 0.14, send: 0.35 });
-    tone({ freq: 130.8, dur: 1.4, type: "square", gain: 0.08, send: 0.35 });
-    tone({ freq: 196, dur: 1.4, type: "sawtooth", gain: 0.08, send: 0.35 });
+    tone({
+      freq: Math.max(65.4, p.baseFreq * 0.54),
+      dur: 1.4,
+      type: p.texture,
+      gain: 0.14,
+      send: 0.35,
+    });
+    tone({
+      freq: Math.max(130.8, p.baseFreq),
+      dur: 1.4,
+      type: "square",
+      gain: 0.08,
+      send: 0.35,
+    });
+    tone({
+      freq: Math.max(196, p.baseFreq * 1.3),
+      dur: 1.4,
+      type: p.texture,
+      gain: 0.08,
+      send: 0.35,
+    });
     noiseBurst({ dur: 1.0, gain: 0.08, start: 0.2, hp: 3000 });
     for (let i = 0; i < 12; i++)
-      coinVoice(0.5 + i * 0.05, 1100 + (i % 5) * 90, 0.14);
+      coinVoice(0.5 + i * 0.05, p.shimmerFreq + (i % 5) * 70, 0.14);
   },
 
-  lose: () =>
-    tone({ freq: 200, dur: 0.25, type: "sawtooth", gain: 0.18, glideTo: 90 }),
+  lose: (profile) => {
+    const p = resolveProfile(profile);
+    tone({
+      freq: Math.max(160, p.baseFreq + 50),
+      dur: 0.25,
+      type: p.texture,
+      gain: 0.18,
+      glideTo: Math.max(80, p.baseFreq * 0.6),
+    });
+  },
 
-  coin: () => coinVoice(0, 1200, 0.28),
+  coin: (profile) => {
+    const p = resolveProfile(profile);
+    coinVoice(0, p.shimmerFreq, 0.28);
+  },
 
   coinLock: (level = 0) => {
     tone({ freq: 300 + level * 40, dur: 0.08, type: "square", gain: 0.2 });
@@ -243,18 +308,25 @@ export const sfx = {
     noiseBurst({ dur: 0.12, gain: 0.06, hp: 1800 });
   },
 
-  scatter: () => {
+  scatter: (profile) => {
+    const p = resolveProfile(profile);
     tone({
-      freq: 300,
+      freq: Math.max(240, p.baseFreq * 1.5),
       dur: 0.75,
-      type: "sawtooth",
+      type: p.texture,
       gain: 0.22,
-      glideTo: 1500,
-      send: 0.4,
+      glideTo: p.shimmerFreq,
+      send: Math.min(0.7, p.reverb + 0.1),
     });
-    tone({ freq: 150, dur: 0.75, type: "square", gain: 0.1, glideTo: 750 });
+    tone({
+      freq: Math.max(120, p.baseFreq),
+      dur: 0.75,
+      type: "square",
+      gain: 0.1,
+      glideTo: Math.max(500, p.accentFreq),
+    });
     noiseBurst({ dur: 0.75, gain: 0.07, hp: 900 });
-    arp(CHORD.slice(2), 0.1, 0.2, 0.2, "triangle", 0.5, 0.5);
+    arp(CHORD.slice(2), 0.1, 0.2, 0.2, p.sparkle, Math.min(0.7, p.reverb + 0.15), 0.5);
   },
 
   holdStart: () => {
@@ -360,6 +432,13 @@ export const sfx = {
   // Soft radar-blip used by the digital live feed (draws/winners ticker).
   liveTicker: () => {
     tone({ freq: 1180, dur: 0.05, type: "sine", gain: 0.1, send: 0.5 });
-    tone({ freq: 1180, dur: 0.05, type: "sine", gain: 0.06, start: 0.06, send: 0.5 });
+    tone({
+      freq: 1180,
+      dur: 0.05,
+      type: "sine",
+      gain: 0.06,
+      start: 0.06,
+      send: 0.5,
+    });
   },
 };

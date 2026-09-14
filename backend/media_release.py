@@ -9,7 +9,6 @@ import hashlib
 import re
 from datetime import datetime, timezone
 
-
 MEDIA_KEY = "george"
 MAX_MP4_BYTES = 2 * 1024 * 1024 * 1024
 _FILENAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,199}\.mp4$", re.IGNORECASE)

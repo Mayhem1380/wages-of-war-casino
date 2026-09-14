@@ -12,6 +12,7 @@ export default function PaymentSuccess() {
   const [state, setState] = useState("checking"); // checking | paid | failed
   const [credits, setCredits] = useState(0);
   const polls = useRef(0);
+  const timeoutRef = useRef(null);
 
   useEffect(() => {
     const sessionId = new URLSearchParams(window.location.search).get(
@@ -23,6 +24,7 @@ export default function PaymentSuccess() {
     }
 
     let active = true;
+    polls.current = 0;
     const poll = async () => {
       if (!active) return;
       polls.current += 1;
@@ -45,11 +47,12 @@ export default function PaymentSuccess() {
         setState("failed");
         return;
       }
-      setTimeout(poll, 2000);
+      timeoutRef.current = setTimeout(poll, 2000);
     };
     poll();
     return () => {
       active = false;
+      clearTimeout(timeoutRef.current);
     };
   }, [refreshUser]);
 
@@ -101,8 +104,8 @@ export default function PaymentSuccess() {
               RESUPPLY UNCONFIRMED
             </h1>
             <p className="font-mono text-sm text-muted-foreground mt-2">
-              We couldn't confirm the payment. If you were charged, credits will
-              arrive shortly.
+              We couldn&apos;t confirm the payment. If you were charged, credits
+              will arrive shortly.
             </p>
             <Button
               onClick={() => navigate("/wallet")}

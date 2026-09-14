@@ -9,29 +9,41 @@ const PACKAGES = [
     name: "10-SLOT PACK",
     price: "$5,000",
     tagline: "10 custom slot machines",
-    perks: ["10 themed slot games", "Custom art per game", "Server-side RNG engine", "Mobile-ready + deploy"],
+    perks: [
+      "10 themed slot games",
+      "Custom art per game",
+      "Server-side RNG engine",
+      "Mobile-ready + deploy",
+    ],
   },
   {
     name: "STARTUP BUILD",
     price: "$5,800",
     featured: true,
     tagline: "Full startup platform",
-    perks: ["Full front + backend", "AAA custom graphics", "Payments & auth wired", "Deploy + launch support"],
+    perks: [
+      "Full front + backend",
+      "AAA custom graphics",
+      "Payments & auth wired",
+      "Deploy + launch support",
+    ],
   },
   {
     name: "PLATFORM COMPLETE",
     price: "$35,000",
     tagline: "Complete turnkey casino",
-    perks: ["Everything in Startup", "40+ slots + table games", "Real-money & compliance", "Ongoing ops & scaling"],
+    perks: [
+      "Everything in Startup",
+      "40+ slots + table games",
+      "Real-money & compliance",
+      "Ongoing ops & scaling",
+    ],
   },
 ];
 
 export function NexusStudioPromo() {
   return (
-    <section
-      data-testid="nexus-studio-promo"
-      className="pt-10"
-    >
+    <section data-testid="nexus-studio-promo" className="pt-10">
       <div className="flex items-center gap-3 mb-6">
         <Rocket size={24} weight="fill" className="text-gold" />
         <div>
@@ -75,7 +87,9 @@ export function NexusStudioPromo() {
             <p className="font-mono text-[11px] text-muted-foreground mb-2">
               {p.tagline}
             </p>
-            <p className="font-display text-3xl gold-gradient mb-3">{p.price}</p>
+            <p className="font-display text-3xl gold-gradient mb-3">
+              {p.price}
+            </p>
             <ul className="space-y-1.5">
               {p.perks.map((perk) => (
                 <li
@@ -108,7 +122,8 @@ export function NexusStudioPromo() {
         ))}
       </div>
       <p className="font-mono text-[10px] text-muted-foreground text-center mt-4">
-        Nexus Studio Master — cinematic web apps, games &amp; global fleet platforms. Enquire at{" "}
+        Nexus Studio Master — cinematic web apps, games &amp; global fleet
+        platforms. Enquire at{" "}
         <a href={NEXUS_URL} className="text-nvg underline">
           {NEXUS_URL.replace("https://", "")}
         </a>

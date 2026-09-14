@@ -14,7 +14,7 @@ function Block({ item }) {
   if (item.list) {
     return (
       <ul className="mb-3 space-y-1.5">
-        {item.list.map((li, i) => (
+        {item.list.map((li) => (
           <li
             key={li}
             className="flex gap-2 text-sm text-foreground/80 leading-relaxed"

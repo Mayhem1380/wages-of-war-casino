@@ -86,7 +86,9 @@ export default function ChatWidget() {
                   key={m.id}
                   className={`py-1 ${m.who === "bot" ? "text-gold" : "text-foreground"}`}
                 >
-                  <div className="font-mono text-[11px] opacity-70">{m.who}</div>
+                  <div className="font-mono text-[11px] opacity-70">
+                    {m.who}
+                  </div>
                   <div className="mt-1">{m.text}</div>
                 </div>
               ))}

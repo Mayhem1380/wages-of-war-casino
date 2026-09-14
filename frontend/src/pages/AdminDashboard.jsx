@@ -480,7 +480,11 @@ export default function AdminDashboard() {
         <div>
           {!hqUnlocked ? (
             <div className="hud max-w-sm mx-auto p-6 text-center space-y-4">
-              <ShieldCheck size={36} weight="fill" className="text-gold mx-auto" />
+              <ShieldCheck
+                size={36}
+                weight="fill"
+                className="text-gold mx-auto"
+              />
               <div>
                 <p className="font-display text-2xl gold-gradient tracking-wide">
                   HQ INBOX
@@ -527,7 +531,9 @@ export default function AdminDashboard() {
                       {new Date(tk.created_at).toLocaleString()}
                     </span>
                   </div>
-                  <div className="font-mono text-[11px] text-nvg">{tk.email}</div>
+                  <div className="font-mono text-[11px] text-nvg">
+                    {tk.email}
+                  </div>
                   <p className="text-sm text-foreground/80 mt-1 font-semibold">
                     {tk.subject}
                   </p>

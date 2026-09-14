@@ -33,7 +33,7 @@ const STATUS_STYLE = {
 };
 
 export default function Cashier() {
-  const { user, refreshUser } = useAuth();
+  const { refreshUser } = useAuth();
   const [params, setParams] = useSearchParams();
   const [meta, setMeta] = useState(null);
   const [summary, setSummary] = useState(null);
@@ -294,15 +294,21 @@ export default function Cashier() {
           <div className="cashier-metric-strip">
             <div className="cashier-metric-item">
               <span className="cashier-metric-label">Live</span>
-              <span className="cashier-metric-value">{summary?.crypto_live || summary?.vault_live ? "YES" : "TEST"}</span>
+              <span className="cashier-metric-value">
+                {summary?.crypto_live || summary?.vault_live ? "YES" : "TEST"}
+              </span>
             </div>
             <div className="cashier-metric-item">
               <span className="cashier-metric-label">Min</span>
-              <span className="cashier-metric-value">${meta?.min_deposit_usd ?? 5}</span>
+              <span className="cashier-metric-value">
+                ${meta?.min_deposit_usd ?? 5}
+              </span>
             </div>
             <div className="cashier-metric-item">
               <span className="cashier-metric-label">Withdraw</span>
-              <span className="cashier-metric-value">${meta?.min_withdraw_usd ?? 50}</span>
+              <span className="cashier-metric-value">
+                ${meta?.min_withdraw_usd ?? 50}
+              </span>
             </div>
           </div>
         </div>
@@ -364,7 +370,11 @@ export default function Cashier() {
           </div>
           <div>Wages of War Operations Ltd.</div>
           <div>
-            Min deposit ${meta?.min_deposit_usd} · Max deposit ${meta?.max_deposit_usd} · Min withdraw ${meta?.min_withdraw_usd ? `$${meta.min_withdraw_usd}` : "$0"} · Max withdraw ${meta?.max_withdraw_usd ? `$${meta.max_withdraw_usd}` : "$0"}
+            Min deposit ${meta?.min_deposit_usd} · Max deposit $
+            {meta?.max_deposit_usd} · Min withdraw $
+            {meta?.min_withdraw_usd ? `$${meta.min_withdraw_usd}` : "$0"} · Max
+            withdraw $
+            {meta?.max_withdraw_usd ? `$${meta.max_withdraw_usd}` : "$0"}
           </div>
         </div>
       </div>
@@ -394,8 +404,8 @@ export default function Cashier() {
         </ul>
         {summary && (
           <p className="mt-3 text-[11px] text-muted-foreground">
-            Your progress: ${summary.wagering_done_usd?.toLocaleString("en-US")} of $
-            {summary.wagering_required_usd?.toLocaleString("en-US")} wagered
+            Your progress: ${summary.wagering_done_usd?.toLocaleString("en-US")}{" "}
+            of ${summary.wagering_required_usd?.toLocaleString("en-US")} wagered
             {summary.wagering_met ? " (requirement met)" : ""} · your max
             cashout cap: ${summary.max_cashout_usd?.toLocaleString("en-US")}
           </p>
@@ -657,11 +667,13 @@ export default function Cashier() {
                   onChange={(e) => setWdCur(e.target.value)}
                   className={`${selectCls} mt-1`}
                 >
-                  {(CRYPTO_ENABLED ? meta?.currencies || [] : fiats).map((c) => (
-                    <option key={c.code} value={c.code}>
-                      {`${c.symbol} ${c.code} — ${c.name}`}
-                    </option>
-                  ))}
+                  {(CRYPTO_ENABLED ? meta?.currencies || [] : fiats).map(
+                    (c) => (
+                      <option key={c.code} value={c.code}>
+                        {`${c.symbol} ${c.code} — ${c.name}`}
+                      </option>
+                    ),
+                  )}
                 </select>
               </div>
               <div>

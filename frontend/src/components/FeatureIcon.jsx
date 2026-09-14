@@ -2,7 +2,14 @@ import React, { useState } from "react";
 
 // Renders a real image when `img` is provided and loads; falls back to the
 // vector `icon` (phosphor component) if no image is set or it fails to load.
-export function FeatureIcon({ img, icon: Icon, alt = "", size = 32, className = "", imgClassName = "" }) {
+export function FeatureIcon({
+  img,
+  icon: Icon,
+  alt = "",
+  size = 32,
+  className = "",
+  imgClassName = "",
+}) {
   const [failed, setFailed] = useState(false);
 
   if (img && !failed) {

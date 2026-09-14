@@ -1,8 +1,8 @@
 """Static audit: every public slot id must resolve to an existing tile image asset."""
+
 import json
 import os
 import re
-import subprocess
 
 import requests
 from dotenv import dotenv_values
@@ -31,7 +31,11 @@ def keys_and_thumbs(name):
     out = {}
     for km in re.finditer(r"^  ([A-Za-z0-9_]+):\s*\{", body, re.M):
         key = km.group(1)
-        seg = body[km.end():body.find("\n  }", km.end()) + 4] if "\n  }" in body[km.end():] else body[km.end():km.end() + 400]
+        seg = (
+            body[km.end() : body.find("\n  }", km.end()) + 4]
+            if "\n  }" in body[km.end() :]
+            else body[km.end() : km.end() + 400]
+        )
         tm = re.search(r'thumb:\s*"([^"]+)"', seg)
         out[key] = tm.group(1) if tm else None
     return out
@@ -40,7 +44,9 @@ def keys_and_thumbs(name):
 fa = keys_and_thumbs("FLAGSHIP_ART")
 ba = keys_and_thumbs("BASE_MACHINE_ART")
 slots = requests.get(f"{BASE_URL}/api/games/slots", timeout=30).json()
-print(f"backend slots: {len(slots)}  FLAGSHIP_ART: {len(fa)}  BASE_MACHINE_ART: {len(ba)}")
+print(
+    f"backend slots: {len(slots)}  FLAGSHIP_ART: {len(fa)}  BASE_MACHINE_ART: {len(ba)}"
+)
 
 missing_art, missing_file = [], []
 for s in slots:
@@ -61,13 +67,34 @@ print(json.dumps(missing_file, indent=1))
 print(f"count={len(missing_file)}")
 
 fb = os.path.join(PUB, "slots/thumb_gold.jpg")
-print(f"\nfallback thumb_gold.jpg exists={os.path.exists(fb)} size={os.path.getsize(fb) if os.path.exists(fb) else 0}")
+print(
+    f"\nfallback thumb_gold.jpg exists={os.path.exists(fb)} size={os.path.getsize(fb) if os.path.exists(fb) else 0}"
+)
 
-NEW22 = ["solar_vanguard", "obsidian_empire", "neon_pharaoh", "crimson_vanguard", "golden_atlas",
-         "emerald_guardian", "cobalt_siege", "royal_ordnance", "jade_dynasty", "inferno_warlord",
-         "arctic_recon", "midas_command", "phantom_strike", "thunder_baron", "desert_fury",
-         "steel_leviathan", "crimson_dynasty", "venom_squadron", "platinum_siege", "ember_legion",
-         "sapphire_command", "golden_griffin"]
+NEW22 = [
+    "solar_vanguard",
+    "obsidian_empire",
+    "neon_pharaoh",
+    "crimson_vanguard",
+    "golden_atlas",
+    "emerald_guardian",
+    "cobalt_siege",
+    "royal_ordnance",
+    "jade_dynasty",
+    "inferno_warlord",
+    "arctic_recon",
+    "midas_command",
+    "phantom_strike",
+    "thunder_baron",
+    "desert_fury",
+    "steel_leviathan",
+    "crimson_dynasty",
+    "venom_squadron",
+    "platinum_siege",
+    "ember_legion",
+    "sapphire_command",
+    "golden_griffin",
+]
 print("\n=== the 22 new flagships ===")
 ids = {s["id"] for s in slots}
 for n in NEW22:

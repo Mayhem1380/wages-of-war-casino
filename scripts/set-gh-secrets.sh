@@ -2,7 +2,7 @@
 set -euo pipefail
 
 usage() {
-  cat <<'EOF'
+  cat <<'EOF2'
 Usage: export values then run this script to set GitHub Actions secrets via gh CLI.
 
 Required env vars:
@@ -10,6 +10,7 @@ Required env vars:
   DEPLOY_HOST
   DEPLOY_USER
   DEPLOY_PATH
+  DEPLOY_KEY or DEPLOY_PASSWORD
 
 Optional env vars:
   DEPLOY_KEY         (path to private key file or the key content)
@@ -24,7 +25,7 @@ Example:
   export DEPLOY_KEY="$(cat ~/.ssh/id_rsa)"
   export DEPLOY_PATH=/var/www/wagesofwar/host
   ./scripts/set-gh-secrets.sh
-EOF
+EOF2
   exit 1
 }
 

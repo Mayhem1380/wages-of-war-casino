@@ -124,7 +124,10 @@ export default function SharkSplitters() {
         </div>
 
         {/* multiplier strip */}
-        <div className="grid grid-cols-3 gap-2 mb-6" data-testid="shark-multiplier-strip">
+        <div
+          className="grid grid-cols-3 gap-2 mb-6"
+          data-testid="shark-multiplier-strip"
+        >
           {[
             { t: "2×", s: "HEAD" },
             { t: "3×", s: "EVENS" },
@@ -134,7 +137,9 @@ export default function SharkSplitters() {
               key={m.s}
               className="border border-cyan-400/30 bg-black/40 backdrop-blur-sm py-3 text-center"
             >
-              <div className="font-display text-3xl text-gold leading-none">{m.t}</div>
+              <div className="font-display text-3xl text-gold leading-none">
+                {m.t}
+              </div>
               <div className="font-mono text-[10px] tracking-widest text-cyan-200/70 mt-1">
                 {m.s}
               </div>
@@ -155,7 +160,9 @@ export default function SharkSplitters() {
               <div
                 key={i}
                 className={`h-2 flex-1 rounded-sm transition-colors ${
-                  i < streak ? "bg-gold glow-gold" : "bg-cyan-900/50 border border-cyan-400/20"
+                  i < streak
+                    ? "bg-gold glow-gold"
+                    : "bg-cyan-900/50 border border-cyan-400/20"
                 }`}
               />
             ))}
@@ -174,12 +181,20 @@ export default function SharkSplitters() {
               className="w-40 h-40 mb-24 flex items-center justify-center"
               animate={
                 flip
-                  ? { y: [60, -110, -110, 60], rotateY: [0, 1440, 2520, 2880], scale: [0.8, 1.15, 1.15, 1] }
+                  ? {
+                      y: [60, -110, -110, 60],
+                      rotateY: [0, 1440, 2520, 2880],
+                      scale: [0.8, 1.15, 1.15, 1],
+                    }
                   : { y: 0, rotateY: 0, scale: 1 }
               }
               transition={
                 flip
-                  ? { duration: 1.5, ease: "easeInOut", times: [0, 0.25, 0.75, 1] }
+                  ? {
+                      duration: 1.5,
+                      ease: "easeInOut",
+                      times: [0, 0.25, 0.75, 1],
+                    }
                   : { duration: 0.3 }
               }
               style={{ transformStyle: "preserve-3d" }}
@@ -240,7 +255,10 @@ export default function SharkSplitters() {
         </div>
 
         {/* chips */}
-        <div className="flex flex-wrap gap-2 justify-center mt-6" data-testid="shark-chips">
+        <div
+          className="flex flex-wrap gap-2 justify-center mt-6"
+          data-testid="shark-chips"
+        >
           {CHIPS.map((c) => (
             <button
               key={c}
@@ -257,7 +275,9 @@ export default function SharkSplitters() {
           ))}
           <button
             data-testid="shark-max-bet"
-            onClick={() => setBet(Math.min(MAX_BET, Math.floor(user?.balance || MAX_BET)))}
+            onClick={() =>
+              setBet(Math.min(MAX_BET, Math.floor(user?.balance || MAX_BET)))
+            }
             className="px-4 h-16 rounded-full border-2 border-cyan-400/40 text-cyan-100 font-display text-sm hover:border-gold/60"
           >
             MAX
@@ -279,7 +299,8 @@ export default function SharkSplitters() {
           disabled={busy}
           className="w-full h-16 mt-4 bg-gold hover:bg-gold/90 text-black font-display text-2xl tracking-widest glow-gold gap-2"
         >
-          <Waves size={24} weight="fill" /> {busy ? "FLIPPING..." : "START FLIP"}
+          <Waves size={24} weight="fill" />{" "}
+          {busy ? "FLIPPING..." : "START FLIP"}
         </Button>
       </div>
     </div>

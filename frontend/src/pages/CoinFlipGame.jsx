@@ -4,13 +4,15 @@ import { useNavigate } from "react-router-dom";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { fmt } from "@/data/gameMeta";
+import { getPremiumGameMedia } from "@/data/premiumMedia";
 import { COINFLIP } from "@/constants/testIds";
 import { Button } from "@/components/ui/button";
+import { AnimatedShowcase } from "@/components/AnimatedShowcase";
 import { toast } from "sonner";
 import { sfx } from "@/lib/sounds";
 import { WinCelebration } from "@/components/WinCelebration";
 import { LiveWinnersTicker } from "@/components/LiveWinnersTicker";
-import { Coins, ArrowLeft, Lightning, TrendUp } from "@phosphor-icons/react";
+import { ArrowLeft, Lightning, TrendUp } from "@phosphor-icons/react";
 
 export default function CoinFlipGame() {
   const navigate = useNavigate();
@@ -23,6 +25,7 @@ export default function CoinFlipGame() {
   const [celebrate, setCelebrate] = useState(false);
   const [history, setHistory] = useState([]);
   const LBL = { heads: "GRENADE", tails: "KNIFE" };
+  const media = getPremiumGameMedia({ id: "coinflip", kind: "special" });
 
   const play = async () => {
     if (!user) {
@@ -37,23 +40,25 @@ export default function CoinFlipGame() {
     setResult(null);
     setFlip(true);
     sfx.prime();
-    sfx.spin();
+    sfx.spin(media.soundProfile);
     try {
       const { data } = await api.post("/games/coinflip", { side, bet });
       setTimeout(() => {
         setFlip(false);
         setResult(data);
-        setHistory((previous) => [
-          { outcome: data.outcome, won: data.win > 0 },
-          ...previous,
-        ].slice(0, 8));
+        setHistory((previous) =>
+          [{ outcome: data.outcome, won: data.win > 0 }, ...previous].slice(
+            0,
+            8,
+          ),
+        );
         refreshUser();
         if (data.win > 0) {
-          sfx.win();
+          sfx.win(media.soundProfile);
           setCelebrate(true);
           toast.success(`${LBL[data.outcome]} — WIN +${fmt(data.win)}`);
         } else {
-          sfx.lose();
+          sfx.lose(media.soundProfile);
           toast(`${LBL[data.outcome]} — no dice.`);
         }
         setBusy(false);
@@ -89,7 +94,7 @@ export default function CoinFlipGame() {
       className="relative min-h-screen"
       style={{
         backgroundImage:
-          "linear-gradient(rgba(8,10,10,0.55), rgba(4,6,6,0.8)), url(/slots/coinflip_bg.jpg)",
+          `linear-gradient(rgba(8,10,10,0.55), rgba(4,6,6,0.8)), url(${media.heroPoster})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundAttachment: "fixed",
@@ -111,14 +116,25 @@ export default function CoinFlipGame() {
 
         <div className="text-center mb-8">
           <p className="font-mono text-xs tracking-[0.4em] text-gold/70">
-            // 1.96× INSTANT PAYOUT
+            {`// ${media.videoKicker} · 1.96× INSTANT PAYOUT`}
           </p>
           <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl tracking-wide gold-gradient">
             DOG-TAG FLIP
           </h1>
+          <p className="mt-2 font-mono text-[10px] tracking-[0.25em] text-white/70">
+            {media.quality} GRAPHICS · VIDEO PLAY · {media.soundtrack}
+          </p>
         </div>
 
         <LiveWinnersTicker game="Dog-Tag Flip" />
+
+        <div className="mb-6 overflow-hidden rounded-sm border border-gold/30">
+          <AnimatedShowcase
+            testId="coinflip-video"
+            variant="promo"
+            slides={media.showcaseSlides}
+          />
+        </div>
 
         <div
           className="hud hud-gold p-8 flex flex-col items-center gap-6"
@@ -153,10 +169,19 @@ export default function CoinFlipGame() {
               <motion.img
                 key={i}
                 aria-hidden="true"
-                src={i % 2 === 0 ? "/brand/shark_coin_heads.png" : "/brand/shark_coin_tails.png"}
+                src={
+                  i % 2 === 0
+                    ? "/brand/shark_coin_heads.png"
+                    : "/brand/shark_coin_tails.png"
+                }
                 alt=""
                 className="pointer-events-none absolute w-10 h-10 sm:w-12 sm:h-12 object-contain drop-shadow-[0_0_10px_rgba(246,198,74,0.7)]"
-                style={{ top: "50%", left: "50%", marginTop: -24, marginLeft: -24 }}
+                style={{
+                  top: "50%",
+                  left: "50%",
+                  marginTop: -24,
+                  marginLeft: -24,
+                }}
                 animate={
                   flip
                     ? {
@@ -238,14 +263,19 @@ export default function CoinFlipGame() {
             <p className="mb-2 flex items-center justify-center gap-2 font-mono text-[10px] tracking-[0.2em] text-nvg/80">
               <TrendUp size={13} weight="bold" /> MISSION STREAK
             </p>
-            <div className="flex justify-center gap-1.5" aria-label="Recent coin flip results">
-              {history.length ? history.map((entry, index) => (
-                <span
-                  key={`${entry.outcome}-${index}`}
-                  title={`${LBL[entry.outcome]} ${entry.won ? "win" : "loss"}`}
-                  className={`h-2.5 w-2.5 rounded-full border ${entry.won ? "border-nvg bg-nvg" : "border-alert bg-alert/40"}`}
-                />
-              )) : (
+            <div
+              className="flex justify-center gap-1.5"
+              aria-label="Recent coin flip results"
+            >
+              {history.length ? (
+                history.map((entry, index) => (
+                  <span
+                    key={`${entry.outcome}-${index}`}
+                    title={`${LBL[entry.outcome]} ${entry.won ? "win" : "loss"}`}
+                    className={`h-2.5 w-2.5 rounded-full border ${entry.won ? "border-nvg bg-nvg" : "border-alert bg-alert/40"}`}
+                  />
+                ))
+              ) : (
                 <span className="font-mono text-[9px] tracking-widest text-muted-foreground">
                   FLIP TO START YOUR RUN
                 </span>
