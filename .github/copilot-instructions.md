@@ -49,3 +49,10 @@ This repository is a casino app with a Python/FastAPI backend and a React fronte
 - Do not claim a deploy or publish is complete without a fresh build and explicit deploy target values.
 - Keep all build, deploy, and preview actions grounded in repo truth and real host state.
 - Before blaming the frontend for missing media or broken pages, confirm the host is serving the correct app and not a stale or wrong preview build.
+https://wages-of-war-backend.onrender.comMONGO_URL=mongodb+srv://...
+FRONTEND_URL=https://your-frontend.onrender.com
+CORS_ORIGINS=https://your-frontend.onrender.com
+ADMIN_EMAIL=your-admin-email
+ADMIN_PASSWORD=your-admin-password
+STRIPE_WEBHOOK_SECRET=whsec_...- key: JWT_SECRET
+  generateValue: truehttps://wages-of-war-backend.onrender.com/health{"status":"healthy"}REACT_APP_BACKEND_URL=https://wages-of-war-backend.onrender.com45cdbb4d49ab6c0788403fc6ec9642f4f785a492
