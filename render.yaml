@@ -15,7 +15,7 @@ services:
       - key: MONGO_URL
         sync: false
       - key: DB_NAME
-        value: wages_of_war
+        value: https://wages-of-war-backend.onrender.com
       - key: CORS_ORIGINS
         sync: false
       - key: FRONTEND_URL
@@ -47,11 +47,4 @@ services:
       - key: VAULT_API_KEY
         sync: false
       - key: VAULT_PLATFORM
-        value: wages_of_war
-  Mayhem1380/wages-of-war-casinohttps://wages-of-war-backend.onrender.comMONGO_URL=mongodb+srv://...
-FRONTEND_URL=https://your-frontend.onrender.com
-CORS_ORIGINS=https://your-frontend.onrender.com
-ADMIN_EMAIL=your-admin-email
-ADMIN_PASSWORD=your-admin-password
-STRIPE_WEBHOOK_SECRET=whsec_...- key: JWT_SECRET
-  generateValue: truehttps://wages-of-war-backend.onrender.com/health{"status":"healthy"}REACT_APP_BACKEND_URL=https://wages-of-war-backend.onrender.com
+        wages_of_war
