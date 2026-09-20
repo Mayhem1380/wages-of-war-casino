@@ -50,3 +50,18 @@ If you no longer control the current SSH/SCP target, use the existing Render blu
 - Treat the following as sensitive: `JWT_SECRET`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NOWPAYMENTS_API_KEY`, `NOWPAYMENTS_IPN_SECRET`, `VAULT_API_KEY`, `ADMIN_PASSWORD`, and any live production URLs.
 - If a value is not in the vault, it must not be committed, pasted into chat, or saved in source-control files.
 - This repo already expects that pattern: the backend rejects placeholder production config values before deploy.
+https://wages-of-war-backend.onrender.com/health
+Mayhem1380/wages-of-war-casino
+https://wages-of-war-backend.onrender.com
+MONGO_URL=mongodb+srv://...
+FRONTEND_URL=https://your-frontend.onrender.com
+CORS_ORIGINS=https://your-frontend.onrender.com
+ADMIN_EMAIL=your-admin-email
+ADMIN_PASSWORD=your-admin-password
+STRIPE_WEBHOOK_SECRET=whsec_...
+- key: JWT_SECRET
+  generateValue: true
+{"status":"healthy"}
+REACT_APP_BACKEND_URL=https://wages-of-war-backend.onrender.com
+45cdbb4d49ab6c0788403fc6ec9642f4f785a492
+https://wages-of-war-backend.onrender.com/health
